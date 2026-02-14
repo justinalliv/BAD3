@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Customer Home - Supreme Biotech Solutions</title>
+    <title>Payment Instructions - Supreme Biotech Solutions</title>
     <style>
         * {
             margin: 0;
@@ -13,6 +13,7 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f5f5;
         }
 
         /* Navigation Bar */
@@ -63,7 +64,6 @@
         .nav-links a.active {
             color: #1a2a5e;
             background-color: #e8f0fe;
-            font-weight: 600;
         }
 
         .profile-btn {
@@ -85,53 +85,90 @@
             background-color: #0d1535;
         }
 
-        /* Hero Section */
-        .hero {
-            background: linear-gradient(135deg, #1a2a5e 0%, #2d3e6f 50%, #1f3a5f 100%);
-            min-height: calc(100vh - 70px);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 60px 20px;
+        /* Main Content */
+        .container {
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .card {
+            background-color: white;
+            border-radius: 10px;
+            padding: 40px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .card h1 {
+            color: #1a2a5e;
+            font-size: 2em;
+            margin-bottom: 30px;
             text-align: center;
         }
 
-        .hero-content {
-            max-width: 800px;
-            color: white;
-        }
-
-        .hero h1 {
-            font-size: 3.5em;
-            font-weight: 700;
-            margin-bottom: 20px;
-            line-height: 1.2;
-        }
-
-        .hero p {
-            font-size: 1.5em;
-            margin-bottom: 40px;
-            opacity: 0.95;
-        }
-
-        .schedule-btn {
-            display: inline-block;
-            padding: 15px 45px;
-            background-color: transparent;
-            color: white;
-            border: 2px solid white;
+        .info-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background-color: #f9f9f9;
             border-radius: 5px;
-            font-size: 1.1em;
-            font-weight: 600;
-            text-decoration: none;
-            cursor: pointer;
-            transition: all 0.3s ease;
+            border-left: 4px solid #1a2a5e;
         }
 
-        .schedule-btn:hover {
-            background-color: white;
+        .info-section h3 {
             color: #1a2a5e;
-            transform: scale(1.05);
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+
+        .info-section p {
+            color: #666;
+            line-height: 1.6;
+        }
+
+        .amount-display {
+            font-size: 1.2em;
+            font-weight: 600;
+            color: #1a2a5e;
+            margin-top: 10px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 40px;
+        }
+
+        .cancel-btn {
+            background-color: #e0e0e0;
+            color: #333;
+            padding: 12px 40px;
+            border: none;
+            border-radius: 5px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .cancel-btn:hover {
+            background-color: #d0d0d0;
+        }
+
+        .continue-btn {
+            background-color: #1a2a5e;
+            color: white;
+            padding: 12px 40px;
+            border: none;
+            border-radius: 5px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .continue-btn:hover {
+            background-color: #0d1535;
         }
 
         /* Responsive */
@@ -149,17 +186,12 @@
                 justify-content: center;
             }
 
-            .hero h1 {
-                font-size: 2.5em;
+            .button-group {
+                flex-direction: column;
             }
 
-            .hero p {
-                font-size: 1.2em;
-            }
-
-            .schedule-btn {
-                padding: 12px 35px;
-                font-size: 1em;
+            .cancel-btn, .continue-btn {
+                width: 100%;
             }
         }
     </style>
@@ -178,9 +210,9 @@
         </div>
 
         <ul class="nav-links">
-            <li><a href="{% url 'customer_home' %}" class="active">Home</a></li>
+            <li><a href="{% url 'customer_home' %}">Home</a></li>
             <li><a href="#">Book Inspection</a></li>
-            <li><a href="{% url 'pending_payment' %}">Pending Payment</a></li>
+            <li><a href="{% url 'pending_payment' %}" class="active">Pending Payment</a></li>
             <li><a href="#">Service History</a></li>
             <li><a href="#">Service Status</a></li>
         </ul>
@@ -194,13 +226,39 @@
         </a>
     </nav>
 
-    <!-- Hero Section -->
-    <section class="hero">
-        <div class="hero-content">
-            <h1>Experience the Supreme Difference.</h1>
-            <p>Providing solutions to all your pest problems.</p>
-            <a href="#" class="schedule-btn">Schedule an Inspection</a>
+    <!-- Main Content -->
+    <div class="container">
+        <div class="card">
+            <h1>Payment Instructions</h1>
+
+            <div class="info-section">
+                <h3>Amount to Pay</h3>
+                <p class="amount-display">₱5,000.00</p>
+            </div>
+
+            <div class="info-section">
+                <h3>Payment Method</h3>
+                <p>Bank Transfer</p>
+            </div>
+
+            <div class="info-section">
+                <h3>Bank Details</h3>
+                <p><strong>Bank Name:</strong> Bank of the Philippine Islands (BPI)</p>
+                <p><strong>Account Name:</strong> Supreme Biotech Solutions</p>
+                <p><strong>Account Number:</strong> 1234567890</p>
+                <p><strong>Branch Code:</strong> 001</p>
+            </div>
+
+            <div class="info-section">
+                <h3>Reference</h3>
+                <p>Please use your Service ID as the reference number when making the transfer.</p>
+            </div>
+
+            <div class="button-group">
+                <button type="button" class="cancel-btn" onclick="window.history.back()">Cancel</button>
+                <a href="{% url 'submit_payment_proof' %}" class="continue-btn" style="text-decoration: none; display: inline-block;">Continue</a>
+            </div>
         </div>
-    </section>
+    </div>
 </body>
 </html>

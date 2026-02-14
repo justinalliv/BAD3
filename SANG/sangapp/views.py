@@ -130,3 +130,71 @@ def edit_profile(request):
         return redirect('profile')
     
     return render(request, 'edit_profile.html', {'customer': customer})
+
+
+def pending_payment(request):
+    """Display pending payments page (UC 05)."""
+    # Check if user is logged in
+    if 'customer_id' not in request.session:
+        return redirect('login')
+    
+    # For now, show empty pending payments
+    # TODO: Fetch actual pending payments from database
+    return render(request, 'pending_payment.html')
+
+
+def payment_instructions(request):
+    """Display payment instructions page (UC 05)."""
+    # Check if user is logged in
+    if 'customer_id' not in request.session:
+        return redirect('login')
+    
+    return render(request, 'payment_instructions.html')
+
+
+def submit_payment_proof(request):
+    """Handle payment proof submission (UC 05)."""
+    # Check if user is logged in
+    if 'customer_id' not in request.session:
+        return redirect('login')
+    
+    if request.method == 'POST':
+        payment_type = request.POST.get('payment_type', '').strip()
+        bank_used = request.POST.get('bank_used', '').strip()
+        reference_number = request.POST.get('reference_number', '').strip()
+        amount_paid = request.POST.get('amount_paid', '').strip()
+        proof_file = request.FILES.get('proof_file')
+        
+        # Validate all fields
+        errors = {}
+        if not payment_type:
+            errors['payment_type'] = 'Payment type is required'
+        if not bank_used:
+            errors['bank_used'] = 'Bank is required'
+        if not reference_number:
+            errors['reference_number'] = 'Reference number is required'
+        if not amount_paid:
+            errors['amount_paid'] = 'Amount paid is required'
+        if not proof_file:
+            errors['file'] = 'Proof of payment is required'
+        
+        # Validate file format and size
+        if proof_file:
+            allowed_extensions = ['jpg', 'jpeg', 'png', 'pdf']
+            max_size = 5 * 1024 * 1024  # 5 MB
+            
+            file_ext = proof_file.name.split('.')[-1].lower()
+            if file_ext not in allowed_extensions:
+                errors['file'] = 'File format not allowed. Only JPG, PNG, or PDF are accepted.'
+            
+            if proof_file.size > max_size:
+                errors['file'] = 'File size exceeds 5 MB limit.'
+        
+        if errors:
+            return render(request, 'submit_payment_proof.html', {'errors': errors})
+        
+        # TODO: Save payment proof to database
+        # For now, payment submission is successful
+        return render(request, 'submit_payment_proof.html', {'success': True})
+    
+    return render(request, 'submit_payment_proof.html')
