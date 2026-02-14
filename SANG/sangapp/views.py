@@ -78,3 +78,55 @@ def signup(request):
         form = CustomerRegistrationForm()
     
     return render(request, 'signup.html', {'form': form})
+
+
+def profile(request):
+    """Display customer profile page."""
+    # Check if user is logged in
+    if 'customer_id' not in request.session:
+        return redirect('login')
+    
+    customer = Customer.objects.get(id=request.session['customer_id'])
+    return render(request, 'profile.html', {'customer': customer})
+
+
+def edit_profile(request):
+    """Handle customer profile editing."""
+    # Check if user is logged in
+    if 'customer_id' not in request.session:
+        return redirect('login')
+    
+    customer = Customer.objects.get(id=request.session['customer_id'])
+    
+    if request.method == 'POST':
+        first_name = request.POST.get('first_name', '').strip()
+        last_name = request.POST.get('last_name', '').strip()
+        phone_number = request.POST.get('phone_number', '').strip()
+        
+        # Validate phone number format
+        import re
+        if not re.match(r'^09\d{9}$', phone_number):
+            return render(request, 'edit_profile.html', {
+                'customer': customer,
+                'error_phone': 'Phone Number must be 11 digits and start with 09-'
+            })
+        
+        # Check if phone number already exists (excluding current customer)
+        if Customer.objects.filter(phone_number=phone_number).exclude(id=customer.id).exists():
+            return render(request, 'edit_profile.html', {
+                'customer': customer,
+                'error_phone': 'Phone number has already been registered. Please input a different phone number.'
+            })
+        
+        # Update customer profile
+        customer.first_name = first_name
+        customer.last_name = last_name
+        customer.phone_number = phone_number
+        customer.save()
+        
+        # Update session name
+        request.session['customer_name'] = f"{first_name} {last_name}"
+        
+        return redirect('profile')
+    
+    return render(request, 'edit_profile.html', {'customer': customer})

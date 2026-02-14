@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Customer Home - Supreme Biotech Solutions</title>
+    <title>Profile - Supreme Biotech Solutions</title>
     <style>
         * {
             margin: 0;
@@ -13,6 +13,7 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f5f5;
         }
 
         /* Navigation Bar */
@@ -60,12 +61,6 @@
             background-color: #f0f0f0;
         }
 
-        .nav-links a.active {
-            color: #1a2a5e;
-            background-color: #e8f0fe;
-            font-weight: 600;
-        }
-
         .profile-btn {
             background-color: #1a2a5e;
             color: white;
@@ -85,53 +80,77 @@
             background-color: #0d1535;
         }
 
-        /* Hero Section */
-        .hero {
-            background: linear-gradient(135deg, #1a2a5e 0%, #2d3e6f 50%, #1f3a5f 100%);
-            min-height: calc(100vh - 70px);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 60px 20px;
-            text-align: center;
-        }
-
-        .hero-content {
+        /* Main Content */
+        .container {
             max-width: 800px;
-            color: white;
+            margin: 40px auto;
+            padding: 0 20px;
         }
 
-        .hero h1 {
-            font-size: 3.5em;
-            font-weight: 700;
-            margin-bottom: 20px;
-            line-height: 1.2;
-        }
-
-        .hero p {
-            font-size: 1.5em;
-            margin-bottom: 40px;
-            opacity: 0.95;
-        }
-
-        .schedule-btn {
-            display: inline-block;
-            padding: 15px 45px;
-            background-color: transparent;
-            color: white;
-            border: 2px solid white;
-            border-radius: 5px;
-            font-size: 1.1em;
-            font-weight: 600;
-            text-decoration: none;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .schedule-btn:hover {
+        .profile-card {
             background-color: white;
+            border-radius: 10px;
+            padding: 40px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .profile-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .profile-header h1 {
             color: #1a2a5e;
-            transform: scale(1.05);
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        .profile-info {
+            margin-bottom: 30px;
+        }
+
+        .info-row {
+            display: flex;
+            padding: 15px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .info-label {
+            font-weight: 600;
+            color: #333;
+            width: 150px;
+        }
+
+        .info-value {
+            color: #666;
+            flex: 1;
+        }
+
+        .edit-btn {
+            background-color: #1a2a5e;
+            color: white;
+            padding: 12px 40px;
+            border: none;
+            border-radius: 5px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            transition: background-color 0.3s;
+            margin-top: 20px;
+        }
+
+        .edit-btn:hover {
+            background-color: #0d1535;
+        }
+
+        .section-title {
+            color: #1a2a5e;
+            font-size: 1.3em;
+            margin: 30px 0 15px 0;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #1a2a5e;
         }
 
         /* Responsive */
@@ -149,17 +168,13 @@
                 justify-content: center;
             }
 
-            .hero h1 {
-                font-size: 2.5em;
+            .info-row {
+                flex-direction: column;
+                gap: 5px;
             }
 
-            .hero p {
-                font-size: 1.2em;
-            }
-
-            .schedule-btn {
-                padding: 12px 35px;
-                font-size: 1em;
+            .info-label {
+                width: 100%;
             }
         }
     </style>
@@ -178,7 +193,7 @@
         </div>
 
         <ul class="nav-links">
-            <li><a href="{% url 'customer_home' %}" class="active">Home</a></li>
+            <li><a href="{% url 'customer_home' %}">Home</a></li>
             <li><a href="#">Book Inspection</a></li>
             <li><a href="#">Pending Payment</a></li>
             <li><a href="#">Service History</a></li>
@@ -194,13 +209,38 @@
         </a>
     </nav>
 
-    <!-- Hero Section -->
-    <section class="hero">
-        <div class="hero-content">
-            <h1>Experience the Supreme Difference.</h1>
-            <p>Providing solutions to all your pest problems.</p>
-            <a href="#" class="schedule-btn">Schedule an Inspection</a>
+    <!-- Main Content -->
+    <div class="container">
+        <div class="profile-card">
+            <div class="profile-header">
+                <h1>Profile</h1>
+            </div>
+
+            <div class="profile-info">
+                <div class="info-row">
+                    <div class="info-label">Name:</div>
+                    <div class="info-value">{{ customer.first_name }} {{ customer.last_name }}</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Email:</div>
+                    <div class="info-value">{{ customer.email }}</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Phone:</div>
+                    <div class="info-value">{{ customer.phone_number }}</div>
+                </div>
+            </div>
+
+            <h3 class="section-title">Service Status</h3>
+            <p style="color: #666; padding: 10px 0;">No active services</p>
+
+            <h3 class="section-title">Service History</h3>
+            <p style="color: #666; padding: 10px 0;">No service history</p>
+
+            <div style="text-align: center;">
+                <a href="{% url 'edit_profile' %}" class="edit-btn">Edit Profile</a>
+            </div>
         </div>
-    </section>
+    </div>
 </body>
 </html>
