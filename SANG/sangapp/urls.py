@@ -12,4 +12,6 @@ urlpatterns = [
     path('pending-payment/', views.pending_payment, name='pending_payment'),
     path('payment-instructions/', views.payment_instructions, name='payment_instructions'),
     path('submit-payment-proof/', views.submit_payment_proof, name='submit_payment_proof'),
+    path('properties/', views.property_list, name='property_list'),
+    path('properties/register/', views.register_property, name='register_property'),
 ]

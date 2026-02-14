@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Profile - Supreme Biotech Solutions</title>
+    <title>Manage Properties - Supreme Biotech Solutions</title>
     <style>
         * {
             margin: 0;
@@ -61,6 +61,12 @@
             background-color: #f0f0f0;
         }
 
+        .nav-links a.active {
+            color: #1a2a5e;
+            background-color: #e8f0fe;
+            font-weight: 600;
+        }
+
         .profile-btn {
             background-color: #1a2a5e;
             color: white;
@@ -91,15 +97,15 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 40px;
+            margin-bottom: 30px;
         }
 
         .header-section h1 {
             color: #1a2a5e;
-            font-size: 2.5em;
+            font-size: 2em;
         }
 
-        .edit-profile-btn {
+        .register-btn {
             background-color: #1a2a5e;
             color: white;
             padding: 12px 30px;
@@ -107,52 +113,28 @@
             border-radius: 5px;
             font-weight: 600;
             cursor: pointer;
+            transition: background-color 0.3s;
             text-decoration: none;
             display: inline-flex;
             align-items: center;
             gap: 8px;
-            font-size: 1em;
-            transition: background-color 0.3s;
         }
 
-        .edit-profile-btn:hover {
+        .register-btn:hover {
             background-color: #0d1535;
         }
 
-        /* Section Styles */
-        .section {
+        /* Table Styles */
+        .table-card {
             background-color: white;
             border-radius: 10px;
             padding: 30px;
-            margin-bottom: 30px;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
 
-        .section-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-
-        .section-header h2 {
-            color: #1a2a5e;
-            font-size: 1.8em;
-        }
-
-        .search-box {
-            padding: 8px 15px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            width: 250px;
-            font-size: 0.95em;
-        }
-
-        /* Table Styles */
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 10px;
         }
 
         thead {
@@ -175,38 +157,47 @@
         }
 
         tbody tr:hover {
-            background-color: #f5f5f5;
+            background-color: #f9f9f9;
         }
 
         tbody tr:last-child td {
             border-bottom: none;
         }
 
-        .file-link {
-            color: #1a2a5e;
-            text-decoration: underline;
-            cursor: pointer;
-        }
-
-        .file-link:hover {
-            color: #0d1535;
-        }
-
-        .status-badge {
-            padding: 5px 12px;
-            border-radius: 4px;
-            font-size: 0.85em;
+        .action-btn {
+            background-color: #1a2a5e;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 5px;
             font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            text-decoration: none;
+            display: inline-block;
+            margin-right: 8px;
         }
 
-        .status-treatment {
-            background-color: #fff3cd;
-            color: #856404;
+        .action-btn:hover {
+            background-color: #0d1535;
         }
 
-        .status-ongoing {
-            background-color: #d1ecf1;
-            color: #0c5460;
+        .delete-btn {
+            background-color: #e74c3c;
+        }
+
+        .delete-btn:hover {
+            background-color: #c0392b;
+        }
+
+        .no-records {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+
+        .no-records p {
+            font-size: 1.1em;
         }
 
         /* Responsive */
@@ -226,18 +217,12 @@
 
             .header-section {
                 flex-direction: column;
-                align-items: flex-start;
                 gap: 15px;
             }
 
-            .section-header {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 10px;
-            }
-
-            .search-box {
+            .register-btn {
                 width: 100%;
+                justify-content: center;
             }
 
             table {
@@ -265,7 +250,7 @@
 
         <ul class="nav-links">
             <li><a href="{% url 'customer_home' %}">Home</a></li>
-            <li><a href="{% url 'property_list' %}">Manage Properties</a></li>
+            <li><a href="{% url 'property_list' %}" class="active">Manage Properties</a></li>
             <li><a href="{% url 'pending_payment' %}">Pending Payment</a></li>
             <li><a href="#">Service History</a></li>
             <li><a href="#">Service Status</a></li>
@@ -282,61 +267,45 @@
 
     <!-- Main Content -->
     <div class="container">
-        <!-- Header Section -->
         <div class="header-section">
-            <h1>Hi, {{ customer.first_name }} {{ customer.last_name }}!</h1>
-            <a href="{% url 'edit_profile' %}" class="edit-profile-btn">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
-                </svg>
-                Edit Profile
-            </a>
+            <h1>Manage Properties</h1>
+            <a href="{% url 'register_property' %}" class="register-btn">Register Property</a>
         </div>
 
-        <!-- Service Status Section -->
-        <div class="section">
-            <div class="section-header">
-                <h2>Service Status</h2>
-                <input type="text" class="search-box" placeholder="Search">
-            </div>
+        <div class="table-card">
             <table>
                 <thead>
                     <tr>
-                        <th>Service ID</th>
+                        <th>Property ID</th>
+                        <th>Property Name</th>
                         <th>Property Address</th>
-                        <th>Service Type</th>
-                        <th>Status</th>
+                        <th>Property Type</th>
+                        <th>Floor Area</th>
+                        <th>Action</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <tr>
-                        <td colspan="4" style="text-align: center; color: #999; padding: 30px;">No service status records</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-
-        <!-- Service History Section -->
-        <div class="section">
-            <div class="section-header">
-                <h2>Service History</h2>
-                <input type="text" class="search-box" placeholder="Search">
-            </div>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Service ID</th>
-                        <th>Property Address</th>
-                        <th>Service Type</th>
-                        <th>Service Date</th>
-                        <th>Invoice</th>
-                        <th>Service Report</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td colspan="6" style="text-align: center; color: #999; padding: 30px;">No service history records</td>
-                    </tr>
+                    {% if properties %}
+                        {% for property in properties %}
+                        <tr>
+                            <td>{{ property.id }}</td>
+                            <td>{{ property.property_name }}</td>
+                            <td>{{ property.street_number }} {{ property.street }}, {{ property.city }}, {{ property.province }}</td>
+                            <td>{{ property.property_type }}</td>
+                            <td>{{ property.floor_area }} sqm</td>
+                            <td>
+                                <a href="#" class="action-btn">Edit</a>
+                                <button class="action-btn delete-btn">Delete</button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="6" class="no-records">
+                                <p>You have no registered properties. Click "Register Property" to add one.</p>
+                            </td>
+                        </tr>
+                    {% endif %}
                 </tbody>
             </table>
         </div>
