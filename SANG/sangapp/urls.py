@@ -14,4 +14,6 @@ urlpatterns = [
     path('submit-payment-proof/', views.submit_payment_proof, name='submit_payment_proof'),
     path('properties/', views.property_list, name='property_list'),
     path('properties/register/', views.register_property, name='register_property'),
+    path('properties/<int:property_id>/edit/', views.edit_property, name='edit_property'),
+    path('properties/<int:property_id>/delete/', views.delete_property, name='delete_property'),
 ]

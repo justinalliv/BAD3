@@ -297,3 +297,138 @@ def register_property(request):
     
     return render(request, 'register_property.html', {'customer': customer})
 
+
+def edit_property(request, property_id):
+    """Handle property editing (UC 07)."""
+    # Check if user is logged in
+    if 'customer_id' not in request.session:
+        return redirect('login')
+    
+    customer = Customer.objects.get(id=request.session['customer_id'])
+    
+    try:
+        property_obj = Property.objects.get(id=property_id, customer=customer)
+    except Property.DoesNotExist:
+        return redirect('property_list')
+    
+    if request.method == 'POST':
+        property_name = request.POST.get('property_name', '').strip()
+        street_number = request.POST.get('street_number', '').strip()
+        street = request.POST.get('street', '').strip()
+        city = request.POST.get('city', '').strip()
+        province = request.POST.get('province', '').strip()
+        country = request.POST.get('country', '').strip()
+        zip_code = request.POST.get('zip_code', '').strip()
+        property_type = request.POST.get('property_type', '').strip()
+        floor_area = request.POST.get('floor_area', '').strip()
+        
+        # Validate all fields are filled (extension 7.2)
+        errors = {}
+        if not property_name:
+            errors['property_name'] = 'Property name is required'
+        if not street_number:
+            errors['street_number'] = 'Street number is required'
+        if not street:
+            errors['street'] = 'Street is required'
+        if not city:
+            errors['city'] = 'City is required'
+        if not province:
+            errors['province'] = 'Province is required'
+        if not country:
+            errors['country'] = 'Country is required'
+        if not zip_code:
+            errors['zip_code'] = 'ZIP code is required'
+        if not property_type:
+            errors['property_type'] = 'Property type is required'
+        if not floor_area:
+            errors['floor_area'] = 'Floor area is required'
+        
+        # Check if new property name already exists for this customer (excluding current property)
+        if property_name and Property.objects.filter(
+            customer=customer, 
+            property_name=property_name
+        ).exclude(id=property_id).exists():
+            errors['property_name'] = 'Property name already registered into the system. Please replace property name.'
+        
+        if errors:
+            return render(request, 'edit_property.html', {
+                'customer': customer,
+                'property': property_obj,
+                'errors': errors,
+                'form_data': request.POST
+            })
+        
+        # Update property record
+        try:
+            property_obj.property_name = property_name
+            property_obj.street_number = street_number
+            property_obj.street = street
+            property_obj.city = city
+            property_obj.province = province
+            property_obj.country = country
+            property_obj.zip_code = zip_code
+            property_obj.property_type = property_type
+            property_obj.floor_area = float(floor_area)
+            property_obj.save()
+            
+            # Show success message
+            return render(request, 'edit_property.html', {
+                'customer': customer,
+                'property': property_obj,
+                'success': True,
+                'property_name': property_name
+            })
+        except Exception as e:
+            errors['general'] = f'An error occurred while updating the property: {str(e)}'
+            return render(request, 'edit_property.html', {
+                'customer': customer,
+                'property': property_obj,
+                'errors': errors,
+                'form_data': request.POST
+            })
+    
+    return render(request, 'edit_property.html', {
+        'customer': customer,
+        'property': property_obj,
+        'form_data': {
+            'property_name': property_obj.property_name,
+            'street_number': property_obj.street_number,
+            'street': property_obj.street,
+            'city': property_obj.city,
+            'province': property_obj.province,
+            'country': property_obj.country,
+            'zip_code': property_obj.zip_code,
+            'property_type': property_obj.property_type,
+            'floor_area': property_obj.floor_area,
+        }
+    })
+
+
+def delete_property(request, property_id):
+    """Handle property deletion (UC 08)."""
+    # Check if user is logged in
+    if 'customer_id' not in request.session:
+        return redirect('login')
+    
+    customer = Customer.objects.get(id=request.session['customer_id'])
+    
+    try:
+        property_obj = Property.objects.get(id=property_id, customer=customer)
+    except Property.DoesNotExist:
+        return redirect('property_list')
+    
+    if request.method == 'POST':
+        property_name = property_obj.property_name
+        property_obj.delete()
+        
+        # Return success response that will trigger success modal in frontend
+        return render(request, 'property_list.html', {
+            'customer': customer,
+            'properties': Property.objects.filter(customer=customer),
+            'delete_success': True,
+            'deleted_property_name': property_name
+        })
+    
+    # GET request should not directly delete, redirect to property list
+    return redirect('property_list')
+

@@ -200,6 +200,96 @@
             font-size: 1.1em;
         }
 
+        .search-box {
+            padding: 10px 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            width: 100%;
+            max-width: 400px;
+            font-size: 0.95em;
+            transition: border-color 0.3s;
+        }
+
+        .search-box:focus {
+            outline: none;
+            border-color: #1a2a5e;
+            box-shadow: 0 0 0 2px rgba(26, 42, 94, 0.1);
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.4);
+        }
+
+        .modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            max-width: 400px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .modal-content h2 {
+            color: #1a2a5e;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+
+        .modal-content p {
+            color: #666;
+            margin-bottom: 25px;
+            line-height: 1.6;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        .modal-btn {
+            padding: 10px 30px;
+            border: none;
+            border-radius: 5px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 0.95em;
+        }
+
+        .modal-btn-cancel {
+            background-color: #e0e0e0;
+            color: #333;
+            transition: background-color 0.3s;
+        }
+
+        .modal-btn-cancel:hover {
+            background-color: #d0d0d0;
+        }
+
+        .modal-btn-confirm {
+            background-color: #1a2a5e;
+            color: white;
+            transition: background-color 0.3s;
+        }
+
+        .modal-btn-confirm:hover {
+            background-color: #0d1535;
+        }
+
         /* Responsive */
         @media (max-width: 768px) {
             nav {
@@ -268,17 +358,30 @@
     <!-- Main Content -->
     <div class="container">
         <div class="header-section">
-            <h1>Manage Properties</h1>
+            <div>
+                <h1 style="color: #1a2a5e; font-size: 1.8em; margin-bottom: 20px;">Hi, {{ customer.first_name }} {{ customer.last_name }}!</h1>
+                <h2 style="color: #1a2a5e; font-size: 1.3em;">Manage Properties</h2>
+            </div>
             <a href="{% url 'register_property' %}" class="register-btn">Register Property</a>
         </div>
 
+        {% if delete_success %}
+        <div class="success-message" style="margin-bottom: 20px; background-color: #d4edda; border: 1px solid #c3e6cb; color: #155724; padding: 15px; border-radius: 5px; text-align: center;">
+            Property successfully deleted.
+        </div>
+        {% endif %}
+
+        <div style="margin-bottom: 20px;">
+            <input type="text" id="searchBox" class="search-box" placeholder="Search properties...">
+        </div>
+
         <div class="table-card">
-            <table>
+            <table id="propertyTable">
                 <thead>
                     <tr>
                         <th>Property ID</th>
                         <th>Property Name</th>
-                        <th>Property Address</th>
+                        <th>Address</th>
                         <th>Property Type</th>
                         <th>Floor Area</th>
                         <th>Action</th>
@@ -287,15 +390,15 @@
                 <tbody>
                     {% if properties %}
                         {% for property in properties %}
-                        <tr>
+                        <tr class="property-row" data-property-id="{{ property.id }}" data-property-name="{{ property.property_name }}" data-property-address="{{ property.street_number }} {{ property.street }}, {{ property.city }}, {{ property.province }}">
                             <td>{{ property.id }}</td>
                             <td>{{ property.property_name }}</td>
                             <td>{{ property.street_number }} {{ property.street }}, {{ property.city }}, {{ property.province }}</td>
                             <td>{{ property.property_type }}</td>
                             <td>{{ property.floor_area }} sqm</td>
                             <td>
-                                <a href="#" class="action-btn">Edit</a>
-                                <button class="action-btn delete-btn">Delete</button>
+                                <a href="{% url 'edit_property' property.id %}" class="action-btn">Edit</a>
+                                <button class="action-btn delete-btn" onclick="openDeleteModal({{ property.id }}, '{{ property.property_name }}')">Delete</button>
                             </td>
                         </tr>
                         {% endfor %}
@@ -310,5 +413,76 @@
             </table>
         </div>
     </div>
+
+    <!-- Delete Property Modal -->
+    <div id="deleteModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-icon" style="width: 60px; height: 60px; background-color: #1a2a5e; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; color: white; font-size: 1.8em;">!</div>
+            <h2>Delete Property?</h2>
+            <p id="deleteModalText"></p>
+            <div class="modal-buttons">
+                <button class="modal-btn modal-btn-cancel" onclick="closeDeleteModal()">Cancel</button>
+                <button class="modal-btn modal-btn-confirm" onclick="confirmDelete()">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let selectedPropertyId = null;
+
+        // Search functionality
+        document.getElementById('searchBox').addEventListener('keyup', function() {
+            const searchTerm = this.value.toLowerCase();
+            const rows = document.querySelectorAll('.property-row');
+
+            rows.forEach(row => {
+                const propertyName = row.dataset.propertyName.toLowerCase();
+                const propertyAddress = row.dataset.propertyAddress.toLowerCase();
+
+                if (propertyName.includes(searchTerm) || propertyAddress.includes(searchTerm)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        });
+
+        // Delete modal functions
+        function openDeleteModal(propertyId, propertyName) {
+            selectedPropertyId = propertyId;
+            document.getElementById('deleteModalText').textContent = `Are you sure you want to delete "${propertyName}"?`;
+            document.getElementById('deleteModal').classList.add('show');
+        }
+
+        function closeDeleteModal() {
+            document.getElementById('deleteModal').classList.remove('show');
+            selectedPropertyId = null;
+        }
+
+        function confirmDelete() {
+            if (selectedPropertyId) {
+                // Submit delete form
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = `/properties/${selectedPropertyId}/delete/`;
+                
+                const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]');
+                if (csrfToken) {
+                    form.appendChild(csrfToken.cloneNode(true));
+                }
+                
+                document.body.appendChild(form);
+                form.submit();
+            }
+        }
+
+        // Close modal when clicking outside
+        window.addEventListener('click', function(event) {
+            const deleteModal = document.getElementById('deleteModal');
+            if (event.target === deleteModal) {
+                closeDeleteModal();
+            }
+        });
+    </script>
 </body>
 </html>
