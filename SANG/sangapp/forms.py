@@ -3,7 +3,6 @@ from django.core.exceptions import ValidationError
 from .models import Customer
 import re
 
-
 class CustomerRegistrationForm(forms.ModelForm):
     password = forms.CharField(
         widget=forms.PasswordInput(),

@@ -17,7 +17,7 @@
 
         /* Navigation Bar */
         nav {
-            background-color: #1a2a5e;
+            background-color: white;
             padding: 15px 40px;
             display: flex;
             justify-content: space-between;
@@ -32,7 +32,7 @@
             display: flex;
             align-items: center;
             gap: 10px;
-            color: white;
+            color: #1a2a5e;
             font-weight: bold;
             font-size: 1.2em;
         }
@@ -47,43 +47,43 @@
             display: flex;
             gap: 30px;
             list-style: none;
-            flex: 1;
-            margin-left: 60px;
+            margin-left: auto;
+            margin-right: 30px;
         }
 
         .nav-links a {
-            color: white;
+            color: #333;
             text-decoration: none;
             font-size: 0.95em;
             transition: color 0.3s;
         }
 
         .nav-links a:hover {
-            color: #00a8ff;
+            color: #1a2a5e;
         }
 
         .nav-links a.active {
-            color: #00a8ff;
-            border-bottom: 2px solid #00a8ff;
+            color: #1a2a5e;
+            border-bottom: 2px solid #1a2a5e;
             padding-bottom: 5px;
         }
 
         .profile-btn {
-            background-color: #00a8ff;
-            color: #1a2a5e;
+            background-color: #1a2a5e;
+            color: white;
             padding: 10px 25px;
             border: none;
             border-radius: 5px;
             font-weight: 600;
             cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 8px;
             transition: background-color 0.3s;
+            text-decoration: none;
+            margin-left: 10px;
+            display: inline-block;
         }
 
         .profile-btn:hover {
-            background-color: #0092d4;
+            background-color: #0d1535;
         }
 
         /* Hero Section */
@@ -168,7 +168,7 @@
     <!-- Navigation Bar -->
     <nav>
         <div class="nav-logo">
-            <svg width="40" height="40" viewBox="0 0 40 40" style="fill: white;">
+            <svg width="40" height="40" viewBox="0 0 40 40" style="fill: #1a2a5e;">
                 <circle cx="20" cy="10" r="4"/>
                 <path d="M 20 14 Q 15 18 20 26 Q 25 18 20 14 Z"/>
                 <circle cx="15" cy="22" r="1.5"/>
@@ -180,14 +180,10 @@
         <ul class="nav-links">
             <li><a href="{% url 'home' %}" class="active">Home</a></li>
             <li><a href="#">Book Inspection</a></li>
-            <li><a href="#">Pending Payment</a></li>
-            <li><a href="#">Service History</a></li>
-            <li><a href="#">Service Status</a></li>
         </ul>
 
-        <button class="profile-btn">
-            👤 Profile
-        </button>
+        <a href="{% url 'login' %}" class="profile-btn">Log In</a>
+        <a href="{% url 'signup' %}" class="profile-btn">Sign Up</a>
     </nav>
 
     <!-- Hero Section -->
@@ -195,7 +191,7 @@
         <div class="hero-content">
             <h1>Experience the Supreme Difference.</h1>
             <p>Providing solutions to all your pest problems.</p>
-            <button class="schedule-btn">Schedule an Inspection</button>
+            <a href="{% url 'signup' %}" class="schedule-btn">Schedule an Inspection</a>
         </div>
     </section>
 </body>
