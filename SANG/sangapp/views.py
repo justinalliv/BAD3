@@ -87,7 +87,18 @@ def profile(request):
         return redirect('login')
     
     customer = Customer.objects.get(id=request.session['customer_id'])
-    return render(request, 'profile.html', {'customer': customer})
+    
+    # Get ongoing services (not completed or cancelled)
+    services = Service.objects.filter(
+        customer=customer
+    ).exclude(
+        status__in=['Completed', 'Cancelled']
+    ).select_related('property').order_by('-created_at')
+    
+    return render(request, 'profile.html', {
+        'customer': customer,
+        'services': services,
+    })
 
 
 def edit_profile(request):

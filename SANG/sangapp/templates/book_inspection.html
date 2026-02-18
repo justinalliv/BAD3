@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Book Site Inspection - SANG Pest Control</title>
+    <title>Book Inspection - SANG Pest Control</title>
     <style>
         * {
             margin: 0;
@@ -18,43 +18,39 @@
 
         /* Navigation Bar */
         nav {
-            background-color: #ffffff;
-            padding: 1rem 2rem;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            background-color: white;
+            padding: 15px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             position: sticky;
             top: 0;
             z-index: 100;
         }
 
-        .nav-container {
-            max-width: 1200px;
-            margin: 0 auto;
+        .nav-logo {
             display: flex;
-            justify-content: space-between;
             align-items: center;
-        }
-
-        .nav-brand {
-            font-size: 1.5rem;
-            font-weight: bold;
+            gap: 10px;
             color: #1a2a5e;
-            text-decoration: none;
+            font-weight: bold;
+            font-size: 1.2em;
         }
 
         .nav-links {
             display: flex;
-            list-style: none;
             gap: 15px;
+            list-style: none;
             margin-left: auto;
             margin-right: 20px;
             align-items: center;
         }
 
         .nav-links a {
-            text-decoration: none;
             color: #333;
+            text-decoration: none;
             font-size: 0.875em;
-            font-weight: 500;
             transition: color 0.3s;
             padding: 8px 12px;
             border-radius: 5px;
@@ -63,11 +59,32 @@
 
         .nav-links a:hover {
             color: #1a2a5e;
+            background-color: #f0f0f0;
         }
 
         .nav-links a.active {
             color: #1a2a5e;
-            font-weight: bold;
+            background-color: #e8f0fe;
+            font-weight: 600;
+        }
+
+        .profile-btn {
+            background-color: #1a2a5e;
+            color: white;
+            padding: 10px 25px;
+            border: none;
+            border-radius: 5px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .profile-btn:hover {
+            background-color: #0d1535;
         }
 
         /* Main Content */
@@ -285,16 +302,17 @@
 
         /* Responsive */
         @media (max-width: 768px) {
-            .nav-container {
+            nav {
                 flex-direction: column;
-                gap: 1rem;
+                gap: 15px;
             }
 
             .nav-links {
-                flex-direction: column;
-                width: 100%;
-                text-align: center;
-                gap: 0.5rem;
+                flex-wrap: wrap;
+                margin-left: 0;
+                margin-right: 0;
+                gap: 15px;
+                justify-content: center;
             }
 
             .page-header {
@@ -320,16 +338,32 @@
 <body>
     <!-- Navigation -->
     <nav>
-        <div class="nav-container">
-            <a href="{% url 'customer_home' %}" class="nav-brand">SANG Pest Control</a>
-            <ul class="nav-links">
-                <li><a href="{% url 'customer_home' %}">Home</a></li>
-                <li><a href="{% url 'profile' %}">Profile</a></li>
-                <li><a href="{% url 'property_list' %}">Manage Properties</a></li>
-                <li><a href="{% url 'book_inspection' %}" class="active">Book Inspection</a></li>
-                <li><a href="{% url 'service_status' %}">Service Status</a></li>
-            </ul>
+        <div class="nav-logo">
+            <svg width="40" height="40" viewBox="0 0 40 40" style="fill: #1a2a5e;">
+                <circle cx="20" cy="10" r="4"/>
+                <path d="M 20 14 Q 15 18 20 26 Q 25 18 20 14 Z"/>
+                <circle cx="15" cy="22" r="1.5"/>
+                <circle cx="25" cy="22" r="1.5"/>
+            </svg>
+            Supreme
         </div>
+
+        <ul class="nav-links">
+            <li><a href="{% url 'customer_home' %}">Home</a></li>
+            <li><a href="{% url 'book_inspection' %}" class="active">Book Inspection</a></li>
+            <li><a href="{% url 'property_list' %}">Manage Properties</a></li>
+            <li><a href="{% url 'pending_payment' %}">Pending Payment</a></li>
+            <li><a href="#">Service History</a></li>
+            <li><a href="{% url 'service_status' %}">Service Status</a></li>
+        </ul>
+
+        <a href="{% url 'profile' %}" class="profile-btn">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                <circle cx="10" cy="6" r="4"/>
+                <path d="M 4 18 Q 4 12 10 12 Q 16 12 16 18 Z"/>
+            </svg>
+            Profile
+        </a>
     </nav>
 
     <!-- Main Content -->
@@ -349,7 +383,7 @@
         <!-- Form -->
         <div class="section">
             <div class="page-header">
-                <h1>Book Site Inspection</h1>
+                <h1>Book Inspection</h1>
             </div>
 
             <form id="bookingForm" method="POST">

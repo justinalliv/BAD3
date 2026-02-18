@@ -210,6 +210,44 @@
             color: #0c5460;
         }
 
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 0.85em;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .status-forinspection {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+
+        .status-ongoinginspection {
+            background-color: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .status-fortreatment {
+            background-color: #e7e8ff;
+            color: #4a4a8e;
+        }
+
+        .status-ongoingtreatment {
+            background-color: #cfe2ff;
+            color: #084298;
+        }
+
+        .status-pendingpayment {
+            background-color: #f8d7da;
+            color: #842029;
+        }
+
+        .status-paymentconfirmed {
+            background-color: #d1e7dd;
+            color: #0f5132;
+        }
+
         /* Responsive */
         @media (max-width: 768px) {
             nav {
@@ -299,9 +337,9 @@
         <div class="section">
             <div class="section-header">
                 <h2>Service Status</h2>
-                <input type="text" class="search-box" placeholder="Search">
+                <input type="text" class="search-box" placeholder="Search" id="serviceStatusSearch">
             </div>
-            <table>
+            <table id="serviceStatusTable">
                 <thead>
                     <tr>
                         <th>Service ID</th>
@@ -311,9 +349,30 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr>
-                        <td colspan="4" style="text-align: center; color: #999; padding: 30px;">No service status records</td>
-                    </tr>
+                    {% if services %}
+                        {% for service in services %}
+                        <tr>
+                            <td>{{ service.id|stringformat:"07d" }}</td>
+                            <td>{{ service.property.street_number }} {{ service.property.street }}, {{ service.property.city }}</td>
+                            <td>
+                                {% if service.status == 'For Treatment' or service.status == 'Ongoing Treatment' or service.status == 'Pending Payment' or service.status == 'Payment Confirmed' %}
+                                    {{ service.preferred_service }}
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="status-badge status-{{ service.status|lower|cut:' ' }}">
+                                    {{ service.status }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="4" style="text-align: center; color: #999; padding: 30px;">No service status records</td>
+                        </tr>
+                    {% endif %}
                 </tbody>
             </table>
         </div>
@@ -343,5 +402,41 @@
             </table>
         </div>
     </div>
+
+    <script>
+        // Search functionality for Service Status table
+        document.getElementById('serviceStatusSearch').addEventListener('keyup', function() {
+            const searchValue = this.value.toLowerCase();
+            const table = document.getElementById('serviceStatusTable');
+            
+            if (!table) return;
+            
+            const rows = table.getElementsByTagName('tbody')[0].getElementsByTagName('tr');
+            
+            for (let i = 0; i < rows.length; i++) {
+                const row = rows[i];
+                const cells = row.getElementsByTagName('td');
+                
+                // Skip if this is the empty state row
+                if (cells[0].getAttribute('colspan')) {
+                    continue;
+                }
+                
+                let found = false;
+                
+                // Search through all cells
+                for (let j = 0; j < cells.length; j++) {
+                    const cellText = cells[j].textContent.toLowerCase();
+                    if (cellText.includes(searchValue)) {
+                        found = true;
+                        break;
+                    }
+                }
+                
+                // Show or hide row based on search result
+                row.style.display = found ? '' : 'none';
+            }
+        });
+    </script>
 </body>
 </html>
