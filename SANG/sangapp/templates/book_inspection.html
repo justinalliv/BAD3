@@ -12,7 +12,7 @@
         }
 
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: #f5f5f5;
         }
 
@@ -89,41 +89,40 @@
 
         /* Main Content */
         .main-content {
-            max-width: 800px;
-            margin: 2rem auto;
-            padding: 0 2rem;
+            max-width: 600px;
+            margin: 40px auto;
+            padding: 0 20px;
         }
 
         .section {
             background-color: #ffffff;
             border-radius: 10px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            padding: 2rem;
-            margin-bottom: 2rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            margin-bottom: 30px;
         }
 
         .page-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 2rem;
+            margin-bottom: 30px;
+            text-align: center;
         }
 
         .page-header h1 {
             color: #1a2a5e;
-            font-size: 2rem;
+            font-size: 2em;
         }
 
         /* Form Styles */
         .form-group {
-            margin-bottom: 1.5rem;
+            margin-bottom: 20px;
         }
 
         .form-group label {
             display: block;
-            margin-bottom: 0.5rem;
+            margin-bottom: 8px;
             color: #333;
-            font-weight: 500;
+            font-weight: 600;
+            font-size: 0.95em;
         }
 
         .form-group label .required {
@@ -134,11 +133,23 @@
         .form-group select,
         .form-group textarea {
             width: 100%;
-            padding: 0.75rem;
+            padding: 12px 15px;
             border: 1px solid #ddd;
             border-radius: 5px;
-            font-size: 1rem;
-            font-family: Arial, sans-serif;
+            font-size: 0.95em;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            transition: border-color 0.3s;
+        }
+
+        .form-group select {
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            background-color: #fff;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%23666' d='M1.41 0.59L6 5.17 10.59 0.59 12 2l-6 6-6-6z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 14px center;
+            padding-right: 40px;
         }
 
         .form-group input:focus,
@@ -146,6 +157,7 @@
         .form-group textarea:focus {
             outline: none;
             border-color: #1a2a5e;
+            box-shadow: 0 0 0 2px rgba(26, 42, 94, 0.1);
         }
 
         .form-group input:disabled {
@@ -180,16 +192,17 @@
         /* Buttons */
         .button-group {
             display: flex;
-            gap: 1rem;
-            justify-content: flex-end;
-            margin-top: 2rem;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 30px;
         }
 
         .btn {
-            padding: 0.75rem 2rem;
+            padding: 12px 40px;
             border: none;
             border-radius: 5px;
-            font-size: 1rem;
+            font-size: 1em;
+            font-weight: 600;
             cursor: pointer;
             transition: background-color 0.3s;
             text-decoration: none;
@@ -207,12 +220,12 @@
         }
 
         .btn-secondary {
-            background-color: #6c757d;
-            color: white;
+            background-color: #e0e0e0;
+            color: #333;
         }
 
         .btn-secondary:hover {
-            background-color: #5a6268;
+            background-color: #d0d0d0;
         }
 
         /* Modal */
@@ -352,8 +365,6 @@
             <li><a href="{% url 'customer_home' %}">Home</a></li>
             <li><a href="{% url 'book_inspection' %}" class="active">Book Inspection</a></li>
             <li><a href="{% url 'property_list' %}">Manage Properties</a></li>
-            <li><a href="{% url 'pending_payment' %}">Pending Payment</a></li>
-            <li><a href="#">Service History</a></li>
             <li><a href="{% url 'service_status' %}">Service Status</a></li>
         </ul>
 
@@ -492,7 +503,6 @@
                             </option>
                             {% endfor %}
                         </select>
-                        <small id="time_slot_hint">Please select a date to enable time slot selection</small>
                         {% if errors.time_slot %}
                         <div class="error">{{ errors.time_slot }}</div>
                         {% endif %}
@@ -601,17 +611,14 @@
         // Date selection - enable time slot
         document.getElementById('date').addEventListener('change', function() {
             const timeSlot = document.getElementById('time_slot');
-            const hint = document.getElementById('time_slot_hint');
             
             if (this.value) {
                 timeSlot.disabled = false;
                 timeSlot.innerHTML = '<option value="">Select a time slot</option>' + 
                     Array.from(timeSlot.options).slice(1).map(opt => opt.outerHTML).join('');
-                hint.style.display = 'none';
             } else {
                 timeSlot.disabled = true;
                 timeSlot.innerHTML = '<option value="">Select date first</option>';
-                hint.style.display = 'block';
             }
         });
 

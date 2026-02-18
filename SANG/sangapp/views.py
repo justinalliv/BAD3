@@ -101,6 +101,12 @@ def profile(request):
     })
 
 
+def logout(request):
+    """Log out current customer and return to home."""
+    request.session.flush()
+    return redirect('home')
+
+
 def edit_profile(request):
     """Handle customer profile editing."""
     # Check if user is logged in
@@ -141,6 +147,51 @@ def edit_profile(request):
         return redirect('profile')
     
     return render(request, 'edit_profile.html', {'customer': customer})
+
+
+def change_password(request):
+    """Handle password change on a dedicated screen."""
+    if 'customer_id' not in request.session:
+        return redirect('login')
+
+    customer = Customer.objects.get(id=request.session['customer_id'])
+
+    if request.method == 'POST':
+        current_password = request.POST.get('current_password', '').strip()
+        new_password = request.POST.get('new_password', '').strip()
+        confirm_new_password = request.POST.get('confirm_new_password', '').strip()
+
+        errors = {}
+        if not current_password:
+            errors['current_password'] = 'Current password is required.'
+        if not new_password:
+            errors['new_password'] = 'New password is required.'
+        if not confirm_new_password:
+            errors['confirm_new_password'] = 'Please confirm your new password.'
+
+        if current_password and current_password != customer.password:
+            errors['current_password'] = 'Current password is incorrect.'
+
+        if new_password and confirm_new_password and new_password != confirm_new_password:
+            errors['confirm_new_password'] = 'New passwords do not match.'
+
+        if new_password and len(new_password) < 8:
+            errors['new_password'] = 'New password must be at least 8 characters.'
+
+        if not errors:
+            customer.password = new_password
+            customer.save(update_fields=['password'])
+            return render(request, 'change_password.html', {
+                'customer': customer,
+                'success': True,
+            })
+
+        return render(request, 'change_password.html', {
+            'customer': customer,
+            'errors': errors,
+        })
+
+    return render(request, 'change_password.html', {'customer': customer})
 
 
 def pending_payment(request):

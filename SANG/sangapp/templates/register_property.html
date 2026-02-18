@@ -137,6 +137,17 @@
             transition: border-color 0.3s;
         }
 
+        select {
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            background-color: #fff;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%23666' d='M1.41 0.59L6 5.17 10.59 0.59 12 2l-6 6-6-6z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 14px center;
+            padding-right: 40px;
+        }
+
         input[type="text"]:focus,
         input[type="number"]:focus,
         select:focus {
@@ -358,8 +369,6 @@
             <li><a href="{% url 'customer_home' %}">Home</a></li>
             <li><a href="{% url 'book_inspection' %}">Book Inspection</a></li>
             <li><a href="{% url 'property_list' %}">Manage Properties</a></li>
-            <li><a href="{% url 'pending_payment' %}">Pending Payment</a></li>
-            <li><a href="#">Service History</a></li>
             <li><a href="{% url 'service_status' %}">Service Status</a></li>
         </ul>
 

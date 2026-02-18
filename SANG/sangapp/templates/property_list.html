@@ -170,6 +170,9 @@
             text-decoration: none;
             display: inline-block;
             margin-right: 8px;
+            font-family: inherit;
+            font-size: 0.95em;
+            line-height: 1.2;
         }
 
         .action-btn:hover {
@@ -177,11 +180,12 @@
         }
 
         .delete-btn {
-            background-color: #e74c3c;
+            background-color: #dc3545;
+            color: #fff;
         }
 
         .delete-btn:hover {
-            background-color: #c0392b;
+            background-color: #bb2d3b;
         }
 
         .no-records {
@@ -370,8 +374,6 @@
             <li><a href="{% url 'customer_home' %}">Home</a></li>
             <li><a href="{% url 'book_inspection' %}">Book Inspection</a></li>
             <li><a href="{% url 'property_list' %}" class="active">Manage Properties</a></li>
-            <li><a href="{% url 'pending_payment' %}">Pending Payment</a></li>
-            <li><a href="#">Service History</a></li>
             <li><a href="{% url 'service_status' %}">Service Status</a></li>
         </ul>
 
@@ -432,7 +434,7 @@
                             <td>{{ property.floor_area }} sqm</td>
                             <td>
                                 <a href="{% url 'edit_property' property.id %}" class="action-btn">Edit</a>
-                                <button class="action-btn delete-btn" onclick="openDeleteModal({{ property.id }}, '{{ property.property_name }}')">Delete</button>
+                                <button type="button" class="action-btn delete-btn delete-action" data-property-id="{{ property.id }}" data-property-name="{{ property.property_name|escapejs }}">Delete</button>
                             </td>
                         </tr>
                         {% endfor %}
@@ -479,6 +481,14 @@
         });
 
         // Delete modal functions
+        document.querySelectorAll('.delete-action').forEach(button => {
+            button.addEventListener('click', function() {
+                const propertyId = parseInt(this.dataset.propertyId, 10);
+                const propertyName = this.dataset.propertyName;
+                openDeleteModal(propertyId, propertyName);
+            });
+        });
+
         function openDeleteModal(propertyId, propertyName) {
             selectedPropertyId = propertyId;
             document.getElementById('deleteModalText').textContent = `Are you sure you want to delete "${propertyName}"?`;

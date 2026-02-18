@@ -157,6 +157,29 @@
             margin-top: 40px;
         }
 
+        .secondary-actions {
+            display: flex;
+            justify-content: center;
+            margin-top: 0;
+            margin-bottom: 20px;
+        }
+
+        .change-password-btn {
+            background: transparent;
+            color: #1a2a5e;
+            border: none;
+            padding: 0;
+            font-size: 0.95em;
+            font-weight: 600;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .change-password-btn:hover {
+            color: #0d1535;
+            text-decoration: underline;
+        }
+
         .cancel-btn {
             background-color: #e0e0e0;
             color: #333;
@@ -299,8 +322,6 @@
             <li><a href="{% url 'customer_home' %}">Home</a></li>
             <li><a href="{% url 'book_inspection' %}">Book Inspection</a></li>
             <li><a href="{% url 'property_list' %}">Manage Properties</a></li>
-            <li><a href="{% url 'pending_payment' %}">Pending Payment</a></li>
-            <li><a href="#">Service History</a></li>
             <li><a href="{% url 'service_status' %}">Service Status</a></li>
         </ul>
 
@@ -345,6 +366,10 @@
                     {% if error_phone %}
                         <div class="error-message">{{ error_phone }}</div>
                     {% endif %}
+                </div>
+
+                <div class="secondary-actions">
+                    <a href="{% url 'change_password' %}" class="change-password-btn">Change my Password</a>
                 </div>
 
                 <div class="button-row">
