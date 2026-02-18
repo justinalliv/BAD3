@@ -45,27 +45,31 @@
 
         .nav-links {
             display: flex;
-            gap: 30px;
+            gap: 15px;
             list-style: none;
             margin-left: auto;
-            margin-right: 30px;
+            margin-right: 20px;
         }
 
         .nav-links a {
             color: #333;
             text-decoration: none;
-            font-size: 0.95em;
+            font-size: 0.875em;
             transition: color 0.3s;
+            padding: 8px 12px;
+            border-radius: 5px;
+            white-space: nowrap;
         }
 
         .nav-links a:hover {
             color: #1a2a5e;
+            background-color: #f0f0f0;
         }
 
         .nav-links a.active {
             color: #1a2a5e;
-            border-bottom: 2px solid #1a2a5e;
-            padding-bottom: 5px;
+            background-color: #e8f0fe;
+            font-weight: 600;
         }
 
         .profile-btn {

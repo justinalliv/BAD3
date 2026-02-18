@@ -551,3 +551,23 @@ def book_inspection(request):
         'today': date.today().isoformat(),
     })
 
+
+def service_status(request):
+    """Display customer's ongoing service status (UC 16)."""
+    # Check if user is logged in
+    if 'customer_id' not in request.session:
+        return redirect('login')
+    
+    customer = Customer.objects.get(id=request.session['customer_id'])
+    
+    # Get all services that are not completed or cancelled (ongoing services)
+    services = Service.objects.filter(
+        customer=customer
+    ).exclude(
+        status__in=['Completed', 'Cancelled']
+    ).select_related('property').order_by('-created_at')
+    
+    return render(request, 'service_status.html', {
+        'customer': customer,
+        'services': services,
+    })

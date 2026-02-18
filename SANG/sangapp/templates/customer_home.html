@@ -39,20 +39,21 @@
 
         .nav-links {
             display: flex;
-            gap: 30px;
+            gap: 15px;
             list-style: none;
             margin-left: auto;
-            margin-right: 30px;
+            margin-right: 20px;
             align-items: center;
         }
 
         .nav-links a {
             color: #333;
             text-decoration: none;
-            font-size: 0.95em;
+            font-size: 0.875em;
             transition: color 0.3s;
-            padding: 8px 15px;
+            padding: 8px 12px;
             border-radius: 5px;
+            white-space: nowrap;
         }
 
         .nav-links a:hover {
@@ -183,7 +184,7 @@
             <li><a href="{% url 'property_list' %}">Manage Properties</a></li>
             <li><a href="{% url 'pending_payment' %}">Pending Payment</a></li>
             <li><a href="#">Service History</a></li>
-            <li><a href="#">Service Status</a></li>
+            <li><a href="{% url 'service_status' %}">Service Status</a></li>
         </ul>
 
         <a href="{% url 'profile' %}" class="profile-btn">
