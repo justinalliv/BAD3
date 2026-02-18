@@ -5,9 +5,10 @@
 {% block extra_css %}
 <style>
     .header-section {
-        display: flex;
-        justify-content: space-between;
+        display: grid;
+        grid-template-columns: 1fr auto;
         align-items: center;
+        column-gap: 16px;
         margin-bottom: 40px;
     }
 
@@ -20,6 +21,8 @@
         display: flex;
         gap: 12px;
         align-items: center;
+        justify-self: end;
+        justify-content: flex-end;
     }
 
     .edit-profile-btn {
@@ -43,8 +46,8 @@
     }
 
     .logout-btn {
-        background-color: #e0e0e0;
-        color: #333;
+        background-color: #dc3545;
+        color: white;
         padding: 12px 30px;
         border: none;
         border-radius: 5px;
@@ -58,7 +61,7 @@
     }
 
     .logout-btn:hover {
-        background-color: #d0d0d0;
+        background-color: #b02a37;
     }
 
     .empty-card {
@@ -94,6 +97,7 @@
 
     @media (max-width: 768px) {
         .header-section {
+            display: flex;
             flex-direction: column;
             align-items: flex-start;
             gap: 15px;

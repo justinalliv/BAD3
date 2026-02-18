@@ -29,7 +29,7 @@
         /* Navigation Bar */
         nav {
             background-color: white;
-            padding: 15px 40px;
+            padding: 10px 24px;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -42,11 +42,15 @@
         .nav-logo {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 0;
             color: #1a2a5e;
             font-weight: bold;
             font-size: 1.2em;
             text-decoration: none;
+        }
+
+        .nav-logo-text {
+            display: none;
         }
 
         .nav-logo:hover {
@@ -55,10 +59,10 @@
 
         .nav-links {
             display: flex;
-            gap: 15px;
+            gap: 10px;
             list-style: none;
             margin-left: auto;
-            margin-right: 20px;
+            margin-right: 8px;
             align-items: center;
         }
 
@@ -67,7 +71,7 @@
             text-decoration: none;
             font-size: 0.875em;
             transition: color 0.3s;
-            padding: 8px 12px;
+            padding: 7px 10px;
             border-radius: 5px;
             white-space: nowrap;
         }
@@ -112,6 +116,28 @@
 
         .profile-btn:hover {
             background-color: #0d1535;
+        }
+
+        .nav-auth-btn {
+            padding: 8px 18px;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 0.85em;
+        }
+
+        .nav-auth-btn.login {
+            background-color: #e8e8e8;
+            color: #222;
+        }
+
+        .nav-auth-btn.signup {
+            background-color: #1a2a5e;
+            color: white;
+        }
+
+        .nav-auth-btn.signup:hover {
+            background-color: #0d1535;
+            color: white;
         }
 
         /* Common Utilities */
@@ -542,6 +568,7 @@
     </style>
 </head>
 <body>
+    {% block base_nav %}
     <!-- Navigation Bar -->
     <nav>
         <a href="{% url 'home' %}" class="nav-logo">
@@ -551,7 +578,7 @@
                 <circle cx="15" cy="22" r="1.5"/>
                 <circle cx="25" cy="22" r="1.5"/>
             </svg>
-            Supreme
+            <span class="nav-logo-text">Supreme</span>
         </a>
 
         {% if request.session.customer_id %}
@@ -575,11 +602,14 @@
         {% else %}
         <!-- Public Navigation -->
         <ul class="nav-links">
-            <li><a href="{% url 'login' %}">Login</a></li>
-            <li><a href="{% url 'signup' %}">Sign Up</a></li>
+            <li><a href="{% url 'home' %}">Home</a></li>
+            <li><a href="{% url 'book_inspection' %}">Book Inspection</a></li>
+            <li><a href="{% url 'login' %}" class="nav-auth-btn login">Login</a></li>
+            <li><a href="{% url 'signup' %}" class="nav-auth-btn signup">Sign Up</a></li>
         </ul>
         {% endif %}
     </nav>
+    {% endblock %}
 
     <!-- Main Content -->
     <main>

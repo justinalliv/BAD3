@@ -32,6 +32,21 @@
         font-size: 0.875rem;
     }
 
+    .form-select {
+        appearance: none;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%23666' d='M1.41 0L6 4.58 10.59 0 12 1.41 6 7.41 0 1.41z'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 14px center;
+        padding-right: 40px;
+        background-color: white;
+    }
+
+    #time_slot:disabled {
+        background-color: #f5f5f5;
+    }
+
     .hidden {
         display: none;
     }
@@ -122,7 +137,7 @@
                 <!-- Property Selection -->
                 <div class="form-group">
                     <label for="property_id">Property Address <span class="required">*</span></label>
-                    <select name="property_id" id="property_id" required>
+                    <select name="property_id" id="property_id" class="form-select" required>
                         <option value="">Select a property</option>
                         {% for property in properties %}
                         <option value="{{ property.id }}" 
@@ -153,7 +168,7 @@
                 <!-- Preferred Service -->
                 <div class="form-group">
                     <label for="preferred_service">Preferred Service <span class="required">*</span></label>
-                    <select name="preferred_service" id="preferred_service" required>
+                    <select name="preferred_service" id="preferred_service" class="form-select" required>
                         <option value="">Select a service</option>
                         {% for choice in service_choices %}
                         <option value="{{ choice.0 }}" {% if form_data.preferred_service == choice.0 %}selected{% endif %}>
@@ -179,7 +194,7 @@
                 <!-- Pest Problem -->
                 <div class="form-group">
                     <label for="pest_problem">Pest Problem <span class="required">*</span></label>
-                    <select name="pest_problem" id="pest_problem" required>
+                    <select name="pest_problem" id="pest_problem" class="form-select" required>
                         <option value="">Select a pest problem</option>
                         {% for choice in pest_choices %}
                         <option value="{{ choice.0 }}" {% if form_data.pest_problem == choice.0 %}selected{% endif %}>
@@ -214,7 +229,7 @@
                     </div>
                     <div class="form-group">
                         <label for="time_slot">Time Slot <span class="required">*</span></label>
-                        <select name="time_slot" id="time_slot" required disabled>
+                        <select name="time_slot" id="time_slot" class="form-select" required disabled>
                             <option value="">Select date first</option>
                             {% for choice in time_slot_choices %}
                             <option value="{{ choice.0 }}" {% if form_data.time_slot == choice.0 %}selected{% endif %}>
