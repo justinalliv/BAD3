@@ -1,105 +1,25 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pending Payment - Supreme Biotech Solutions</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+{% extends 'base.html' %}
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f5f5f5;
-        }
+{% block title %}Supreme Biotech Solutions{% endblock %}
 
-        /* Navigation Bar */
-        nav {
-            background-color: white;
-            padding: 15px 40px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-
-        .nav-logo {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            color: #1a2a5e;
-            font-weight: bold;
-            font-size: 1.2em;
-        }
-
-        .nav-links {
-            display: flex;
-            gap: 15px;
-            list-style: none;
-            margin-left: auto;
-            margin-right: 20px;
-            align-items: center;
-        }
-
-        .nav-links a {
-            color: #333;
-            text-decoration: none;
-            font-size: 0.875em;
-            transition: color 0.3s;
-            padding: 8px 12px;
-            border-radius: 5px;
-            white-space: nowrap;
-        }
-
-        .nav-links a:hover {
-            color: #1a2a5e;
-            background-color: #f0f0f0;
-        }
-
-        .profile-btn {
-            background-color: #1a2a5e;
-            color: white;
-            padding: 10px 25px;
-            border: none;
-            border-radius: 5px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background-color 0.3s;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .profile-btn:hover {
-            background-color: #0d1535;
-        }
-
-        /* Main Content */
+{% block extra_css %}
+<style>
+/* Main Content */
         .container {
             max-width: 1200px;
             margin: 40px auto;
             padding: 0 20px;
         }
-
         .header-section {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 30px;
         }
-
         .header-section h1 {
             color: #1a2a5e;
             font-size: 2em;
         }
-
         .search-box {
             padding: 10px 15px;
             border: 1px solid #ddd;
@@ -107,7 +27,6 @@
             width: 300px;
             font-size: 0.95em;
         }
-
         /* Table Styles */
         .table-card {
             background-color: white;
@@ -115,39 +34,24 @@
             padding: 30px;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        thead {
-            background-color: #1a2a5e;
-            color: white;
-        }
-
         th {
             padding: 15px;
             text-align: left;
             font-weight: 600;
             font-size: 0.95em;
         }
-
         td {
             padding: 15px;
             border-bottom: 1px solid #e0e0e0;
             font-size: 0.95em;
             color: #333;
         }
-
         tbody tr:hover {
             background-color: #f9f9f9;
         }
-
         tbody tr:last-child td {
             border-bottom: none;
         }
-
         .pay-btn {
             background-color: #1a2a5e;
             color: white;
@@ -160,127 +64,31 @@
             text-decoration: none;
             display: inline-block;
         }
-
         .pay-btn:hover {
             background-color: #0d1535;
         }
-
         .no-records {
             text-align: center;
             padding: 40px;
             color: #999;
         }
-
         .no-records p {
             font-size: 1.1em;
         }
-
-        /* Responsive */
-        @media (max-width: 768px) {
-            nav {
-                flex-direction: column;
-                gap: 15px;
-            }
-
-            .nav-links {
-                flex-wrap: wrap;
-                margin-left: 0;
-                margin-right: 0;
-                gap: 15px;
-                justify-content: center;
-            }
-
             .header-section {
                 flex-direction: column;
                 gap: 15px;
             }
-
             .search-box {
                 width: 100%;
             }
-
-            table {
-                font-size: 0.85em;
-            }
-
             th, td {
                 padding: 10px 8px;
             }
         }
-    </style>
-</head>
-<body>
-    <!-- Navigation Bar -->
-    <nav>
-        <div class="nav-logo">
-            <svg width="40" height="40" viewBox="0 0 40 40" style="fill: #1a2a5e;">
-                <circle cx="20" cy="10" r="4"/>
-                <path d="M 20 14 Q 15 18 20 26 Q 25 18 20 14 Z"/>
-                <circle cx="15" cy="22" r="1.5"/>
-                <circle cx="25" cy="22" r="1.5"/>
-            </svg>
-            Supreme
-        </div>
+</style>
+{% endblock %}
 
-        <ul class="nav-links">
-            <li><a href="{% url 'customer_home' %}">Home</a></li>
-            <li><a href="{% url 'book_inspection' %}">Book Inspection</a></li>
-            <li><a href="{% url 'property_list' %}">Manage Properties</a></li>
-            <li><a href="{% url 'pending_payment' %}" class="active">Pending Payment</a></li>
-            <li><a href="#">Service History</a></li>
-            <li><a href="{% url 'service_status' %}">Service Status</a></li>
-        </ul>
+{% block content %}
 
-        <a href="{% url 'profile' %}" class="profile-btn">
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
-                <circle cx="10" cy="6" r="4"/>
-                <path d="M 4 18 Q 4 12 10 12 Q 16 12 16 18 Z"/>
-            </svg>
-            Profile
-        </a>
-    </nav>
-
-    <!-- Main Content -->
-    <div class="container">
-        <div class="header-section">
-            <h1>Pending Payments</h1>
-            <input type="text" class="search-box" placeholder="Search">
-        </div>
-
-        <div class="table-card">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Service ID</th>
-                        <th>Address</th>
-                        <th>Service Type</th>
-                        <th>Service Date</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% if pending_payments %}
-                        {% for payment in pending_payments %}
-                        <tr>
-                            <td>{{ payment.service_id }}</td>
-                            <td>{{ payment.address }}</td>
-                            <td>{{ payment.service_type }}</td>
-                            <td>{{ payment.service_date }}</td>
-                            <td>
-                                <a href="{% url 'payment_instructions' %}" class="pay-btn">Pay Now</a>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    {% else %}
-                        <tr>
-                            <td colspan="5" class="no-records">
-                                <p>You have no pending payments at the moment.</p>
-                            </td>
-                        </tr>
-                    {% endif %}
-                </tbody>
-            </table>
-        </div>
-    </div>
-</body>
-</html>
+{% endblock %}

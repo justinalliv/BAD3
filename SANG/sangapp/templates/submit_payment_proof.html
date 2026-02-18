@@ -1,116 +1,30 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Submit Payment Proof - Supreme Biotech Solutions</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+{% extends 'base.html' %}
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f5f5f5;
-        }
+{% block title %}Supreme Biotech Solutions{% endblock %}
 
-        /* Navigation Bar */
-        nav {
-            background-color: white;
-            padding: 15px 40px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-
-        .nav-logo {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            color: #1a2a5e;
-            font-weight: bold;
-            font-size: 1.2em;
-        }
-
-        .nav-links {
-            display: flex;
-            gap: 15px;
-            list-style: none;
-            margin-left: auto;
-            margin-right: 20px;
-            align-items: center;
-        }
-
-        .nav-links a {
-            color: #333;
-            text-decoration: none;
-            font-size: 0.875em;
-            transition: color 0.3s;
-            padding: 8px 12px;
-            border-radius: 5px;
-            white-space: nowrap;
-        }
-
-        .nav-links a:hover {
-            color: #1a2a5e;
-            background-color: #f0f0f0;
-        }
-
-        .nav-links a.active {
-            color: #1a2a5e;
-            background-color: #e8f0fe;
-        }
-
-        .profile-btn {
-            background-color: #1a2a5e;
-            color: white;
-            padding: 10px 25px;
-            border: none;
-            border-radius: 5px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background-color 0.3s;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .profile-btn:hover {
-            background-color: #0d1535;
-        }
-
-        /* Main Content */
+{% block extra_css %}
+<style>
+/* Main Content */
         .container {
             max-width: 700px;
             margin: 40px auto;
             padding: 0 20px;
         }
-
         .form-card {
             background-color: white;
             border-radius: 10px;
             padding: 40px;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
-
         .form-card h1 {
             color: #1a2a5e;
             font-size: 2em;
             margin-bottom: 30px;
             text-align: center;
         }
-
         .form-group {
             margin-bottom: 25px;
         }
-
         .form-group label {
             display: block;
             color: #333;
@@ -118,7 +32,6 @@
             margin-bottom: 8px;
             font-size: 0.95em;
         }
-
         .form-group select,
         .form-group input {
             width: 100%;
@@ -129,17 +42,14 @@
             transition: border-color 0.3s;
             font-family: inherit;
         }
-
         .form-group select:focus,
         .form-group input:focus {
             outline: none;
             border-color: #1a2a5e;
         }
-
         .file-upload {
             position: relative;
         }
-
         .file-input-wrapper {
             display: flex;
             align-items: center;
@@ -149,11 +59,9 @@
             border-radius: 5px;
             background-color: #f9f9f9;
         }
-
         .file-input-wrapper input[type="file"] {
             display: none;
         }
-
         .file-label {
             background-color: #e0e0e0;
             color: #333;
@@ -163,29 +71,24 @@
             font-weight: 500;
             font-size: 0.95em;
         }
-
         .file-label:hover {
             background-color: #d0d0d0;
         }
-
         .file-name {
             color: #999;
             font-size: 0.9em;
             flex: 1;
         }
-
         .error-message {
             color: #d32f2f;
             font-size: 0.85em;
             margin-top: 5px;
         }
-
         .button-group {
             display: flex;
             gap: 15px;
             margin-top: 40px;
         }
-
         .go-back-btn {
             background-color: #e0e0e0;
             color: #333;
@@ -198,11 +101,9 @@
             flex: 1;
             transition: background-color 0.3s;
         }
-
         .go-back-btn:hover {
             background-color: #d0d0d0;
         }
-
         .submit-btn {
             background-color: #1a2a5e;
             color: white;
@@ -215,85 +116,26 @@
             flex: 1;
             transition: background-color 0.3s;
         }
-
         .submit-btn:hover {
             background-color: #0d1535;
         }
-
         /* Confirmation Modal */
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 1000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-            justify-content: center;
-            align-items: center;
-        }
-
-        .modal.active {
-            display: flex;
-        }
-
-        .modal-content {
-            background-color: white;
-            padding: 30px;
-            border-radius: 10px;
-            max-width: 450px;
-            text-align: center;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
-        }
-
-        .modal-content h2 {
-            color: #1a2a5e;
-            margin-bottom: 20px;
-            font-size: 1.5em;
-        }
-
-        .modal-content p {
-            color: #666;
-            margin-bottom: 30px;
-            line-height: 1.5;
-        }
-
-        .modal-buttons {
-            display: flex;
-            gap: 15px;
-            justify-content: center;
-        }
-
-        .modal-buttons button {
-            padding: 10px 25px;
-            border: none;
-            border-radius: 5px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
         .continue-edit-btn {
             background-color: #e0e0e0;
             color: #333;
             flex: 1;
         }
-
         .continue-edit-btn:hover {
             background-color: #d0d0d0;
         }
-
         .confirm-submit-btn {
             background-color: #1a2a5e;
             color: white;
             flex: 1;
         }
-
         .confirm-submit-btn:hover {
             background-color: #0d1535;
         }
-
         /* Success Modal */
         .success-modal {
             display: none;
@@ -307,11 +149,9 @@
             justify-content: center;
             align-items: center;
         }
-
         .success-modal.active {
             display: flex;
         }
-
         .success-content {
             background-color: white;
             padding: 40px;
@@ -320,24 +160,20 @@
             text-align: center;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
         }
-
         .success-icon {
             font-size: 3em;
             margin-bottom: 20px;
         }
-
         .success-content h2 {
             color: #1a2a5e;
             margin-bottom: 15px;
             font-size: 1.5em;
         }
-
         .success-content p {
             color: #666;
             margin-bottom: 30px;
             line-height: 1.5;
         }
-
         .back-btn {
             background-color: #1a2a5e;
             color: white;
@@ -347,158 +183,23 @@
             font-weight: 600;
             cursor: pointer;
         }
-
         .back-btn:hover {
             background-color: #0d1535;
         }
-
-        /* Responsive */
-        @media (max-width: 768px) {
-            nav {
-                flex-direction: column;
-                gap: 15px;
-            }
-
-            .nav-links {
-                flex-wrap: wrap;
-                margin-left: 0;
-                margin-right: 0;
-                gap: 15px;
-                justify-content: center;
-            }
-
             .button-group {
                 flex-direction: column;
             }
-
-            .modal-buttons {
-                flex-direction: column;
-            }
         }
-    </style>
-</head>
-<body>
-    <!-- Navigation Bar -->
-    <nav>
-        <div class="nav-logo">
-            <svg width="40" height="40" viewBox="0 0 40 40" style="fill: #1a2a5e;">
-                <circle cx="20" cy="10" r="4"/>
-                <path d="M 20 14 Q 15 18 20 26 Q 25 18 20 14 Z"/>
-                <circle cx="15" cy="22" r="1.5"/>
-                <circle cx="25" cy="22" r="1.5"/>
-            </svg>
-            Supreme
-        </div>
+</style>
+{% endblock %}
 
-        <ul class="nav-links">
-            <li><a href="{% url 'customer_home' %}">Home</a></li>
-            <li><a href="{% url 'book_inspection' %}">Book Inspection</a></li>
-            <li><a href="{% url 'property_list' %}">Manage Properties</a></li>
-            <li><a href="{% url 'pending_payment' %}" class="active">Pending Payment</a></li>
-            <li><a href="#">Service History</a></li>
-            <li><a href="{% url 'service_status' %}">Service Status</a></li>
-        </ul>
+{% block content %}
 
-        <a href="{% url 'profile' %}" class="profile-btn">
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
-                <circle cx="10" cy="6" r="4"/>
-                <path d="M 4 18 Q 4 12 10 12 Q 16 12 16 18 Z"/>
-            </svg>
-            Profile
-        </a>
-    </nav>
+{% endblock %}
 
-    <!-- Main Content -->
-    <div class="container">
-        <div class="form-card">
-            <h1>Submit your proof of payment</h1>
+{% block extra_js %}
+<script>
 
-            <form id="paymentForm" method="POST">
-                {% csrf_token %}
-
-                <div class="form-group">
-                    <label for="payment_type">Payment Type</label>
-                    <select id="payment_type" name="payment_type" required>
-                        <option value="">Select payment type</option>
-                        <option value="bank_transfer">Bank Transfer</option>
-                        <option value="gcash">GCash</option>
-                        <option value="check">Check</option>
-                        <option value="cash">Cash</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label for="bank_used">Bank Used for Payment</label>
-                    <select id="bank_used" name="bank_used" required>
-                        <option value="">Select bank</option>
-                        <option value="bpi">Bank of the Philippine Islands</option>
-                        <option value="bdo">Banco de Oro</option>
-                        <option value="metrobank">Metrobank</option>
-                        <option value="pnb">Philippine National Bank</option>
-                        <option value="unionbank">UnionBank</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label for="reference_number">Reference Number</label>
-                    <input type="text" id="reference_number" name="reference_number" placeholder="XXXXXXXXX" required>
-                    {% if error_reference %}
-                        <div class="error-message">{{ error_reference }}</div>
-                    {% endif %}
-                </div>
-
-                <div class="form-group">
-                    <label for="amount_paid">Amount Paid</label>
-                    <input type="number" id="amount_paid" name="amount_paid" placeholder="21,660.00" step="0.01" required>
-                    {% if error_amount %}
-                        <div class="error-message">{{ error_amount }}</div>
-                    {% endif %}
-                </div>
-
-                <div class="form-group file-upload">
-                    <label>Upload Proof of Payment</label>
-                    <div class="file-input-wrapper">
-                        <label class="file-label" for="proof_file">Choose file</label>
-                        <input type="file" id="proof_file" name="proof_file" accept=".jpg,.jpeg,.png,.pdf" required>
-                        <span class="file-name" id="fileName">No file chosen</span>
-                    </div>
-                    <small style="color: #999; margin-top: 8px; display: block;">Accepted formats: JPG, PNG, PDF (Max 5 MB)</small>
-                    {% if error_file %}
-                        <div class="error-message">{{ error_file }}</div>
-                    {% endif %}
-                </div>
-
-                <div class="button-group">
-                    <button type="button" class="go-back-btn" onclick="goBack()">Go Back</button>
-                    <button type="button" class="submit-btn" onclick="showConfirmation()">Submit</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Confirmation Modal -->
-    <div id="confirmModal" class="modal">
-        <div class="modal-content">
-            <h2>Confirmation</h2>
-            <p>Are you sure you want to submit this proof of payment?</p>
-            <div class="modal-buttons">
-                <button type="button" class="continue-edit-btn" onclick="hideConfirmation()">Continue Editing</button>
-                <button type="button" class="confirm-submit-btn" onclick="submitForm()">Submit</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Success Modal -->
-    <div id="successModal" class="success-modal">
-        <div class="success-content">
-            <div class="success-icon">✓</div>
-            <h2>Success</h2>
-            <p>You have successfully submitted your proof of payment.</p>
-            <button type="button" class="back-btn" onclick="goToPendingPayment()">Back to Pending Payments</button>
-        </div>
-    </div>
-
-    <script>
         // File input handler
         document.getElementById('proof_file').addEventListener('change', function() {
             const fileName = this.files.length > 0 
@@ -562,6 +263,73 @@
                 // Don't allow closing success modal by clicking outside
             }
         }
-    </script>
-</body>
-</html>
+    
+
+
+        // File input handler
+        document.getElementById('proof_file').addEventListener('change', function() {
+            const fileName = this.files.length > 0 
+                ? this.files[0].name 
+                : 'No file chosen';
+            document.getElementById('fileName').textContent = fileName;
+        });
+
+        function goBack() {
+            window.history.back();
+        }
+
+        function showConfirmation() {
+            // Validate all fields
+            const paymentType = document.getElementById('payment_type').value;
+            const bankUsed = document.getElementById('bank_used').value;
+            const referenceNumber = document.getElementById('reference_number').value;
+            const amountPaid = document.getElementById('amount_paid').value;
+            const proofFile = document.getElementById('proof_file').files.length;
+
+            if (!paymentType || !bankUsed || !referenceNumber || !amountPaid || proofFile === 0) {
+                alert('Required fields must be filled in.');
+                return;
+            }
+
+            // Validate file size (5 MB max)
+            const file = document.getElementById('proof_file').files[0];
+            const maxSize = 5 * 1024 * 1024; // 5 MB
+            if (file.size > maxSize) {
+                alert('File size must not exceed 5 MB.');
+                return;
+            }
+
+            document.getElementById('confirmModal').classList.add('active');
+        }
+
+        function hideConfirmation() {
+            document.getElementById('confirmModal').classList.remove('active');
+        }
+
+        function submitForm() {
+            // In a real application, you would submit the form here
+            // For now, we'll just show the success modal
+            hideConfirmation();
+            document.getElementById('successModal').classList.add('active');
+        }
+
+        function goToPendingPayment() {
+            window.location.href = '{% url "pending_payment" %}';
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const confirmModal = document.getElementById('confirmModal');
+            const successModal = document.getElementById('successModal');
+            
+            if (event.target == confirmModal) {
+                hideConfirmation();
+            }
+            if (event.target == successModal) {
+                // Don't allow closing success modal by clicking outside
+            }
+        }
+    
+
+</script>
+{% endblock %}

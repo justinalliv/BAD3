@@ -1,390 +1,102 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Manage Properties - Supreme Biotech Solutions</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+{% extends 'base.html' %}
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f5f5f5;
-        }
+{% block title %}Manage Properties - Supreme Biotech Solutions{% endblock %}
 
-        /* Navigation Bar */
-        nav {
-            background-color: white;
-            padding: 15px 40px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
+{% block extra_css %}
+<style>
+    .header-section {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 40px;
+    }
 
-        .nav-logo {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            color: #1a2a5e;
-            font-weight: bold;
-            font-size: 1.2em;
-        }
+    .header-section h1 {
+        color: #1a2a5e;
+        font-size: 2.5em;
+    }
 
-        .nav-links {
-            display: flex;
-            gap: 15px;
-            list-style: none;
-            margin-left: auto;
-            margin-right: 20px;
-            align-items: center;
-        }
+    .register-btn {
+        background-color: #1a2a5e;
+        color: white;
+        padding: 12px 30px;
+        border: none;
+        border-radius: 5px;
+        font-weight: 600;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 1em;
+        transition: background-color 0.3s;
+    }
 
-        .nav-links a {
-            color: #333;
-            text-decoration: none;
-            font-size: 0.875em;
-            transition: color 0.3s;
-            padding: 8px 12px;
-            border-radius: 5px;
-            white-space: nowrap;
-        }
+    .register-btn:hover {
+        background-color: #0d1535;
+    }
 
-        .nav-links a:hover {
-            color: #1a2a5e;
-            background-color: #f0f0f0;
-        }
+    .action-btn {
+        background-color: #1a2a5e;
+        color: white;
+        padding: 8px 16px;
+        border: none;
+        border-radius: 5px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background-color 0.3s;
+        text-decoration: none;
+        display: inline-block;
+        margin-right: 8px;
+    }
 
-        .nav-links a.active {
-            color: #1a2a5e;
-            background-color: #e8f0fe;
-            font-weight: 600;
-        }
+    .action-btn:hover {
+        background-color: #0d1535;
+    }
 
-        .profile-btn {
-            background-color: #1a2a5e;
-            color: white;
-            padding: 10px 25px;
-            border: none;
-            border-radius: 5px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background-color 0.3s;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-        }
+    .delete-btn {
+        background-color: #e74c3c;
+    }
 
-        .profile-btn:hover {
-            background-color: #0d1535;
-        }
+    .delete-btn:hover {
+        background-color: #c0392b;
+    }
 
-        /* Main Content */
-        .container {
-            max-width: 1200px;
-            margin: 40px auto;
-            padding: 0 20px;
-        }
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
 
+    .section-header h2 {
+        color: #1a2a5e;
+        font-size: 1.3em;
+        font-weight: 600;
+    }
+
+    @media (max-width: 768px) {
         .header-section {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 40px;
-        }
-
-        .header-section h1 {
-            color: #1a2a5e;
-            font-size: 2.5em;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 15px;
         }
 
         .register-btn {
-            background-color: #1a2a5e;
-            color: white;
-            padding: 12px 30px;
-            border: none;
-            border-radius: 5px;
-            font-weight: 600;
-            cursor: pointer;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 1em;
-            transition: background-color 0.3s;
-        }
-
-        .register-btn:hover {
-            background-color: #0d1535;
-        }
-
-        table {
             width: 100%;
-            border-collapse: collapse;
-        }
-
-        thead {
-            background-color: #1a2a5e;
-            color: white;
-        }
-
-        th {
-            padding: 15px;
-            text-align: left;
-            font-weight: 600;
-            font-size: 0.95em;
-        }
-
-        td {
-            padding: 15px;
-            border-bottom: 1px solid #e0e0e0;
-            font-size: 0.95em;
-            color: #333;
-        }
-
-        tbody tr:hover {
-            background-color: #f9f9f9;
-        }
-
-        tbody tr:last-child td {
-            border-bottom: none;
-        }
-
-        .action-btn {
-            background-color: #1a2a5e;
-            color: white;
-            padding: 8px 16px;
-            border: none;
-            border-radius: 5px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background-color 0.3s;
-            text-decoration: none;
-            display: inline-block;
-            margin-right: 8px;
-        }
-
-        .action-btn:hover {
-            background-color: #0d1535;
-        }
-
-        .delete-btn {
-            background-color: #e74c3c;
-        }
-
-        .delete-btn:hover {
-            background-color: #c0392b;
-        }
-
-        .no-records {
-            text-align: center;
-            padding: 40px;
-            color: #999;
-        }
-
-        .no-records p {
-            font-size: 1.1em;
-        }
-
-        .search-box {
-            padding: 10px 15px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            width: 100%;
-            max-width: 400px;
-            font-size: 0.95em;
-            transition: border-color 0.3s;
-        }
-
-        .search-box:focus {
-            outline: none;
-            border-color: #1a2a5e;
-            box-shadow: 0 0 0 2px rgba(26, 42, 94, 0.1);
-        }
-
-        /* Section Styles */
-        .section {
-            background-color: white;
-            border-radius: 10px;
-            padding: 30px;
-            margin-bottom: 30px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            justify-content: center;
         }
 
         .section-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 10px;
         }
+    }
+</style>
+{% endblock %}
 
-        .section-header h2 {
-            color: #1a2a5e;
-            font-size: 1.3em;
-            font-weight: 600;
-        }
-
-        /* Modal Styles */
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 1000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.4);
-        }
-
-        .modal.show {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .modal-content {
-            background-color: white;
-            padding: 30px;
-            border-radius: 10px;
-            max-width: 400px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            text-align: center;
-        }
-
-        .modal-content h2 {
-            color: #1a2a5e;
-            margin-bottom: 15px;
-            font-size: 1.3em;
-        }
-
-        .modal-content p {
-            color: #666;
-            margin-bottom: 25px;
-            line-height: 1.6;
-        }
-
-        .modal-buttons {
-            display: flex;
-            gap: 15px;
-            justify-content: center;
-        }
-
-        .modal-btn {
-            padding: 10px 30px;
-            border: none;
-            border-radius: 5px;
-            font-weight: 600;
-            cursor: pointer;
-            font-size: 0.95em;
-        }
-
-        .modal-btn-cancel {
-            background-color: #e0e0e0;
-            color: #333;
-            transition: background-color 0.3s;
-        }
-
-        .modal-btn-cancel:hover {
-            background-color: #d0d0d0;
-        }
-
-        .modal-btn-confirm {
-            background-color: #1a2a5e;
-            color: white;
-            transition: background-color 0.3s;
-        }
-
-        .modal-btn-confirm:hover {
-            background-color: #0d1535;
-        }
-
-        /* Responsive */
-        @media (max-width: 768px) {
-            nav {
-                flex-direction: column;
-                gap: 15px;
-            }
-
-            .nav-links {
-                flex-wrap: wrap;
-                margin-left: 0;
-                margin-right: 0;
-                gap: 15px;
-                justify-content: center;
-            }
-
-            .header-section {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 15px;
-            }
-
-            .register-btn {
-                width: 100%;
-                justify-content: center;
-            }
-
-            .section-header {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 10px;
-            }
-
-            .search-box {
-                width: 100%;
-                max-width: 100%;
-            }
-
-            table {
-                font-size: 0.85em;
-            }
-
-            th, td {
-                padding: 10px 8px;
-            }
-        }
-    </style>
-</head>
-<body>
-    <!-- Navigation Bar -->
-    <nav>
-        <div class="nav-logo">
-            <svg width="40" height="40" viewBox="0 0 40 40" style="fill: #1a2a5e;">
-                <circle cx="20" cy="10" r="4"/>
-                <path d="M 20 14 Q 15 18 20 26 Q 25 18 20 14 Z"/>
-                <circle cx="15" cy="22" r="1.5"/>
-                <circle cx="25" cy="22" r="1.5"/>
-            </svg>
-            Supreme
-        </div>
-
-        <ul class="nav-links">
-            <li><a href="{% url 'customer_home' %}">Home</a></li>
-            <li><a href="{% url 'book_inspection' %}">Book Inspection</a></li>
-            <li><a href="{% url 'property_list' %}" class="active">Manage Properties</a></li>
-            <li><a href="{% url 'pending_payment' %}">Pending Payment</a></li>
-            <li><a href="#">Service History</a></li>
-            <li><a href="{% url 'service_status' %}">Service Status</a></li>
-        </ul>
-
-        <a href="{% url 'profile' %}" class="profile-btn">
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
-                <circle cx="10" cy="6" r="4"/>
-                <path d="M 4 18 Q 4 12 10 12 Q 16 12 16 18 Z"/>
-            </svg>
-            Profile
-        </a>
-    </nav>
-
-    <!-- Main Content -->
+{% block content %}
     <div class="container">
         <!-- Header Section -->
         <div class="header-section">
@@ -445,75 +157,77 @@
             </table>
         </div>
 
-    <!-- Delete Property Modal -->
-    <div id="deleteModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-icon" style="width: 60px; height: 60px; background-color: #1a2a5e; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; color: white; font-size: 1.8em;">!</div>
-            <h2>Delete Property?</h2>
-            <p id="deleteModalText"></p>
-            <div class="modal-buttons">
-                <button class="modal-btn modal-btn-cancel" onclick="closeDeleteModal()">Cancel</button>
-                <button class="modal-btn modal-btn-confirm" onclick="confirmDelete()">Confirm</button>
+        <!-- Delete Property Modal -->
+        <div id="deleteModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-icon" style="width: 60px; height: 60px; background-color: #1a2a5e; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; color: white; font-size: 1.8em;">!</div>
+                <h2>Delete Property?</h2>
+                <p id="deleteModalText"></p>
+                <div class="modal-buttons">
+                    <button class="modal-btn modal-btn-cancel" onclick="closeDeleteModal()">Cancel</button>
+                    <button class="modal-btn modal-btn-confirm" onclick="confirmDelete()">Confirm</button>
+                </div>
             </div>
         </div>
     </div>
+{% endblock %}
 
-    <script>
-        let selectedPropertyId = null;
+{% block extra_js %}
+<script>
+    let selectedPropertyId = null;
 
-        // Search functionality
-        document.getElementById('searchBox').addEventListener('keyup', function() {
-            const searchTerm = this.value.toLowerCase();
-            const rows = document.querySelectorAll('.property-row');
+    // Search functionality
+    document.getElementById('searchBox').addEventListener('keyup', function() {
+        const searchTerm = this.value.toLowerCase();
+        const rows = document.querySelectorAll('.property-row');
 
-            rows.forEach(row => {
-                const propertyName = row.dataset.propertyName.toLowerCase();
-                const propertyAddress = row.dataset.propertyAddress.toLowerCase();
+        rows.forEach(row => {
+            const propertyName = row.dataset.propertyName.toLowerCase();
+            const propertyAddress = row.dataset.propertyAddress.toLowerCase();
 
-                if (propertyName.includes(searchTerm) || propertyAddress.includes(searchTerm)) {
-                    row.style.display = '';
-                } else {
-                    row.style.display = 'none';
-                }
-            });
-        });
-
-        // Delete modal functions
-        function openDeleteModal(propertyId, propertyName) {
-            selectedPropertyId = propertyId;
-            document.getElementById('deleteModalText').textContent = `Are you sure you want to delete "${propertyName}"?`;
-            document.getElementById('deleteModal').classList.add('show');
-        }
-
-        function closeDeleteModal() {
-            document.getElementById('deleteModal').classList.remove('show');
-            selectedPropertyId = null;
-        }
-
-        function confirmDelete() {
-            if (selectedPropertyId) {
-                // Submit delete form
-                const form = document.createElement('form');
-                form.method = 'POST';
-                form.action = `/properties/${selectedPropertyId}/delete/`;
-                
-                const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]');
-                if (csrfToken) {
-                    form.appendChild(csrfToken.cloneNode(true));
-                }
-                
-                document.body.appendChild(form);
-                form.submit();
-            }
-        }
-
-        // Close modal when clicking outside
-        window.addEventListener('click', function(event) {
-            const deleteModal = document.getElementById('deleteModal');
-            if (event.target === deleteModal) {
-                closeDeleteModal();
+            if (propertyName.includes(searchTerm) || propertyAddress.includes(searchTerm)) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
             }
         });
-    </script>
-</body>
-</html>
+    });
+
+    // Delete modal functions
+    function openDeleteModal(propertyId, propertyName) {
+        selectedPropertyId = propertyId;
+        document.getElementById('deleteModalText').textContent = `Are you sure you want to delete "${propertyName}"?`;
+        document.getElementById('deleteModal').classList.add('show');
+    }
+
+    function closeDeleteModal() {
+        document.getElementById('deleteModal').classList.remove('show');
+        selectedPropertyId = null;
+    }
+
+    function confirmDelete() {
+        if (selectedPropertyId) {
+            // Submit delete form
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = `/properties/${selectedPropertyId}/delete/`;
+            
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]');
+            if (csrfToken) {
+                form.appendChild(csrfToken.cloneNode(true));
+            }
+            
+            document.body.appendChild(form);
+            form.submit();
+        }
+    }
+
+    // Close modal when clicking outside
+    window.addEventListener('click', function(event) {
+        const deleteModal = document.getElementById('deleteModal');
+        if (event.target === deleteModal) {
+            closeDeleteModal();
+        }
+    });
+</script>
+{% endblock %}
