@@ -13,8 +13,12 @@ def customer_home(request):
     # Check if user is logged in
     if 'customer_id' not in request.session:
         return redirect('login')
-    
-    return render(request, 'customer_home.html')
+
+    customer = Customer.objects.filter(id=request.session['customer_id']).only('first_name', 'last_name').first()
+
+    return render(request, 'customer_home.html', {
+        'customer': customer,
+    })
 
 
 def login(request):
@@ -32,6 +36,12 @@ def login(request):
         return render(request, 'login.html', status=401)
     
     return render(request, 'login.html')
+
+
+def logout(request):
+    """Log out current customer and return to login page."""
+    request.session.flush()
+    return redirect('login')
 
 
 def signup(request):
@@ -113,6 +123,9 @@ def edit_profile(request):
         first_name = request.POST.get('first_name', '').strip()
         last_name = request.POST.get('last_name', '').strip()
         phone_number = request.POST.get('phone_number', '').strip()
+        change_password = request.POST.get('change_password', '').strip() == '1'
+        new_password = request.POST.get('new_password', '').strip()
+        confirm_new_password = request.POST.get('confirm_new_password', '').strip()
         
         # Validate phone number format
         import re
@@ -121,6 +134,21 @@ def edit_profile(request):
                 'customer': customer,
                 'error_phone': 'Phone Number must be 11 digits and start with 09-'
             })
+
+        if change_password:
+            if not new_password or not confirm_new_password:
+                return render(request, 'edit_profile.html', {
+                    'customer': customer,
+                    'error_password': 'Required fields must be filled in.',
+                    'show_password_section': True,
+                })
+
+            if new_password != confirm_new_password:
+                return render(request, 'edit_profile.html', {
+                    'customer': customer,
+                    'error_password': 'Password and Confirm Password do not match',
+                    'show_password_section': True,
+                })
         
         # Check if phone number already exists (excluding current customer)
         if Customer.objects.filter(phone_number=phone_number).exclude(id=customer.id).exists():
@@ -133,6 +161,10 @@ def edit_profile(request):
         customer.first_name = first_name
         customer.last_name = last_name
         customer.phone_number = phone_number
+
+        if change_password:
+            customer.password = new_password
+
         customer.save()
         
         # Update session name
@@ -149,9 +181,11 @@ def pending_payment(request):
     if 'customer_id' not in request.session:
         return redirect('login')
     
-    # For now, show empty pending payments
-    # TODO: Fetch actual pending payments from database
-    return render(request, 'pending_payment.html')
+    # For now, keep this page in explicit empty-state mode.
+    # TODO: Fetch actual pending payments from database when UC is resumed.
+    return render(request, 'pending_payment.html', {
+        'pending_services': []
+    })
 
 
 def payment_instructions(request):

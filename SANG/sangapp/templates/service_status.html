@@ -1,208 +1,126 @@
 {% extends 'base.html' %}
 
-{% block title %}Supreme Biotech Solutions{% endblock %}
+{% block title %}Service Status - Supreme Biotech Solutions{% endblock %}
 
 {% block extra_css %}
 <style>
-/* Main Content */
-        .container {
-            max-width: 1200px;
-            margin: 40px auto;
-            padding: 0 20px;
-        }
-        .page-header {
-            text-align: center;
-            margin-bottom: 30px;
-        }
+    .page-header {
+        margin-bottom: 30px;
+    }
+
+    .page-header h1 {
+        color: #1a2a5e;
+        font-size: 2.3em;
+    }
+
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+
+    .section-header h2 {
+        color: #1a2a5e;
+        font-size: 1.3em;
+    }
+
+    @media (max-width: 768px) {
         .page-header h1 {
-            color: #1a2a5e;
-            font-size: 2.5em;
+            font-size: 2em;
         }
-        /* Search Section */
-        .search-section {
-            display: flex;
-            justify-content: flex-end;
-            margin-bottom: 20px;
+
+        .section-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 10px;
         }
+
         .search-box {
-            padding: 10px 15px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            width: 300px;
-            font-size: 0.95em;
-            transition: border-color 0.3s;
+            width: 100%;
         }
-        .search-box:focus {
-            outline: none;
-            border-color: #1a2a5e;
-            box-shadow: 0 0 0 2px rgba(26, 42, 94, 0.1);
-        }
-        /* Table Section */
-        .section {
-            background-color: white;
-            border-radius: 10px;
-            padding: 30px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-        th {
-            padding: 15px;
-            text-align: left;
-            font-weight: 600;
-            font-size: 0.95em;
-        }
-        td {
-            padding: 15px;
-            border-bottom: 1px solid #e0e0e0;
-            font-size: 0.95em;
-            color: #333;
-        }
-        tbody tr:hover {
-            background-color: #f5f5f5;
-        }
-        tbody tr:last-child td {
-            border-bottom: none;
-        }
-        .invoice-link {
-            color: #1a2a5e;
-            text-decoration: underline;
-            cursor: pointer;
-        }
-        .invoice-link:hover {
-            color: #0d1535;
-        }
-        .status-for-inspection {
-            background-color: #fff3cd;
-            color: #856404;
-        }
-        .status-ongoing-inspection {
-            background-color: #d1ecf1;
-            color: #0c5460;
-        }
-        .status-for-treatment {
-            background-color: #e7e8ff;
-            color: #4a4a8e;
-        }
-        .status-ongoing-treatment {
-            background-color: #cfe2ff;
-            color: #084298;
-        }
-        .status-pending-payment {
-            background-color: #f8d7da;
-            color: #842029;
-        }
-        .status-payment-confirmed {
-            background-color: #d1e7dd;
-            color: #0f5132;
-        }
-        /* Empty State */
-        .empty-state {
-            text-align: center;
-            padding: 60px 20px;
-            color: #666;
-        }
-        .empty-state-icon {
-            font-size: 4em;
-            color: #ddd;
-            margin-bottom: 20px;
-        }
-        .empty-state h3 {
-            color: #1a2a5e;
-            margin-bottom: 10px;
-            font-size: 1.5em;
-        }
-        .empty-state p {
-            margin-bottom: 20px;
-        }
-        .empty-state a {
-            display: inline-block;
-            padding: 12px 30px;
-            background-color: #1a2a5e;
-            color: white;
-            text-decoration: none;
-            border-radius: 5px;
-            transition: background-color 0.3s;
-        }
-        .empty-state a:hover {
-            background-color: #0d1535;
-        }
-            .page-header h1 {
-                font-size: 2em;
-            }
-            .search-box {
-                width: 100%;
-            }
-            th, td {
-                padding: 10px 8px;
-            }
-        }
+    }
 </style>
 {% endblock %}
 
 {% block content %}
+<div class="container">
+    <div class="page-header">
+        <h1>Service Status</h1>
+    </div>
 
+    <div class="section">
+        <div class="section-header">
+            <h2>Ongoing Services</h2>
+            <input type="text" id="searchInput" class="search-box" placeholder="Search">
+        </div>
+
+        <table id="servicesTable">
+            <thead>
+                <tr>
+                    <th>Service ID</th>
+                    <th>Property Address</th>
+                    <th>Service Type</th>
+                    <th>Schedule</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if services %}
+                    {% for service in services %}
+                    <tr>
+                        <td>{{ service.id|stringformat:"07d" }}</td>
+                        <td>{{ service.property.street_number }} {{ service.property.street }}, {{ service.property.city }}</td>
+                        <td>{{ service.preferred_service }}</td>
+                        <td>{{ service.date }} | {{ service.time_slot }}</td>
+                        <td>
+                            <span class="status-badge status-{{ service.status|lower|cut:' ' }}">
+                                {{ service.status }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="5" style="text-align: center; color: #999; padding: 30px;">No ongoing services found.</td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
 {% endblock %}
 
 {% block extra_js %}
 <script>
+    const searchInput = document.getElementById('searchInput');
+    const servicesTable = document.getElementById('servicesTable');
 
-        // Search functionality
-        document.getElementById('searchInput').addEventListener('keyup', function() {
+    if (searchInput && servicesTable) {
+        searchInput.addEventListener('keyup', function() {
             const searchValue = this.value.toLowerCase();
-            const table = document.getElementById('servicesTable');
-            
-            if (!table) return;
-            
-            const rows = table.getElementsByTagName('tbody')[0].getElementsByTagName('tr');
-            
-            for (let i = 0; i < rows.length; i++) {
-                const row = rows[i];
+            const rows = servicesTable.getElementsByTagName('tbody')[0].getElementsByTagName('tr');
+
+            for (let index = 0; index < rows.length; index += 1) {
+                const row = rows[index];
                 const cells = row.getElementsByTagName('td');
-                let found = false;
-                
-                // Search through all cells
-                for (let j = 0; j < cells.length; j++) {
-                    const cellText = cells[j].textContent.toLowerCase();
-                    if (cellText.includes(searchValue)) {
-                        found = true;
+
+                if (cells.length === 1 && cells[0].getAttribute('colspan')) {
+                    continue;
+                }
+
+                let matched = false;
+
+                for (let cellIndex = 0; cellIndex < cells.length; cellIndex += 1) {
+                    if (cells[cellIndex].textContent.toLowerCase().includes(searchValue)) {
+                        matched = true;
                         break;
                     }
                 }
-                
-                // Show or hide row based on search result
-                row.style.display = found ? '' : 'none';
+
+                row.style.display = matched ? '' : 'none';
             }
         });
-    
-
-
-        // Search functionality
-        document.getElementById('searchInput').addEventListener('keyup', function() {
-            const searchValue = this.value.toLowerCase();
-            const table = document.getElementById('servicesTable');
-            
-            if (!table) return;
-            
-            const rows = table.getElementsByTagName('tbody')[0].getElementsByTagName('tr');
-            
-            for (let i = 0; i < rows.length; i++) {
-                const row = rows[i];
-                const cells = row.getElementsByTagName('td');
-                let found = false;
-                
-                // Search through all cells
-                for (let j = 0; j < cells.length; j++) {
-                    const cellText = cells[j].textContent.toLowerCase();
-                    if (cellText.includes(searchValue)) {
-                        found = true;
-                        break;
-                    }
-                }
-                
-                // Show or hide row based on search result
-                row.style.display = found ? '' : 'none';
-            }
-        });
-    
-
+    }
 </script>
 {% endblock %}

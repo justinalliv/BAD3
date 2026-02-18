@@ -1,93 +1,103 @@
 {% extends 'base.html' %}
 
-{% block title %}Supreme Biotech Solutions{% endblock %}
+{% block title %}Payment Instructions - Supreme Biotech Solutions{% endblock %}
 
 {% block extra_css %}
 <style>
-/* Main Content */
-        .container {
-            max-width: 800px;
-            margin: 40px auto;
-            padding: 0 20px;
+    .payment-container {
+        max-width: 800px;
+        margin: 40px auto;
+        padding: 0 20px;
+    }
+
+    .payment-card {
+        background-color: white;
+        border-radius: 10px;
+        padding: 35px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .payment-card h1 {
+        color: #1a2a5e;
+        margin-bottom: 25px;
+        text-align: center;
+    }
+
+    .info-section {
+        margin-bottom: 20px;
+        padding: 20px;
+        background-color: #f8f9fb;
+        border-left: 4px solid #1a2a5e;
+        border-radius: 6px;
+    }
+
+    .info-section h3 {
+        color: #1a2a5e;
+        margin-bottom: 8px;
+        font-size: 1.05em;
+    }
+
+    .info-section p,
+    .info-section li {
+        color: #444;
+        line-height: 1.6;
+    }
+
+    .info-section ul {
+        margin-left: 20px;
+    }
+
+    .button-group {
+        margin-top: 30px;
+    }
+
+    @media (max-width: 768px) {
+        .payment-card {
+            padding: 25px;
         }
-        .card {
-            background-color: white;
-            border-radius: 10px;
-            padding: 40px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-        .card h1 {
-            color: #1a2a5e;
-            font-size: 2em;
-            margin-bottom: 30px;
-            text-align: center;
-        }
-        .info-section {
-            margin-bottom: 30px;
-            padding: 20px;
-            background-color: #f9f9f9;
-            border-radius: 5px;
-            border-left: 4px solid #1a2a5e;
-        }
-        .info-section h3 {
-            color: #1a2a5e;
-            margin-bottom: 10px;
-            font-size: 1.1em;
-        }
-        .info-section p {
-            color: #666;
-            line-height: 1.6;
-        }
-        .amount-display {
-            font-size: 1.2em;
-            font-weight: 600;
-            color: #1a2a5e;
-            margin-top: 10px;
-        }
+
         .button-group {
-            display: flex;
-            gap: 15px;
-            justify-content: center;
-            margin-top: 40px;
+            flex-direction: column;
         }
-        .cancel-btn {
-            background-color: #e0e0e0;
-            color: #333;
-            padding: 12px 40px;
-            border: none;
-            border-radius: 5px;
-            font-size: 1em;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background-color 0.3s;
+
+        .button-group .btn {
+            width: 100%;
         }
-        .cancel-btn:hover {
-            background-color: #d0d0d0;
-        }
-        .continue-btn {
-            background-color: #1a2a5e;
-            color: white;
-            padding: 12px 40px;
-            border: none;
-            border-radius: 5px;
-            font-size: 1em;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-        .continue-btn:hover {
-            background-color: #0d1535;
-        }
-            .button-group {
-                flex-direction: column;
-            }
-            .cancel-btn, .continue-btn {
-                width: 100%;
-            }
-        }
+    }
 </style>
 {% endblock %}
 
 {% block content %}
+<div class="payment-container">
+    <div class="payment-card">
+        <h1>Payment Instructions</h1>
 
+        <div class="info-section">
+            <h3>Reference</h3>
+            <p>Service ID: {% if request.GET.service_id %}{{ request.GET.service_id|stringformat:"07d" }}{% else %}N/A{% endif %}</p>
+            <p>Please include this Service ID in your proof of payment submission.</p>
+        </div>
+
+        <div class="info-section">
+            <h3>Bank Transfer Details</h3>
+            <p>Account Name: Supreme Biotech Solutions</p>
+            <p>Bank: BDO / BPI / Metrobank</p>
+            <p>Account Number: 0000-0000-0000</p>
+        </div>
+
+        <div class="info-section">
+            <h3>Before You Submit</h3>
+            <ul>
+                <li>Complete your transfer and keep your transaction receipt.</li>
+                <li>Make sure the amount and reference number are readable.</li>
+                <li>Accepted proof formats: JPG, PNG, PDF (max 5 MB).</li>
+            </ul>
+        </div>
+
+        <div class="button-group">
+            <a href="{% url 'pending_payment' %}" class="btn btn-secondary">Back</a>
+            <a href="{% url 'submit_payment_proof' %}{% if request.GET.service_id %}?service_id={{ request.GET.service_id }}{% endif %}" class="btn btn-primary">Continue</a>
+        </div>
+    </div>
+</div>
 {% endblock %}

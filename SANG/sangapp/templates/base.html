@@ -77,6 +77,17 @@
             background-color: #f0f0f0;
         }
 
+        .nav-links .nav-disabled {
+            color: #999;
+            font-size: 0.875em;
+            padding: 8px 12px;
+            border-radius: 5px;
+            cursor: not-allowed;
+            user-select: none;
+            white-space: nowrap;
+            display: inline-block;
+        }
+
         .nav-links a.active {
             color: #1a2a5e;
             background-color: #e8f0fe;
@@ -549,7 +560,7 @@
             <li><a href="{% url 'customer_home' %}">Home</a></li>
             <li><a href="{% url 'book_inspection' %}">Book Inspection</a></li>
             <li><a href="{% url 'property_list' %}">Manage Properties</a></li>
-            <li><a href="{% url 'pending_payment' %}">Pending Payment</a></li>
+            <li><span class="nav-disabled">Pending Payment</span></li>
             <li><a href="#">Service History</a></li>
             <li><a href="{% url 'service_status' %}">Service Status</a></li>
         </ul>

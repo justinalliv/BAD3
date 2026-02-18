@@ -13,7 +13,7 @@
 
     .header-section h1 {
         color: #1a2a5e;
-        font-size: 2.5em;
+        font-size: 2.2em;
     }
 
     .register-btn {
@@ -71,8 +71,12 @@
 
     .section-header h2 {
         color: #1a2a5e;
-        font-size: 1.3em;
+        font-size: 1.2em;
         font-weight: 600;
+    }
+
+    .table-wrapper {
+        overflow-x: auto;
     }
 
     @media (max-width: 768px) {
@@ -122,39 +126,41 @@
                 <input type="text" id="searchBox" class="search-box" placeholder="Search">
             </div>
 
-            <table id="propertyTable">
-                <thead>
-                    <tr>
-                        <th>Property ID</th>
-                        <th>Property Name</th>
-                        <th>Address</th>
-                        <th>Property Type</th>
-                        <th>Floor Area</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% if properties %}
-                        {% for property in properties %}
-                        <tr class="property-row" data-property-id="{{ property.id }}" data-property-name="{{ property.property_name }}" data-property-address="{{ property.street_number }} {{ property.street }}, {{ property.city }}, {{ property.province }}">
-                            <td>{{ property.id }}</td>
-                            <td>{{ property.property_name }}</td>
-                            <td>{{ property.street_number }} {{ property.street }}, {{ property.city }}, {{ property.province }}</td>
-                            <td>{{ property.property_type }}</td>
-                            <td>{{ property.floor_area }} sqm</td>
-                            <td>
-                                <a href="{% url 'edit_property' property.id %}" class="action-btn">Edit</a>
-                                <button class="action-btn delete-btn" onclick="openDeleteModal({{ property.id }}, '{{ property.property_name }}')">Delete</button>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    {% else %}
+            <div class="table-wrapper">
+                <table id="propertyTable">
+                    <thead>
                         <tr>
-                            <td colspan="6" style="text-align: center; color: #999; padding: 30px;">You have no registered properties. Click "Register Property" to add one.</td>
+                            <th>Property ID</th>
+                            <th>Property Name</th>
+                            <th>Address</th>
+                            <th>Property Type</th>
+                            <th>Floor Area</th>
+                            <th>Action</th>
                         </tr>
-                    {% endif %}
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        {% if properties %}
+                            {% for property in properties %}
+                            <tr class="property-row" data-property-id="{{ property.id }}" data-property-name="{{ property.property_name }}" data-property-address="{{ property.street_number }} {{ property.street }}, {{ property.city }}, {{ property.province }}">
+                                <td>{{ property.id }}</td>
+                                <td>{{ property.property_name }}</td>
+                                <td>{{ property.street_number }} {{ property.street }}, {{ property.city }}, {{ property.province }}</td>
+                                <td>{{ property.property_type }}</td>
+                                <td>{{ property.floor_area }} sqm</td>
+                                <td>
+                                    <a href="{% url 'edit_property' property.id %}" class="action-btn">Edit</a>
+                                    <button class="action-btn delete-btn" onclick="openDeleteModal({{ property.id }}, '{{ property.property_name }}')">Delete</button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="6" style="text-align: center; color: #999; padding: 30px;">You have no registered properties. Click "Register Property" to add one.</td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
         </div>
 
         <!-- Delete Property Modal -->

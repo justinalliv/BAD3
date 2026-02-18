@@ -1,86 +1,70 @@
 {% extends 'base.html' %}
 
-{% block title %}Customer Home - Supreme Biotech Solutions{% endblock %}
+{% block title %}Home - Supreme Biotech Solutions{% endblock %}
 
 {% block extra_css %}
 <style>
-    main {
-        flex: 1;
+    .home-wrap {
+        max-width: 900px;
+        margin: 60px auto;
+        padding: 0 20px;
     }
 
-    /* Hero Section */
-    .hero {
-        background: linear-gradient(135deg, #1a2a5e 0%, #2d3e6f 50%, #1f3a5f 100%);
-        min-height: calc(100vh - 70px);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 60px 20px;
+    .home-card {
+        background-color: white;
+        border-radius: 10px;
+        padding: 50px 35px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         text-align: center;
     }
 
-    .hero-content {
-        max-width: 800px;
-        color: white;
-    }
-
-    .hero h1 {
-        font-size: 3.5em;
-        font-weight: 700;
-        margin-bottom: 20px;
-        line-height: 1.2;
-    }
-
-    .hero p {
-        font-size: 1.5em;
-        margin-bottom: 40px;
-        opacity: 0.95;
-    }
-
-    .schedule-btn {
-        display: inline-block;
-        padding: 15px 45px;
-        background-color: transparent;
-        color: white;
-        border: 2px solid white;
-        border-radius: 5px;
-        font-size: 1.1em;
-        font-weight: 600;
-        text-decoration: none;
-        cursor: pointer;
-        transition: all 0.3s ease;
-    }
-
-    .schedule-btn:hover {
-        background-color: white;
+    .home-card h1 {
         color: #1a2a5e;
-        transform: scale(1.05);
+        font-size: 2.5em;
+        margin-bottom: 12px;
+    }
+
+    .home-card p {
+        color: #555;
+        font-size: 1.05em;
+        margin-bottom: 30px;
+    }
+
+    .home-actions {
+        display: flex;
+        justify-content: center;
+        gap: 12px;
     }
 
     @media (max-width: 768px) {
-        .hero h1 {
-            font-size: 2.5em;
+        .home-card {
+            padding: 35px 20px;
         }
 
-        .hero p {
-            font-size: 1.2em;
+        .home-card h1 {
+            font-size: 2em;
         }
 
-        .schedule-btn {
-            padding: 12px 35px;
-            font-size: 1em;
+        .home-actions {
+            flex-direction: column;
+        }
+
+        .home-actions .btn {
+            width: 100%;
         }
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<!-- Hero Section -->
-<section class="hero">
-    <div class="hero-content">
-        <h1>Experience the Supreme Difference.</h1>
-        <p>Providing solutions to all your pest problems.</p>
-        <a href="{% url 'book_inspection' %}" class="schedule-btn">Book Inspection</a>
+<div class="home-wrap">
+    <div class="home-card">
+        <h1>Supreme Biotech Solutions</h1>
+        <p>Providing concise and reliable pest control services for your home and business.</p>
+        <div class="home-actions">
+            <a href="{% url 'login' %}" class="btn btn-primary">Login</a>
+            <a href="{% url 'signup' %}" class="btn btn-secondary">Create Account</a>
+        </div>
     </div>
-</section>
+</div>
 {% endblock %}

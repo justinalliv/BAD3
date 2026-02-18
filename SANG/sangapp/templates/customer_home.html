@@ -1,82 +1,70 @@
 {% extends 'base.html' %}
 
-{% block title %}Customer Home - Supreme Biotech Solutions{% endblock %}
+{% block title %}Home - Supreme Biotech Solutions{% endblock %}
 
 {% block extra_css %}
 <style>
-    /* Hero Section */
-    .hero {
-        background: linear-gradient(135deg, #1a2a5e 0%, #2d3e6f 50%, #1f3a5f 100%);
-        min-height: calc(100vh - 70px);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 60px 20px;
-        text-align: center;
+    .dashboard-wrap {
+        max-width: 1000px;
+        margin: 40px auto;
+        padding: 0 20px;
     }
 
-    .hero-content {
-        max-width: 800px;
-        color: white;
-    }
-
-    .hero h1 {
-        font-size: 3.5em;
-        font-weight: 700;
-        margin-bottom: 20px;
-        line-height: 1.2;
-    }
-
-    .hero p {
-        font-size: 1.5em;
-        margin-bottom: 40px;
-        opacity: 0.95;
-    }
-
-    .schedule-btn {
-        display: inline-block;
-        padding: 15px 45px;
-        background-color: transparent;
-        color: white;
-        border: 2px solid white;
-        border-radius: 5px;
-        font-size: 1.1em;
-        font-weight: 600;
-        text-decoration: none;
-        cursor: pointer;
-        transition: all 0.3s ease;
-    }
-
-    .schedule-btn:hover {
+    .welcome-card {
         background-color: white;
+        border-radius: 10px;
+        padding: 35px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .welcome-card h1 {
         color: #1a2a5e;
-        transform: scale(1.05);
+        font-size: 2.3em;
+        margin-bottom: 8px;
+    }
+
+    .welcome-card p {
+        color: #555;
+        margin-bottom: 24px;
+    }
+
+    .dashboard-actions {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
     }
 
     @media (max-width: 768px) {
-        .hero h1 {
-            font-size: 2.5em;
+        .welcome-card {
+            padding: 25px 20px;
         }
 
-        .hero p {
-            font-size: 1.2em;
+        .welcome-card h1 {
+            font-size: 2em;
         }
 
-        .schedule-btn {
-            padding: 12px 35px;
-            font-size: 1em;
+        .dashboard-actions {
+            flex-direction: column;
+        }
+
+        .dashboard-actions .btn {
+            width: 100%;
         }
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<!-- Hero Section -->
-<section class="hero">
-    <div class="hero-content">
-        <h1>Welcome back, {{ customer.first_name }}!</h1>
-        <p>Manage your properties and book inspections.</p>
-        <a href="{% url 'book_inspection' %}" class="schedule-btn">Book Inspection</a>
+<div class="dashboard-wrap">
+    <div class="welcome-card">
+        <h1>Hi, {{ customer.first_name|default:'Customer' }}!</h1>
+        <p>Manage your account and schedule services from one place.</p>
+
+        <div class="dashboard-actions">
+            <a href="{% url 'book_inspection' %}" class="btn btn-primary">Book Inspection</a>
+            <a href="{% url 'property_list' %}" class="btn btn-secondary">Manage Properties</a>
+            <a href="{% url 'service_status' %}" class="btn btn-secondary">Service Status</a>
+        </div>
     </div>
-</section>
+</div>
 {% endblock %}

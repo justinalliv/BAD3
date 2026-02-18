@@ -27,6 +27,36 @@
         margin-top: 5px;
     }
 
+    .change-password-btn {
+        width: 100%;
+        background-color: #f0f0f0;
+        color: #1a2a5e;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        padding: 12px 15px;
+        font-weight: 600;
+        cursor: pointer;
+        margin-top: 10px;
+    }
+
+    .change-password-btn:hover {
+        background-color: #e5e5e5;
+    }
+
+    .password-section {
+        margin-top: 20px;
+        padding: 20px;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        background-color: #fafafa;
+    }
+
+    .password-section h3 {
+        color: #1a2a5e;
+        margin-bottom: 15px;
+        font-size: 1.1em;
+    }
+
     .button-row {
         display: flex;
         gap: 15px;
@@ -80,9 +110,28 @@
                     {% endif %}
                 </div>
 
+                <input type="hidden" id="change_password" name="change_password" value="{% if show_password_section %}1{% else %}0{% endif %}">
+
+                <button type="button" class="change-password-btn" onclick="togglePasswordSection()">Change Password</button>
+
+                <div id="passwordSection" class="password-section {% if not show_password_section %}hidden{% endif %}">
+                    <h3>Set a new password</h3>
+                    <div class="form-group">
+                        <label for="new_password">New Password</label>
+                        <input type="password" id="new_password" name="new_password" placeholder="Enter new password">
+                    </div>
+                    <div class="form-group">
+                        <label for="confirm_new_password">Confirm New Password</label>
+                        <input type="password" id="confirm_new_password" name="confirm_new_password" placeholder="Confirm new password">
+                        {% if error_password %}
+                            <div class="error-message">{{ error_password }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+
                 <div class="button-row">
                     <button type="button" class="cancel-btn" onclick="window.location.href='{% url 'profile' %}'">Cancel</button>
-                    <button type="button" class="save-btn" onclick="showConfirmation()">Save Changes</button>
+                    <button type="button" class="btn btn-primary" onclick="showConfirmation()">Save Changes</button>
                 </div>
             </form>
         </div>
@@ -94,8 +143,8 @@
             <h2>Confirmation</h2>
             <p>Are you sure you want to save changes?</p>
             <div class="modal-buttons">
-                <button type="button" class="continue-btn" onclick="hideConfirmation()">Continue Editing</button>
-                <button type="button" class="confirm-btn" onclick="submitForm()">Confirm</button>
+                <button type="button" class="modal-btn modal-btn-cancel" onclick="hideConfirmation()">Continue Editing</button>
+                <button type="button" class="modal-btn modal-btn-confirm" onclick="submitForm()">Confirm</button>
             </div>
         </div>
     </div>
@@ -115,8 +164,40 @@
                 phoneInput.focus();
                 return;
             }
+
+            const shouldChangePassword = document.getElementById('change_password').value === '1';
+            if (shouldChangePassword) {
+                const newPassword = document.getElementById('new_password').value.trim();
+                const confirmPassword = document.getElementById('confirm_new_password').value.trim();
+
+                if (!newPassword || !confirmPassword) {
+                    alert('Required fields must be filled in.');
+                    return;
+                }
+
+                if (newPassword !== confirmPassword) {
+                    alert('Password and Confirm Password do not match');
+                    return;
+                }
+            }
             
             document.getElementById('confirmModal').classList.add('active');
+        }
+
+        function togglePasswordSection() {
+            const section = document.getElementById('passwordSection');
+            const flagInput = document.getElementById('change_password');
+
+            if (section.classList.contains('hidden')) {
+                section.classList.remove('hidden');
+                flagInput.value = '1';
+                return;
+            }
+
+            section.classList.add('hidden');
+            flagInput.value = '0';
+            document.getElementById('new_password').value = '';
+            document.getElementById('confirm_new_password').value = '';
         }
 
         function hideConfirmation() {

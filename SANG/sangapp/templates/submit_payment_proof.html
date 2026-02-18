@@ -1,335 +1,166 @@
 {% extends 'base.html' %}
 
-{% block title %}Supreme Biotech Solutions{% endblock %}
+{% block title %}Submit Payment Proof - Supreme Biotech Solutions{% endblock %}
 
 {% block extra_css %}
 <style>
-/* Main Content */
-        .container {
-            max-width: 700px;
-            margin: 40px auto;
-            padding: 0 20px;
+    .payment-form-container {
+        max-width: 700px;
+        margin: 40px auto;
+        padding: 0 20px;
+    }
+
+    .payment-form-card {
+        background-color: white;
+        border-radius: 10px;
+        padding: 35px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .payment-form-card h1 {
+        color: #1a2a5e;
+        margin-bottom: 25px;
+        text-align: center;
+    }
+
+    .file-input-wrapper {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        padding: 12px 15px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        background-color: #f9f9f9;
+    }
+
+    .file-input-wrapper input[type="file"] {
+        display: none;
+    }
+
+    .file-label {
+        background-color: #e0e0e0;
+        color: #333;
+        padding: 8px 20px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-weight: 600;
+    }
+
+    .file-label:hover {
+        background-color: #d0d0d0;
+    }
+
+    .file-name {
+        color: #666;
+        font-size: 0.9em;
+    }
+
+    .success-card {
+        text-align: center;
+        padding: 20px;
+    }
+
+    .success-card h2 {
+        color: #1a2a5e;
+        margin-bottom: 10px;
+    }
+
+    .success-card p {
+        color: #555;
+        margin-bottom: 20px;
+    }
+
+    @media (max-width: 768px) {
+        .payment-form-card {
+            padding: 25px;
         }
-        .form-card {
-            background-color: white;
-            border-radius: 10px;
-            padding: 40px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-        .form-card h1 {
-            color: #1a2a5e;
-            font-size: 2em;
-            margin-bottom: 30px;
-            text-align: center;
-        }
-        .form-group {
-            margin-bottom: 25px;
-        }
-        .form-group label {
-            display: block;
-            color: #333;
-            font-weight: 500;
-            margin-bottom: 8px;
-            font-size: 0.95em;
-        }
-        .form-group select,
-        .form-group input {
-            width: 100%;
-            padding: 12px 15px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            font-size: 1em;
-            transition: border-color 0.3s;
-            font-family: inherit;
-        }
-        .form-group select:focus,
-        .form-group input:focus {
-            outline: none;
-            border-color: #1a2a5e;
-        }
-        .file-upload {
-            position: relative;
-        }
-        .file-input-wrapper {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            padding: 15px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            background-color: #f9f9f9;
-        }
-        .file-input-wrapper input[type="file"] {
-            display: none;
-        }
-        .file-label {
-            background-color: #e0e0e0;
-            color: #333;
-            padding: 8px 20px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-weight: 500;
-            font-size: 0.95em;
-        }
-        .file-label:hover {
-            background-color: #d0d0d0;
-        }
-        .file-name {
-            color: #999;
-            font-size: 0.9em;
-            flex: 1;
-        }
-        .error-message {
-            color: #d32f2f;
-            font-size: 0.85em;
-            margin-top: 5px;
-        }
+
         .button-group {
-            display: flex;
-            gap: 15px;
-            margin-top: 40px;
+            flex-direction: column;
         }
-        .go-back-btn {
-            background-color: #e0e0e0;
-            color: #333;
-            padding: 12px 40px;
-            border: none;
-            border-radius: 5px;
-            font-size: 1em;
-            font-weight: 600;
-            cursor: pointer;
-            flex: 1;
-            transition: background-color 0.3s;
-        }
-        .go-back-btn:hover {
-            background-color: #d0d0d0;
-        }
-        .submit-btn {
-            background-color: #1a2a5e;
-            color: white;
-            padding: 12px 40px;
-            border: none;
-            border-radius: 5px;
-            font-size: 1em;
-            font-weight: 600;
-            cursor: pointer;
-            flex: 1;
-            transition: background-color 0.3s;
-        }
-        .submit-btn:hover {
-            background-color: #0d1535;
-        }
-        /* Confirmation Modal */
-        .continue-edit-btn {
-            background-color: #e0e0e0;
-            color: #333;
-            flex: 1;
-        }
-        .continue-edit-btn:hover {
-            background-color: #d0d0d0;
-        }
-        .confirm-submit-btn {
-            background-color: #1a2a5e;
-            color: white;
-            flex: 1;
-        }
-        .confirm-submit-btn:hover {
-            background-color: #0d1535;
-        }
-        /* Success Modal */
-        .success-modal {
-            display: none;
-            position: fixed;
-            z-index: 1000;
-            left: 0;
-            top: 0;
+
+        .button-group .btn {
             width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-            justify-content: center;
-            align-items: center;
         }
-        .success-modal.active {
-            display: flex;
-        }
-        .success-content {
-            background-color: white;
-            padding: 40px;
-            border-radius: 10px;
-            max-width: 450px;
-            text-align: center;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
-        }
-        .success-icon {
-            font-size: 3em;
-            margin-bottom: 20px;
-        }
-        .success-content h2 {
-            color: #1a2a5e;
-            margin-bottom: 15px;
-            font-size: 1.5em;
-        }
-        .success-content p {
-            color: #666;
-            margin-bottom: 30px;
-            line-height: 1.5;
-        }
-        .back-btn {
-            background-color: #1a2a5e;
-            color: white;
-            padding: 10px 30px;
-            border: none;
-            border-radius: 5px;
-            font-weight: 600;
-            cursor: pointer;
-        }
-        .back-btn:hover {
-            background-color: #0d1535;
-        }
-            .button-group {
-                flex-direction: column;
-            }
-        }
+    }
 </style>
 {% endblock %}
 
 {% block content %}
+<div class="payment-form-container">
+    <div class="payment-form-card">
+        {% if success %}
+            <div class="success-card">
+                <h2>Payment Proof Submitted</h2>
+                <p>Your proof of payment has been sent for verification.</p>
+                <a href="{% url 'pending_payment' %}" class="btn btn-primary">Back to Pending Payment</a>
+            </div>
+        {% else %}
+            <h1>Submit Payment Proof</h1>
 
+            <form method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+
+                <div class="form-group">
+                    <label for="payment_type">Payment Type <span class="required">*</span></label>
+                    <select id="payment_type" name="payment_type" required>
+                        <option value="">Select payment type</option>
+                        <option value="Bank Transfer">Bank Transfer</option>
+                        <option value="Online Banking">Online Banking</option>
+                        <option value="Over-the-Counter">Over-the-Counter</option>
+                    </select>
+                    {% if errors.payment_type %}<span class="error">{{ errors.payment_type }}</span>{% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label for="bank_used">Bank Used <span class="required">*</span></label>
+                    <input type="text" id="bank_used" name="bank_used" placeholder="Enter bank name" required>
+                    {% if errors.bank_used %}<span class="error">{{ errors.bank_used }}</span>{% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label for="reference_number">Reference Number <span class="required">*</span></label>
+                    <input type="text" id="reference_number" name="reference_number" placeholder="Enter reference number" required>
+                    {% if errors.reference_number %}<span class="error">{{ errors.reference_number }}</span>{% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label for="amount_paid">Amount Paid <span class="required">*</span></label>
+                    <input type="number" id="amount_paid" name="amount_paid" step="0.01" min="0" placeholder="Enter amount paid" required>
+                    {% if errors.amount_paid %}<span class="error">{{ errors.amount_paid }}</span>{% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label for="proof_file">Proof of Payment <span class="required">*</span></label>
+                    <div class="file-input-wrapper">
+                        <label for="proof_file" class="file-label">Choose File</label>
+                        <span id="fileName" class="file-name">No file chosen</span>
+                        <input type="file" id="proof_file" name="proof_file" accept=".jpg,.jpeg,.png,.pdf" required>
+                    </div>
+                    <small>Accepted formats: JPG, PNG, PDF (max 5 MB)</small>
+                    {% if errors.file %}<span class="error">{{ errors.file }}</span>{% endif %}
+                </div>
+
+                <div class="button-group">
+                    <a href="{% url 'payment_instructions' %}{% if request.GET.service_id %}?service_id={{ request.GET.service_id }}{% endif %}" class="btn btn-secondary">Go Back</a>
+                    <button type="submit" class="btn btn-primary">Submit</button>
+                </div>
+            </form>
+        {% endif %}
+    </div>
+</div>
 {% endblock %}
 
 {% block extra_js %}
 <script>
+    const proofFileInput = document.getElementById('proof_file');
+    const fileNameEl = document.getElementById('fileName');
 
-        // File input handler
-        document.getElementById('proof_file').addEventListener('change', function() {
-            const fileName = this.files.length > 0 
-                ? this.files[0].name 
-                : 'No file chosen';
-            document.getElementById('fileName').textContent = fileName;
+    if (proofFileInput && fileNameEl) {
+        proofFileInput.addEventListener('change', function() {
+            const selectedName = this.files.length > 0 ? this.files[0].name : 'No file chosen';
+            fileNameEl.textContent = selectedName;
         });
-
-        function goBack() {
-            window.history.back();
-        }
-
-        function showConfirmation() {
-            // Validate all fields
-            const paymentType = document.getElementById('payment_type').value;
-            const bankUsed = document.getElementById('bank_used').value;
-            const referenceNumber = document.getElementById('reference_number').value;
-            const amountPaid = document.getElementById('amount_paid').value;
-            const proofFile = document.getElementById('proof_file').files.length;
-
-            if (!paymentType || !bankUsed || !referenceNumber || !amountPaid || proofFile === 0) {
-                alert('Required fields must be filled in.');
-                return;
-            }
-
-            // Validate file size (5 MB max)
-            const file = document.getElementById('proof_file').files[0];
-            const maxSize = 5 * 1024 * 1024; // 5 MB
-            if (file.size > maxSize) {
-                alert('File size must not exceed 5 MB.');
-                return;
-            }
-
-            document.getElementById('confirmModal').classList.add('active');
-        }
-
-        function hideConfirmation() {
-            document.getElementById('confirmModal').classList.remove('active');
-        }
-
-        function submitForm() {
-            // In a real application, you would submit the form here
-            // For now, we'll just show the success modal
-            hideConfirmation();
-            document.getElementById('successModal').classList.add('active');
-        }
-
-        function goToPendingPayment() {
-            window.location.href = '{% url "pending_payment" %}';
-        }
-
-        // Close modal when clicking outside
-        window.onclick = function(event) {
-            const confirmModal = document.getElementById('confirmModal');
-            const successModal = document.getElementById('successModal');
-            
-            if (event.target == confirmModal) {
-                hideConfirmation();
-            }
-            if (event.target == successModal) {
-                // Don't allow closing success modal by clicking outside
-            }
-        }
-    
-
-
-        // File input handler
-        document.getElementById('proof_file').addEventListener('change', function() {
-            const fileName = this.files.length > 0 
-                ? this.files[0].name 
-                : 'No file chosen';
-            document.getElementById('fileName').textContent = fileName;
-        });
-
-        function goBack() {
-            window.history.back();
-        }
-
-        function showConfirmation() {
-            // Validate all fields
-            const paymentType = document.getElementById('payment_type').value;
-            const bankUsed = document.getElementById('bank_used').value;
-            const referenceNumber = document.getElementById('reference_number').value;
-            const amountPaid = document.getElementById('amount_paid').value;
-            const proofFile = document.getElementById('proof_file').files.length;
-
-            if (!paymentType || !bankUsed || !referenceNumber || !amountPaid || proofFile === 0) {
-                alert('Required fields must be filled in.');
-                return;
-            }
-
-            // Validate file size (5 MB max)
-            const file = document.getElementById('proof_file').files[0];
-            const maxSize = 5 * 1024 * 1024; // 5 MB
-            if (file.size > maxSize) {
-                alert('File size must not exceed 5 MB.');
-                return;
-            }
-
-            document.getElementById('confirmModal').classList.add('active');
-        }
-
-        function hideConfirmation() {
-            document.getElementById('confirmModal').classList.remove('active');
-        }
-
-        function submitForm() {
-            // In a real application, you would submit the form here
-            // For now, we'll just show the success modal
-            hideConfirmation();
-            document.getElementById('successModal').classList.add('active');
-        }
-
-        function goToPendingPayment() {
-            window.location.href = '{% url "pending_payment" %}';
-        }
-
-        // Close modal when clicking outside
-        window.onclick = function(event) {
-            const confirmModal = document.getElementById('confirmModal');
-            const successModal = document.getElementById('successModal');
-            
-            if (event.target == confirmModal) {
-                hideConfirmation();
-            }
-            if (event.target == successModal) {
-                // Don't allow closing success modal by clicking outside
-            }
-        }
-    
-
+    }
 </script>
 {% endblock %}

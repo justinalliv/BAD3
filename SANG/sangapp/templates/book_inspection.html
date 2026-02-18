@@ -4,6 +4,10 @@
 
 {% block extra_css %}
 <style>
+    .form-container {
+        max-width: 640px;
+    }
+
     .form-card h1 {
         color: #1a2a5e;
         font-size: 2em;
@@ -95,7 +99,7 @@
 {% endblock %}
 
 {% block content %}
-    <div class="container">
+    <div class="form-container">
         {% if success %}
         <!-- Success State -->
         <div class="form-card">
@@ -104,13 +108,13 @@
                 <h2>Booking Successful!</h2>
                 <p>You have successfully booked a site inspection.</p>
                 <p class="service-id">Service ID: {{ service_id }}</p>
-                <a href="{% url 'profile' %}" class="btn btn-primary">View Service Status</a>
+                <a href="{% url 'service_status' %}" class="btn btn-primary">View Service Status</a>
             </div>
         </div>
         {% else %}
         <!-- Form -->
         <div class="form-card">
-            <h1>Book Inspection</h1>
+            <h1>Book an Inspection</h1>
 
             <form id="bookingForm" method="POST">
                 {% csrf_token %}
@@ -228,7 +232,7 @@
                 <!-- Buttons -->
                 <div class="button-group">
                     <button type="button" class="btn btn-secondary" id="cancelBtn">Cancel</button>
-                    <button type="button" class="btn btn-primary" id="confirmBtn">Confirm Booking</button>
+                    <button type="button" class="btn btn-primary" id="confirmBtn">Confirm</button>
                 </div>
             </form>
         </div>

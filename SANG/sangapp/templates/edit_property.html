@@ -4,6 +4,10 @@
 
 {% block extra_css %}
 <style>
+    .form-container {
+        max-width: 640px;
+    }
+
     .form-card h1 {
         color: #1a2a5e;
         font-size: 2em;
@@ -11,19 +15,14 @@
         text-align: center;
     }
 
-    .form-row {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 20px;
-        margin-bottom: 20px;
-    }
-
-    .form-row.full {
-        grid-template-columns: 1fr;
+    .address-label {
+        color: #666;
+        font-weight: 600;
+        margin-bottom: 12px;
     }
 
     .error-message {
-        color: #e74c3c;
+        color: #d32f2f;
         font-size: 0.85em;
         margin-top: 5px;
         display: block;
@@ -31,14 +30,7 @@
 
     input.error,
     select.error {
-        border-color: #e74c3c;
-    }
-
-    input[type="text"]:disabled,
-    input[type="number"]:disabled {
-        background-color: #f5f5f5;
-        color: #999;
-        cursor: not-allowed;
+        border-color: #d32f2f;
     }
 
     .success-container {
@@ -61,268 +53,189 @@
 
     .success-text {
         color: #1a2a5e;
-        font-size: 1.1em;
-        margin-bottom: 30px;
+        font-size: 1.05em;
+        margin-bottom: 25px;
     }
 
-    @media (max-width: 768px) {
-        .form-row {
-            grid-template-columns: 1fr;
-        }
+    .readonly-input {
+        background-color: #f5f5f5;
+        color: #777;
     }
 </style>
 {% endblock %}
 
 {% block content %}
-    <div class="form-container\"
-            {% if success %}
-                <!-- Success State -->
-                <div class="success-container">
-                    <div class="success-icon">✓</div>
-                    <p class="success-text">Property information updated successfully.</p>
-                    <a href="{% url 'property_list' %}" class="confirm-btn" style="text-decoration: none; display: inline-block;">Back to Properties</a>
+<div class="form-container">
+    <div class="form-card">
+        {% if success %}
+            <div class="success-container">
+                <div class="success-icon">✓</div>
+                <p class="success-text">Property information updated successfully.</p>
+                <a href="{% url 'property_list' %}" class="btn btn-primary">Back to Properties</a>
+            </div>
+        {% else %}
+            <h1>Update Property</h1>
+
+            <form id="propertyForm" method="POST">
+                {% csrf_token %}
+
+                {% if errors.general %}
+                    <div class="error-message" style="margin-bottom: 15px; text-align: center;">{{ errors.general }}</div>
+                {% endif %}
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="property_id">Property ID</label>
+                        <input type="text" id="property_id" class="readonly-input" value="{{ property.id }}" disabled>
+                    </div>
+                    <div class="form-group">
+                        <label for="property_name">Property Name</label>
+                        <input type="text" id="property_name" name="property_name" placeholder="XX Dolor St., Sit Amet" value="{{ form_data.property_name }}" {% if errors.property_name %}class="error"{% endif %}>
+                        {% if errors.property_name %}<span class="error-message">{{ errors.property_name }}</span>{% endif %}
+                    </div>
                 </div>
-            {% else %}
-                <!-- Form -->
-                <h1>Update Property</h1>
 
-                <form id="propertyForm" method="POST">
-                    {% csrf_token %}
+                <div class="address-label">Property Address</div>
 
-                    {% if errors.general %}
-                        <div style="color: #e74c3c; margin-bottom: 20px; text-align: center;">{{ errors.general }}</div>
-                    {% endif %}
-
-                    <!-- Property ID (Read-only) -->
-                    <div class="form-row">
-                        <div>
-                            <label for="property_id">Property ID</label>
-                            <input 
-                                type="text" 
-                                id="property_id"
-                                value="{{ property.id }}"
-                                disabled
-                            >
-                        </div>
-                        <div>
-                            <label for="property_name">Property Name</label>
-                            <input 
-                                type="text" 
-                                id="property_name" 
-                                name="property_name" 
-                                placeholder="XX Dolor St., Sit Amet"
-                                value="{{ form_data.property_name }}"
-                                {% if errors.property_name %}class="error"{% endif %}
-                            >
-                            {% if errors.property_name %}<span class="error-message">{{ errors.property_name }}</span>{% endif %}
-                        </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <input type="text" id="street_number" name="street_number" placeholder="Street/Unit No." value="{{ form_data.street_number }}" {% if errors.street_number %}class="error"{% endif %}>
+                        {% if errors.street_number %}<span class="error-message">{{ errors.street_number }}</span>{% endif %}
                     </div>
-
-                    <!-- Property Address -->
-                    <div style="color: #666; font-weight: 600; margin-bottom: 15px;">Property Address</div>
-
-                    <div class="form-row">
-                        <div>
-                            <label for="street_number">Street/Unit No.</label>
-                            <input 
-                                type="text" 
-                                id="street_number" 
-                                name="street_number"
-                                value="{{ form_data.street_number }}"
-                                {% if errors.street_number %}class="error"{% endif %}
-                            >
-                            {% if errors.street_number %}<span class="error-message">{{ errors.street_number }}</span>{% endif %}
-                        </div>
-                        <div>
-                            <label for="street">Street</label>
-                            <input 
-                                type="text" 
-                                id="street" 
-                                name="street"
-                                value="{{ form_data.street }}"
-                                {% if errors.street %}class="error"{% endif %}
-                            >
-                            {% if errors.street %}<span class="error-message">{{ errors.street }}</span>{% endif %}
-                        </div>
+                    <div class="form-group">
+                        <input type="text" id="street" name="street" placeholder="Street" value="{{ form_data.street }}" {% if errors.street %}class="error"{% endif %}>
+                        {% if errors.street %}<span class="error-message">{{ errors.street }}</span>{% endif %}
                     </div>
+                </div>
 
-                    <div class="form-row">
-                        <div>
-                            <label for="city">City</label>
-                            <input 
-                                type="text" 
-                                id="city" 
-                                name="city"
-                                value="{{ form_data.city }}"
-                                {% if errors.city %}class="error"{% endif %}
-                            >
-                            {% if errors.city %}<span class="error-message">{{ errors.city }}</span>{% endif %}
-                        </div>
-                        <div>
-                            <label for="province">Province</label>
-                            <input 
-                                type="text" 
-                                id="province" 
-                                name="province"
-                                value="{{ form_data.province }}"
-                                {% if errors.province %}class="error"{% endif %}
-                            >
-                            {% if errors.province %}<span class="error-message">{{ errors.province }}</span>{% endif %}
-                        </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <input type="text" id="city" name="city" placeholder="City" value="{{ form_data.city }}" {% if errors.city %}class="error"{% endif %}>
+                        {% if errors.city %}<span class="error-message">{{ errors.city }}</span>{% endif %}
                     </div>
+                    <div class="form-group">
+                        <input type="text" id="province" name="province" placeholder="Province" value="{{ form_data.province }}" {% if errors.province %}class="error"{% endif %}>
+                        {% if errors.province %}<span class="error-message">{{ errors.province }}</span>{% endif %}
+                    </div>
+                </div>
 
-                    <div class="form-row">
-                        <div>
-                            <label for="zip_code">Zip Code</label>
-                            <input 
-                                type="text" 
-                                id="zip_code" 
-                                name="zip_code"
-                                value="{{ form_data.zip_code }}"
-                                {% if errors.zip_code %}class="error"{% endif %}
-                            >
-                            {% if errors.zip_code %}<span class="error-message">{{ errors.zip_code }}</span>{% endif %}
-                        </div>
-                        <div>
-                            <label for="country">Country</label>
-                            <input 
-                                type="text" 
-                                id="country" 
-                                name="country"
-                                value="{{ form_data.country }}"
-                                {% if errors.country %}class="error"{% endif %}
-                            >
-                            {% if errors.country %}<span class="error-message">{{ errors.country }}</span>{% endif %}
-                        </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <input type="text" id="zip_code" name="zip_code" placeholder="Zip Code" value="{{ form_data.zip_code }}" {% if errors.zip_code %}class="error"{% endif %}>
+                        {% if errors.zip_code %}<span class="error-message">{{ errors.zip_code }}</span>{% endif %}
                     </div>
+                    <div class="form-group">
+                        <input type="text" id="country" name="country" placeholder="Country" value="{{ form_data.country }}" {% if errors.country %}class="error"{% endif %}>
+                        {% if errors.country %}<span class="error-message">{{ errors.country }}</span>{% endif %}
+                    </div>
+                </div>
 
-                    <!-- Type of Property -->
-                    <div class="form-group form-row full">
-                        <div>
-                            <label for="property_type">Type of Property</label>
-                            <select 
-                                id="property_type" 
-                                name="property_type"
-                                {% if errors.property_type %}class="error"{% endif %}
-                            >
-                                <option value="">Select Property Type</option>
-                                <option value="Residential" {% if form_data.property_type == 'Residential' %}selected{% endif %}>Residential</option>
-                                <option value="Commercial" {% if form_data.property_type == 'Commercial' %}selected{% endif %}>Commercial</option>
-                                <option value="Industrial" {% if form_data.property_type == 'Industrial' %}selected{% endif %}>Industrial</option>
-                                <option value="Agricultural" {% if form_data.property_type == 'Agricultural' %}selected{% endif %}>Agricultural</option>
-                                <option value="Mixed Use" {% if form_data.property_type == 'Mixed Use' %}selected{% endif %}>Mixed Use</option>
-                            </select>
-                            {% if errors.property_type %}<span class="error-message">{{ errors.property_type }}</span>{% endif %}
-                        </div>
-                    </div>
+                <div class="form-group">
+                    <label for="property_type">Type of Property</label>
+                    <select id="property_type" name="property_type" {% if errors.property_type %}class="error"{% endif %}>
+                        <option value="">Select Property Type</option>
+                        <option value="Residential" {% if form_data.property_type == 'Residential' %}selected{% endif %}>Residential</option>
+                        <option value="Commercial" {% if form_data.property_type == 'Commercial' %}selected{% endif %}>Commercial</option>
+                        <option value="Industrial" {% if form_data.property_type == 'Industrial' %}selected{% endif %}>Industrial</option>
+                        <option value="Agricultural" {% if form_data.property_type == 'Agricultural' %}selected{% endif %}>Agricultural</option>
+                        <option value="Mixed Use" {% if form_data.property_type == 'Mixed Use' %}selected{% endif %}>Mixed Use</option>
+                    </select>
+                    {% if errors.property_type %}<span class="error-message">{{ errors.property_type }}</span>{% endif %}
+                </div>
 
-                    <!-- Floor Area -->
-                    <div class="form-group form-row full">
-                        <div>
-                            <label for="floor_area">Floor Area (in sqm)</label>
-                            <input 
-                                type="number" 
-                                id="floor_area" 
-                                name="floor_area"
-                                step="0.01"
-                                placeholder="XXX"
-                                value="{{ form_data.floor_area }}"
-                                {% if errors.floor_area %}class="error"{% endif %}
-                            >
-                            {% if errors.floor_area %}<span class="error-message">{{ errors.floor_area }}</span>{% endif %}
-                        </div>
-                    </div>
+                <div class="form-group">
+                    <label for="floor_area">Floor Area (in sqm)</label>
+                    <input type="number" id="floor_area" name="floor_area" step="0.01" placeholder="XXX" value="{{ form_data.floor_area }}" {% if errors.floor_area %}class="error"{% endif %}>
+                    {% if errors.floor_area %}<span class="error-message">{{ errors.floor_area }}</span>{% endif %}
+                </div>
 
-                    <!-- Buttons -->
-                    <div class="button-group">
-                        <button type="button" class="cancel-btn" onclick="openCancelModal()">Cancel</button>
-                        <button type="button" class="confirm-btn" onclick="openConfirmModal()">Update Information</button>
-                    </div>
-                </form>
-            {% endif %}
+                <div class="button-group">
+                    <button type="button" class="btn btn-secondary" onclick="openCancelModal()">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="openConfirmModal()">Update Information</button>
+                </div>
+            </form>
+        {% endif %}
+    </div>
+</div>
+
+<div id="cancelModal" class="modal">
+    <div class="modal-content">
+        <h2>Cancel Update?</h2>
+        <p>Are you sure you want to cancel? Your changes will not be saved.</p>
+        <div class="modal-buttons">
+            <button class="modal-btn modal-btn-cancel" onclick="closeCancelModal()">Continue Editing</button>
+            <button class="modal-btn modal-btn-confirm" onclick="confirmCancel()">Confirm</button>
         </div>
     </div>
+</div>
 
-    <!-- Cancel Confirmation Modal -->
-    <div id="cancelModal" class="modal">
-        <div class="modal-content">
-            <h2>Cancel Update?</h2>
-            <p>Are you sure you want to cancel? Your changes will not be saved.</p>
-            <div class="modal-buttons">
-                <button class="modal-btn modal-btn-cancel" onclick="closeCancelModal()">Continue Editing</button>
-                <button class="modal-btn modal-btn-confirm" onclick="confirmCancel()">Confirm</button>
-            </div>
+<div id="confirmModal" class="modal">
+    <div class="modal-content">
+        <h2>Update Property Information?</h2>
+        <p>Please review your property information before confirming the update.</p>
+        <div class="modal-buttons">
+            <button class="modal-btn modal-btn-cancel" onclick="closeConfirmModal()">Continue Editing</button>
+            <button class="modal-btn modal-btn-confirm" onclick="submitForm()">Confirm</button>
         </div>
     </div>
-
-    <!-- Update Confirmation Modal -->
-    <div id="confirmModal" class="modal">
-        <div class="modal-content">
-            <h2>Update Property Information?</h2>
-            <p>Please review your property information before confirming the update.</p>
-            <div class="modal-buttons">
-                <button class="modal-btn modal-btn-cancel" onclick="closeConfirmModal()">Continue Editing</button>
-                <button class="modal-btn modal-btn-confirm" onclick="submitForm()">Confirm</button>
-            </div>
-        </div>
-    </div>
+</div>
 {% endblock %}
 
 {% block extra_js %}
 <script>
-        function openCancelModal() {
-            document.getElementById('cancelModal').classList.add('show');
-        }
+    function openCancelModal() {
+        document.getElementById('cancelModal').classList.add('show');
+    }
 
-        function closeCancelModal() {
-            document.getElementById('cancelModal').classList.remove('show');
-        }
+    function closeCancelModal() {
+        document.getElementById('cancelModal').classList.remove('show');
+    }
 
-        function confirmCancel() {
-            window.location.href = "{% url 'property_list' %}";
-        }
+    function confirmCancel() {
+        window.location.href = "{% url 'property_list' %}";
+    }
 
-        function openConfirmModal() {
-            // Validate form before showing modal
-            const form = document.getElementById('propertyForm');
-            const inputs = form.querySelectorAll('input[type="text"]:not([disabled]), input[type="number"], select');
-            let allFilled = true;
+    function openConfirmModal() {
+        const form = document.getElementById('propertyForm');
+        const inputs = form.querySelectorAll('input[type="text"]:not([disabled]), input[type="number"], select');
+        let allFilled = true;
 
-            inputs.forEach(input => {
-                if (!input.value.trim()) {
-                    allFilled = false;
-                    input.classList.add('error');
-                } else {
-                    input.classList.remove('error');
-                }
-            });
-
-            if (allFilled) {
-                document.getElementById('confirmModal').classList.add('show');
+        inputs.forEach(input => {
+            if (!input.value.trim()) {
+                allFilled = false;
+                input.classList.add('error');
             } else {
-                alert('Please fill in all required fields.');
-            }
-        }
-
-        function closeConfirmModal() {
-            document.getElementById('confirmModal').classList.remove('show');
-        }
-
-        function submitForm() {
-            document.getElementById('propertyForm').submit();
-        }
-
-        // Close modals when clicking outside
-        window.addEventListener('click', function(event) {
-            const cancelModal = document.getElementById('cancelModal');
-            const confirmModal = document.getElementById('confirmModal');
-            
-            if (event.target === cancelModal) {
-                closeCancelModal();
-            }
-            if (event.target === confirmModal) {
-                closeConfirmModal();
+                input.classList.remove('error');
             }
         });
-    </script>
+
+        if (allFilled) {
+            document.getElementById('confirmModal').classList.add('show');
+            return;
+        }
+
+        alert('Please fill in all required fields.');
+    }
+
+    function closeConfirmModal() {
+        document.getElementById('confirmModal').classList.remove('show');
+    }
+
+    function submitForm() {
+        document.getElementById('propertyForm').submit();
+    }
+
+    window.addEventListener('click', function(event) {
+        const cancelModal = document.getElementById('cancelModal');
+        const confirmModal = document.getElementById('confirmModal');
+
+        if (event.target === cancelModal) {
+            closeCancelModal();
+        }
+
+        if (event.target === confirmModal) {
+            closeConfirmModal();
+        }
+    });
+</script>
 {% endblock %}

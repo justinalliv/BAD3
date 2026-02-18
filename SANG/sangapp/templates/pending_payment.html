@@ -1,94 +1,139 @@
 {% extends 'base.html' %}
 
-{% block title %}Supreme Biotech Solutions{% endblock %}
+{% block title %}Pending Payment - Supreme Biotech Solutions{% endblock %}
 
 {% block extra_css %}
 <style>
-/* Main Content */
-        .container {
-            max-width: 1200px;
-            margin: 40px auto;
-            padding: 0 20px;
-        }
+    .header-section {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+    }
+
+    .header-section h1 {
+        color: #1a2a5e;
+        font-size: 2.3em;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 40px 20px;
+    }
+
+    .empty-state h3 {
+        color: #1a2a5e;
+        margin-bottom: 10px;
+    }
+
+    .empty-state p {
+        color: #666;
+        margin-bottom: 20px;
+    }
+
+    .pay-btn {
+        background-color: #1a2a5e;
+        color: white;
+        padding: 8px 20px;
+        border-radius: 5px;
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+    .pay-btn:hover {
+        background-color: #0d1535;
+    }
+
+    @media (max-width: 768px) {
         .header-section {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 30px;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 10px;
         }
-        .header-section h1 {
-            color: #1a2a5e;
-            font-size: 2em;
-        }
+
         .search-box {
-            padding: 10px 15px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            width: 300px;
-            font-size: 0.95em;
+            width: 100%;
         }
-        /* Table Styles */
-        .table-card {
-            background-color: white;
-            border-radius: 10px;
-            padding: 30px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-        th {
-            padding: 15px;
-            text-align: left;
-            font-weight: 600;
-            font-size: 0.95em;
-        }
-        td {
-            padding: 15px;
-            border-bottom: 1px solid #e0e0e0;
-            font-size: 0.95em;
-            color: #333;
-        }
-        tbody tr:hover {
-            background-color: #f9f9f9;
-        }
-        tbody tr:last-child td {
-            border-bottom: none;
-        }
-        .pay-btn {
-            background-color: #1a2a5e;
-            color: white;
-            padding: 8px 20px;
-            border: none;
-            border-radius: 5px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background-color 0.3s;
-            text-decoration: none;
-            display: inline-block;
-        }
-        .pay-btn:hover {
-            background-color: #0d1535;
-        }
-        .no-records {
-            text-align: center;
-            padding: 40px;
-            color: #999;
-        }
-        .no-records p {
-            font-size: 1.1em;
-        }
-            .header-section {
-                flex-direction: column;
-                gap: 15px;
-            }
-            .search-box {
-                width: 100%;
-            }
-            th, td {
-                padding: 10px 8px;
-            }
-        }
+    }
 </style>
 {% endblock %}
 
 {% block content %}
+<div class="container">
+    <div class="header-section">
+        <h1>Pending Payment</h1>
+        <input type="text" id="searchInput" class="search-box" placeholder="Search">
+    </div>
 
+    <div class="section">
+        <table id="pendingTable">
+            <thead>
+                <tr>
+                    <th>Service ID</th>
+                    <th>Property Address</th>
+                    <th>Service Type</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if pending_services %}
+                    {% for service in pending_services %}
+                    <tr>
+                        <td>{{ service.id|stringformat:"07d" }}</td>
+                        <td>{{ service.property.street_number }} {{ service.property.street }}, {{ service.property.city }}</td>
+                        <td>{{ service.preferred_service }}</td>
+                        <td><span class="status-badge status-pending-payment">Pending Payment</span></td>
+                        <td><a href="{% url 'payment_instructions' %}?service_id={{ service.id }}" class="pay-btn">Pay</a></td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="5" style="padding: 0; border-bottom: none;">
+                            <div class="empty-state">
+                                <h3>No pending payments</h3>
+                                <p>When a service reaches payment stage, it will appear here.</p>
+                                <a href="{% url 'service_status' %}" class="btn btn-primary">View Service Status</a>
+                            </div>
+                        </td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const pendingSearchInput = document.getElementById('searchInput');
+    const pendingTable = document.getElementById('pendingTable');
+
+    if (pendingSearchInput && pendingTable) {
+        pendingSearchInput.addEventListener('keyup', function() {
+            const searchValue = this.value.toLowerCase();
+            const rows = pendingTable.getElementsByTagName('tbody')[0].getElementsByTagName('tr');
+
+            for (let index = 0; index < rows.length; index += 1) {
+                const row = rows[index];
+                const cells = row.getElementsByTagName('td');
+
+                if (cells.length === 1 && cells[0].getAttribute('colspan')) {
+                    continue;
+                }
+
+                let matched = false;
+                for (let cellIndex = 0; cellIndex < cells.length; cellIndex += 1) {
+                    if (cells[cellIndex].textContent.toLowerCase().includes(searchValue)) {
+                        matched = true;
+                        break;
+                    }
+                }
+
+                row.style.display = matched ? '' : 'none';
+            }
+        });
+    }
+</script>
 {% endblock %}
