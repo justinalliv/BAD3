@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book Site Inspection - SANG Pest Control</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+        }
+
+        /* Navigation Bar */
+        nav {
+            background-color: #ffffff;
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .nav-brand {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #1a2a5e;
+            text-decoration: none;
+        }
+
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 2rem;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: #333;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+
+        .nav-links a:hover {
+            color: #1a2a5e;
+        }
+
+        .nav-links a.active {
+            color: #1a2a5e;
+            font-weight: bold;
+        }
+
+        /* Main Content */
+        .main-content {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+
+        .section {
+            background-color: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .page-header h1 {
+            color: #1a2a5e;
+            font-size: 2rem;
+        }
+
+        /* Form Styles */
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .form-group label .required {
+            color: red;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+            font-family: Arial, sans-serif;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #1a2a5e;
+        }
+
+        .form-group input:disabled {
+            background-color: #f5f5f5;
+            cursor: not-allowed;
+        }
+
+        .form-group .error {
+            color: red;
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+        }
+
+        .form-group small {
+            display: block;
+            margin-top: 0.25rem;
+            color: #666;
+            font-size: 0.875rem;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        /* Form Grid */
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        /* Buttons */
+        .button-group {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+            margin-top: 2rem;
+        }
+
+        .btn {
+            padding: 0.75rem 2rem;
+            border: none;
+            border-radius: 5px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .btn-primary {
+            background-color: #1a2a5e;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #2d3e6f;
+        }
+
+        .btn-secondary {
+            background-color: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background-color: #5a6268;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 10px;
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+        }
+
+        .modal-content h2 {
+            color: #1a2a5e;
+            margin-bottom: 1rem;
+        }
+
+        .modal-content p {
+            margin-bottom: 1.5rem;
+            color: #333;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+        }
+
+        /* Success State */
+        .success-container {
+            text-align: center;
+            padding: 3rem 2rem;
+        }
+
+        .success-icon {
+            width: 80px;
+            height: 80px;
+            background-color: #28a745;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0 auto 1.5rem;
+        }
+
+        .success-icon::before {
+            content: "✓";
+            color: white;
+            font-size: 3rem;
+            font-weight: bold;
+        }
+
+        .success-container h2 {
+            color: #1a2a5e;
+            margin-bottom: 1rem;
+        }
+
+        .success-container p {
+            color: #333;
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
+        }
+
+        .service-id {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #1a2a5e;
+            margin: 1rem 0 2rem 0;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .nav-container {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .nav-links {
+                flex-direction: column;
+                width: 100%;
+                text-align: center;
+                gap: 0.5rem;
+            }
+
+            .page-header {
+                flex-direction: column;
+                gap: 1rem;
+                align-items: flex-start;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav>
+        <div class="nav-container">
+            <a href="{% url 'customer_home' %}" class="nav-brand">SANG Pest Control</a>
+            <ul class="nav-links">
+                <li><a href="{% url 'customer_home' %}">Home</a></li>
+                <li><a href="{% url 'profile' %}">Profile</a></li>
+                <li><a href="{% url 'property_list' %}">Manage Properties</a></li>
+                <li><a href="{% url 'book_inspection' %}" class="active">Book Inspection</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        {% if success %}
+        <!-- Success State -->
+        <div class="section">
+            <div class="success-container">
+                <div class="success-icon"></div>
+                <h2>Booking Successful!</h2>
+                <p>You have successfully booked a site inspection.</p>
+                <p class="service-id">Service ID: {{ service_id }}</p>
+                <a href="{% url 'profile' %}" class="btn btn-primary">View Service Status</a>
+            </div>
+        </div>
+        {% else %}
+        <!-- Form -->
+        <div class="section">
+            <div class="page-header">
+                <h1>Book Site Inspection</h1>
+            </div>
+
+            <form id="bookingForm" method="POST">
+                {% csrf_token %}
+                
+                <!-- Property Selection -->
+                <div class="form-group">
+                    <label for="property_id">Property Address <span class="required">*</span></label>
+                    <select name="property_id" id="property_id" required>
+                        <option value="">Select a property</option>
+                        {% for property in properties %}
+                        <option value="{{ property.id }}" 
+                                data-type="{{ property.property_type }}"
+                                data-floor="{{ property.floor_area }}"
+                                {% if form_data.property_id == property.id|stringformat:"s" %}selected{% endif %}>
+                            {{ property.property_name }} - {{ property.street_number }} {{ property.street }}, {{ property.city }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                    {% if errors.property_id %}
+                    <div class="error">{{ errors.property_id }}</div>
+                    {% endif %}
+                </div>
+
+                <!-- Property Details (Auto-filled) -->
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="property_type">Type of Property</label>
+                        <input type="text" id="property_type" disabled placeholder="Select a property first">
+                    </div>
+                    <div class="form-group">
+                        <label for="floor_area">Floor Area (sq m)</label>
+                        <input type="text" id="floor_area" disabled placeholder="Select a property first">
+                    </div>
+                </div>
+
+                <!-- Preferred Service -->
+                <div class="form-group">
+                    <label for="preferred_service">Preferred Service <span class="required">*</span></label>
+                    <select name="preferred_service" id="preferred_service" required>
+                        <option value="">Select a service</option>
+                        {% for choice in service_choices %}
+                        <option value="{{ choice.0 }}" {% if form_data.preferred_service == choice.0 %}selected{% endif %}>
+                            {{ choice.1 }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                    {% if errors.preferred_service %}
+                    <div class="error">{{ errors.preferred_service }}</div>
+                    {% endif %}
+                </div>
+
+                <!-- Other Service (Hidden by default) -->
+                <div class="form-group hidden" id="other_service_group">
+                    <label for="preferred_service_other">Please specify service <span class="required">*</span></label>
+                    <input type="text" name="preferred_service_other" id="preferred_service_other" 
+                           placeholder="Enter service type" value="{{ form_data.preferred_service_other }}">
+                    {% if errors.preferred_service_other %}
+                    <div class="error">{{ errors.preferred_service_other }}</div>
+                    {% endif %}
+                </div>
+
+                <!-- Pest Problem -->
+                <div class="form-group">
+                    <label for="pest_problem">Pest Problem <span class="required">*</span></label>
+                    <select name="pest_problem" id="pest_problem" required>
+                        <option value="">Select a pest problem</option>
+                        {% for choice in pest_choices %}
+                        <option value="{{ choice.0 }}" {% if form_data.pest_problem == choice.0 %}selected{% endif %}>
+                            {{ choice.1 }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                    {% if errors.pest_problem %}
+                    <div class="error">{{ errors.pest_problem }}</div>
+                    {% endif %}
+                </div>
+
+                <!-- Other Pest Problem (Hidden by default) -->
+                <div class="form-group hidden" id="other_pest_group">
+                    <label for="pest_problem_other">Please specify pest problem <span class="required">*</span></label>
+                    <input type="text" name="pest_problem_other" id="pest_problem_other" 
+                           placeholder="Enter pest problem" value="{{ form_data.pest_problem_other }}">
+                    {% if errors.pest_problem_other %}
+                    <div class="error">{{ errors.pest_problem_other }}</div>
+                    {% endif %}
+                </div>
+
+                <!-- Date and Time -->
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="date">Preferred Date <span class="required">*</span></label>
+                        <input type="date" name="date" id="date" required 
+                               min="{{ today }}" value="{{ form_data.date }}">
+                        {% if errors.date %}
+                        <div class="error">{{ errors.date }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="form-group">
+                        <label for="time_slot">Time Slot <span class="required">*</span></label>
+                        <select name="time_slot" id="time_slot" required disabled>
+                            <option value="">Select date first</option>
+                            {% for choice in time_slot_choices %}
+                            <option value="{{ choice.0 }}" {% if form_data.time_slot == choice.0 %}selected{% endif %}>
+                                {{ choice.1 }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                        <small id="time_slot_hint">Please select a date to enable time slot selection</small>
+                        {% if errors.time_slot %}
+                        <div class="error">{{ errors.time_slot }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Buttons -->
+                <div class="button-group">
+                    <button type="button" class="btn btn-secondary" id="cancelBtn">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="confirmBtn">Confirm Booking</button>
+                </div>
+            </form>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div class="modal" id="confirmModal">
+        <div class="modal-content">
+            <h2>Confirm Booking</h2>
+            <p>Are you sure you want to book this site inspection?</p>
+            <div class="modal-buttons">
+                <button type="button" class="btn btn-secondary" id="continueEditingBtn">Continue Editing</button>
+                <button type="button" class="btn btn-primary" id="confirmSubmitBtn">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cancel Confirmation Modal -->
+    <div class="modal" id="cancelModal">
+        <div class="modal-content">
+            <h2>Cancel Booking</h2>
+            <p>Are you sure you want to cancel? All entered information will be lost.</p>
+            <div class="modal-buttons">
+                <button type="button" class="btn btn-secondary" id="keepEditingBtn">Keep Editing</button>
+                <button type="button" class="btn btn-primary" id="confirmCancelBtn">Yes, Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Get today's date for date picker minimum
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('date').setAttribute('min', today);
+
+        // Property selection - auto-fill type and floor area
+        document.getElementById('property_id').addEventListener('change', function() {
+            const selectedOption = this.options[this.selectedIndex];
+            const propertyType = selectedOption.getAttribute('data-type');
+            const floorArea = selectedOption.getAttribute('data-floor');
+            
+            if (propertyType && floorArea) {
+                document.getElementById('property_type').value = propertyType;
+                document.getElementById('floor_area').value = floorArea;
+            } else {
+                document.getElementById('property_type').value = '';
+                document.getElementById('floor_area').value = '';
+            }
+        });
+
+        // Trigger change event on load if property is selected (for form errors)
+        if (document.getElementById('property_id').value) {
+            document.getElementById('property_id').dispatchEvent(new Event('change'));
+        }
+
+        // Preferred Service - show/hide "Other" field
+        document.getElementById('preferred_service').addEventListener('change', function() {
+            const otherGroup = document.getElementById('other_service_group');
+            const otherInput = document.getElementById('preferred_service_other');
+            
+            if (this.value === 'Other') {
+                otherGroup.classList.remove('hidden');
+                otherInput.setAttribute('required', 'required');
+            } else {
+                otherGroup.classList.add('hidden');
+                otherInput.removeAttribute('required');
+                otherInput.value = '';
+            }
+        });
+
+        // Trigger change event on load if "Other" is selected
+        if (document.getElementById('preferred_service').value === 'Other') {
+            document.getElementById('preferred_service').dispatchEvent(new Event('change'));
+        }
+
+        // Pest Problem - show/hide "Other" field
+        document.getElementById('pest_problem').addEventListener('change', function() {
+            const otherGroup = document.getElementById('other_pest_group');
+            const otherInput = document.getElementById('pest_problem_other');
+            
+            if (this.value === 'Other') {
+                otherGroup.classList.remove('hidden');
+                otherInput.setAttribute('required', 'required');
+            } else {
+                otherGroup.classList.add('hidden');
+                otherInput.removeAttribute('required');
+                otherInput.value = '';
+            }
+        });
+
+        // Trigger change event on load if "Other" is selected
+        if (document.getElementById('pest_problem').value === 'Other') {
+            document.getElementById('pest_problem').dispatchEvent(new Event('change'));
+        }
+
+        // Date selection - enable time slot
+        document.getElementById('date').addEventListener('change', function() {
+            const timeSlot = document.getElementById('time_slot');
+            const hint = document.getElementById('time_slot_hint');
+            
+            if (this.value) {
+                timeSlot.disabled = false;
+                timeSlot.innerHTML = '<option value="">Select a time slot</option>' + 
+                    Array.from(timeSlot.options).slice(1).map(opt => opt.outerHTML).join('');
+                hint.style.display = 'none';
+            } else {
+                timeSlot.disabled = true;
+                timeSlot.innerHTML = '<option value="">Select date first</option>';
+                hint.style.display = 'block';
+            }
+        });
+
+        // Trigger change event on load if date is selected
+        if (document.getElementById('date').value) {
+            document.getElementById('date').dispatchEvent(new Event('change'));
+        }
+
+        // Confirm button - validate and show confirmation modal
+        document.getElementById('confirmBtn').addEventListener('click', function() {
+            const form = document.getElementById('bookingForm');
+            
+            // Check HTML5 validation
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return;
+            }
+
+            // Additional validation for "Other" fields
+            const preferredService = document.getElementById('preferred_service').value;
+            const preferredServiceOther = document.getElementById('preferred_service_other').value.trim();
+            
+            if (preferredService === 'Other' && !preferredServiceOther) {
+                alert('Please specify the service type.');
+                document.getElementById('preferred_service_other').focus();
+                return;
+            }
+
+            const pestProblem = document.getElementById('pest_problem').value;
+            const pestProblemOther = document.getElementById('pest_problem_other').value.trim();
+            
+            if (pestProblem === 'Other' && !pestProblemOther) {
+                alert('Please specify the pest problem.');
+                document.getElementById('pest_problem_other').focus();
+                return;
+            }
+
+            // Show confirmation modal
+            document.getElementById('confirmModal').classList.add('active');
+        });
+
+        // Continue Editing button in confirmation modal
+        document.getElementById('continueEditingBtn').addEventListener('click', function() {
+            document.getElementById('confirmModal').classList.remove('active');
+        });
+
+        // Confirm Submit button in confirmation modal
+        document.getElementById('confirmSubmitBtn').addEventListener('click', function() {
+            document.getElementById('bookingForm').submit();
+        });
+
+        // Cancel button - show cancel confirmation modal
+        document.getElementById('cancelBtn').addEventListener('click', function() {
+            document.getElementById('cancelModal').classList.add('active');
+        });
+
+        // Keep Editing button in cancel modal
+        document.getElementById('keepEditingBtn').addEventListener('click', function() {
+            document.getElementById('cancelModal').classList.remove('active');
+        });
+
+        // Confirm Cancel button - redirect to customer home
+        document.getElementById('confirmCancelBtn').addEventListener('click', function() {
+            window.location.href = "{% url 'customer_home' %}";
+        });
+
+        // Close modals when clicking outside
+        document.querySelectorAll('.modal').forEach(modal => {
+            modal.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    this.classList.remove('active');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

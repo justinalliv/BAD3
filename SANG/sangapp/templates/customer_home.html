@@ -179,6 +179,7 @@
 
         <ul class="nav-links">
             <li><a href="{% url 'customer_home' %}" class="active">Home</a></li>
+            <li><a href="{% url 'book_inspection' %}">Book Inspection</a></li>
             <li><a href="{% url 'property_list' %}">Manage Properties</a></li>
             <li><a href="{% url 'pending_payment' %}">Pending Payment</a></li>
             <li><a href="#">Service History</a></li>
@@ -199,7 +200,7 @@
         <div class="hero-content">
             <h1>Experience the Supreme Difference.</h1>
             <p>Providing solutions to all your pest problems.</p>
-            <a href="#" class="schedule-btn">Schedule an Inspection</a>
+            <a href="{% url 'book_inspection' %}" class="schedule-btn">Book Inspection</a>
         </div>
     </section>
 </body>

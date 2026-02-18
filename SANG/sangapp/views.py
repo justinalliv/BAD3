@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect
 from django.contrib import messages
-from .models import Customer, Property
+from .models import Customer, Property, Service
 from .forms import CustomerRegistrationForm
 
 def home(request):
@@ -431,4 +431,123 @@ def delete_property(request, property_id):
     
     # GET request should not directly delete, redirect to property list
     return redirect('property_list')
+
+
+def book_inspection(request):
+    """Handle inspection booking (UC 10)."""
+    from datetime import date
+    
+    # Check if user is logged in
+    if 'customer_id' not in request.session:
+        return redirect('login')
+    
+    customer = Customer.objects.get(id=request.session['customer_id'])
+    properties = Property.objects.filter(customer=customer)
+    
+    # Check if customer has any properties
+    if not properties.exists():
+        messages.error(request, 'You need to register a property before booking an inspection.')
+        return redirect('register_property')
+    
+    if request.method == 'POST':
+        property_id = request.POST.get('property_id', '').strip()
+        preferred_service = request.POST.get('preferred_service', '').strip()
+        preferred_service_other = request.POST.get('preferred_service_other', '').strip()
+        pest_problem = request.POST.get('pest_problem', '').strip()
+        pest_problem_other = request.POST.get('pest_problem_other', '').strip()
+        date = request.POST.get('date', '').strip()
+        time_slot = request.POST.get('time_slot', '').strip()
+        
+        # Validate all required fields (extension 4.2)
+        errors = {}
+        if not property_id:
+            errors['property_id'] = 'Property address is required'
+        if not preferred_service:
+            errors['preferred_service'] = 'Preferred service is required'
+        if preferred_service == 'Other' and not preferred_service_other:
+            errors['preferred_service_other'] = 'Please specify the preferred service'
+        if not pest_problem:
+            errors['pest_problem'] = 'Pest problem is required'
+        if pest_problem == 'Other' and not pest_problem_other:
+            errors['pest_problem_other'] = 'Please specify the pest problem'
+        if not date:
+            errors['date'] = 'Date is required'
+        if not time_slot:
+            errors['time_slot'] = 'Time slot is required'
+        
+        if errors:
+            return render(request, 'book_inspection.html', {
+                'customer': customer,
+                'properties': properties,
+                'errors': errors,
+                'form_data': request.POST,
+                'service_choices': Service.PREFERRED_SERVICE_CHOICES,
+                'pest_choices': Service.PEST_PROBLEM_CHOICES,
+                'time_slot_choices': Service.TIME_SLOT_CHOICES,
+                'today': date.today().isoformat(),
+            })
+        
+        # Get the selected property
+        try:
+            property_obj = Property.objects.get(id=property_id, customer=customer)
+        except Property.DoesNotExist:
+            errors['property_id'] = 'Invalid property selected'
+            return render(request, 'book_inspection.html', {
+                'customer': customer,
+                'properties': properties,
+                'errors': errors,
+                'form_data': request.POST,
+                'service_choices': Service.PREFERRED_SERVICE_CHOICES,
+                'pest_choices': Service.PEST_PROBLEM_CHOICES,
+                'time_slot_choices': Service.TIME_SLOT_CHOICES,
+                'today': date.today().isoformat(),
+            })
+        
+        # Determine the final values for preferred_service and pest_problem
+        final_preferred_service = preferred_service_other if preferred_service == 'Other' else preferred_service
+        final_pest_problem = pest_problem_other if pest_problem == 'Other' else pest_problem
+        
+        # Create the service record
+        try:
+            service = Service.objects.create(
+                customer=customer,
+                property=property_obj,
+                preferred_service=final_preferred_service,
+                preferred_service_other=preferred_service_other if preferred_service == 'Other' else None,
+                pest_problem=final_pest_problem,
+                pest_problem_other=pest_problem_other if pest_problem == 'Other' else None,
+                date=date,
+                time_slot=time_slot,
+                status='For Inspection'
+            )
+            
+            # Show success state
+            return render(request, 'book_inspection.html', {
+                'customer': customer,
+                'success': True,
+                'service_id': service.id
+            })
+        except Exception as e:
+            errors['general'] = f'An error occurred while booking the inspection: {str(e)}'
+            return render(request, 'book_inspection.html', {
+                'customer': customer,
+                'properties': properties,
+                'errors': errors,
+                'form_data': request.POST,
+                'service_choices': Service.PREFERRED_SERVICE_CHOICES,
+                'pest_choices': Service.PEST_PROBLEM_CHOICES,
+                'time_slot_choices': Service.TIME_SLOT_CHOICES,
+                'today': date.today().isoformat(),
+            })
+    
+    # GET request - display the form
+    return render(request, 'book_inspection.html', {
+        'customer': customer,
+        'properties': properties,
+        'service_choices': Service.PREFERRED_SERVICE_CHOICES,
+        'pest_choices': Service.PEST_PROBLEM_CHOICES,
+        'time_slot_choices': Service.TIME_SLOT_CHOICES,
+        'form_data': {},
+        'today': date.today().isoformat(),
+    })
 

@@ -16,4 +16,5 @@ urlpatterns = [
     path('properties/register/', views.register_property, name='register_property'),
     path('properties/<int:property_id>/edit/', views.edit_property, name='edit_property'),
     path('properties/<int:property_id>/delete/', views.delete_property, name='delete_property'),
+    path('book-inspection/', views.book_inspection, name='book_inspection'),
 ]
