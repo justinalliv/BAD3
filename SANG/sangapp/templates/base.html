@@ -61,7 +61,7 @@
         }
 
         .nav-logo-text {
-            display: none;
+            display: inline;
         }
 
         .nav-logo:hover {
@@ -560,7 +560,7 @@
 <body>
     {% block base_nav %}
     <!-- Navigation Bar -->
-    <nav>
+    <nav class="nav-spacious">
         <a href="{% url 'home' %}" class="nav-logo">
             <svg width="40" height="40" viewBox="0 0 40 40" style="fill: #1a2a5e;">
                 <circle cx="20" cy="10" r="4"/>
@@ -571,16 +571,17 @@
             <span class="nav-logo-text">Supreme</span>
         </a>
 
+        {% with current=request.resolver_match.url_name %}
         {% if request.session.customer_id %}
         <!-- Authenticated Navigation -->
         <ul class="nav-links">
-            <li><a href="{% url 'customer_home' %}">Home</a></li>
-            <li><a href="{% url 'book_inspection' %}">Book Inspection</a></li>
-            <li><a href="{% url 'property_list' %}">Manage Properties</a></li>
-            <li><a href="{% url 'service_status' %}">Service Status</a></li>
+            <li><a href="{% url 'customer_home' %}" {% if current == 'customer_home' %}class="active"{% endif %}>Home</a></li>
+            <li><a href="{% url 'book_inspection' %}" {% if current == 'book_inspection' %}class="active"{% endif %}>Book Inspection</a></li>
+            <li><a href="{% url 'property_list' %}" {% if current == 'property_list' or current == 'register_property' or current == 'edit_property' %}class="active"{% endif %}>Manage Properties</a></li>
+            <li><a href="{% url 'service_status' %}" {% if current == 'service_status' or current == 'pending_payment' or current == 'payment_instructions' or current == 'submit_payment_proof' %}class="active"{% endif %}>Service Status</a></li>
         </ul>
 
-        <a href="{% url 'profile' %}" class="profile-btn">
+        <a href="{% url 'profile' %}" class="profile-btn {% if current == 'profile' or current == 'edit_profile' or current == 'change_password' %}active{% endif %}">
             <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
                 <circle cx="10" cy="6" r="4"/>
                 <path d="M 4 18 Q 4 12 10 12 Q 16 12 16 18 Z"/>
@@ -590,12 +591,13 @@
         {% else %}
         <!-- Public Navigation -->
         <ul class="nav-links">
-            <li><a href="{% url 'home' %}">Home</a></li>
-            <li><a href="{% url 'book_inspection' %}">Book Inspection</a></li>
-            <li><a href="{% url 'login' %}" class="nav-auth-btn login">Login</a></li>
-            <li><a href="{% url 'signup' %}" class="nav-auth-btn signup">Sign Up</a></li>
+            <li><a href="{% url 'home' %}" {% if current == 'home' %}class="active"{% endif %}>Home</a></li>
+            <li><a href="{% url 'book_inspection' %}" {% if current == 'book_inspection' %}class="active"{% endif %}>Book Inspection</a></li>
+            <li><a href="{% url 'login' %}" class="nav-auth-btn login {% if current == 'login' %}active{% endif %}">Login</a></li>
+            <li><a href="{% url 'signup' %}" class="nav-auth-btn signup {% if current == 'signup' %}active{% endif %}">Sign Up</a></li>
         </ul>
         {% endif %}
+        {% endwith %}
     </nav>
     {% endblock %}
 
