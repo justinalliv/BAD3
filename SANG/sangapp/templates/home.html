@@ -73,21 +73,38 @@
         }
 
         .profile-btn {
-            background-color: #1a2a5e;
-            color: white;
+            background-color: transparent;
+            color: #1a2a5e;
             padding: 10px 25px;
-            border: none;
+            border: 1px solid #1a2a5e;
             border-radius: 5px;
             font-weight: 600;
             cursor: pointer;
-            transition: background-color 0.3s;
+            transition: all 0.3s;
             text-decoration: none;
-            margin-left: 10px;
             display: inline-block;
         }
 
         .profile-btn:hover {
+            background-color: #1a2a5e;
+            color: white;
+        }
+
+        .auth-actions {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .auth-actions .profile-btn:last-child {
+            background-color: #1a2a5e;
+            color: white;
+        }
+
+        .auth-actions .profile-btn:last-child:hover {
             background-color: #0d1535;
+            border-color: #0d1535;
         }
 
         /* Hero Section */
@@ -146,6 +163,11 @@
                 gap: 15px;
             }
 
+            .auth-actions {
+                margin-left: 0;
+                justify-content: center;
+            }
+
             .nav-links {
                 flex-wrap: wrap;
                 margin-left: 0;
@@ -181,13 +203,10 @@
             Supreme
         </div>
 
-        <ul class="nav-links">
-            <li><a href="{% url 'home' %}" class="active">Home</a></li>
-            <li><a href="{% url 'book_inspection' %}">Book Inspection</a></li>
-        </ul>
-
-        <a href="{% url 'login' %}" class="profile-btn">Log In</a>
-        <a href="{% url 'signup' %}" class="profile-btn">Sign Up</a>
+        <div class="auth-actions">
+            <a href="{% url 'login' %}" class="profile-btn">Log In</a>
+            <a href="{% url 'signup' %}" class="profile-btn">Sign Up</a>
+        </div>
     </nav>
 
     <!-- Hero Section -->
