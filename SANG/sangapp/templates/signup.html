@@ -1,16 +1,8 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Create an Account - Supreme Biotech Solutions</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+{% extends 'base.html' %}
 
+{% block title %}Create an Account - Supreme Biotech Solutions{% endblock %}
+
+{% block extra_css %}
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #1a2a5e 0%, #2d3e6f 100%);
@@ -269,29 +261,11 @@
             font-size: 1.05em;
             font-weight: 600;
         }
+{% endblock %}
 
-        @media (max-width: 768px) {
-            .container {
-                flex-direction: column;
-                gap: 30px;
-            }
+{% block base_nav %}{% endblock %}
 
-            .logo-section {
-                margin-bottom: 20px;
-            }
-
-            .logo {
-                width: 200px;
-                height: 200px;
-            }
-
-            .form-row {
-                grid-template-columns: 1fr;
-            }
-        }
-    </style>
-</head>
-<body>
+{% block content %}
     {% if success %}
     <div class="container success-container">
         <div class="logo-section">
@@ -410,5 +384,4 @@
         </div>
     </div>
     {% endif %}
-</body>
-</html>
+{% endblock %}

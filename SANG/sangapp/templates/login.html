@@ -1,16 +1,8 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Supreme Biotech Solutions</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+{% extends 'base.html' %}
 
+{% block title %}Login - Supreme Biotech Solutions{% endblock %}
+
+{% block extra_css %}
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #1a2a5e 0%, #2d3e6f 100%);
@@ -165,25 +157,11 @@
         .signup-link a:hover {
             text-decoration: underline;
         }
+{% endblock %}
 
-        @media (max-width: 768px) {
-            .container {
-                flex-direction: column;
-                gap: 30px;
-            }
+{% block base_nav %}{% endblock %}
 
-            .logo-section {
-                margin-bottom: 20px;
-            }
-
-            .logo {
-                width: 200px;
-                height: 200px;
-            }
-        }
-    </style>
-</head>
-<body>
+{% block content %}
     <div class="container">
         <div class="logo-section">
             <div class="logo">
@@ -224,5 +202,4 @@
             </div>
         </div>
     </div>
-</body>
-</html>
+{% endblock %}

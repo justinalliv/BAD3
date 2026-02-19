@@ -1,8 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
-<head> #hi
+<head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Supreme Biotech Solutions{% endblock %}</title>
     <style>
         * {
@@ -96,6 +95,23 @@
             color: #1a2a5e;
             background-color: #e8f0fe;
             font-weight: 600;
+        }
+
+        .nav-spacious {
+            padding: 15px 40px;
+        }
+
+        .nav-spacious .nav-logo {
+            gap: 10px;
+        }
+
+        .nav-spacious .nav-links {
+            gap: 15px;
+            margin-right: 20px;
+        }
+
+        .nav-spacious .nav-links a {
+            padding: 8px 12px;
         }
 
         .profile-btn {
@@ -521,48 +537,6 @@
         }
 
         /* Responsive */
-        @media (max-width: 768px) {
-            nav {
-                flex-direction: column;
-                gap: 15px;
-            }
-
-            .nav-links {
-                flex-wrap: wrap;
-                margin-left: 0;
-                margin-right: 0;
-                gap: 15px;
-                justify-content: center;
-            }
-
-            .form-card {
-                padding: 30px 20px;
-            }
-
-            .form-row {
-                grid-template-columns: 1fr;
-            }
-
-            .button-group {
-                flex-direction: column;
-            }
-
-            .btn {
-                width: 100%;
-            }
-
-            .modal-btn {
-                width: 100%;
-            }
-
-            table {
-                font-size: 0.85em;
-            }
-
-            th, td {
-                padding: 10px 8px;
-            }
-        }
 
         {% block extra_css %}{% endblock %}
     </style>

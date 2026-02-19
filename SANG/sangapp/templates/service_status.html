@@ -1,92 +1,8 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Service Status - Supreme Biotech Solutions</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+{% extends 'base.html' %}
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f5f5f5;
-        }
+{% block title %}Service Status - Supreme Biotech Solutions{% endblock %}
 
-        /* Navigation Bar */
-        nav {
-            background-color: white;
-            padding: 15px 40px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-
-        .nav-logo {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            color: #1a2a5e;
-            font-weight: bold;
-            font-size: 1.2em;
-        }
-
-        .nav-links {
-            display: flex;
-            gap: 15px;
-            list-style: none;
-            margin-left: auto;
-            margin-right: 20px;
-            align-items: center;
-        }
-
-        .nav-links a {
-            color: #333;
-            text-decoration: none;
-            font-size: 0.875em;
-            transition: color 0.3s;
-            padding: 8px 12px;
-            border-radius: 5px;
-            white-space: nowrap;
-        }
-
-        .nav-links a:hover {
-            color: #1a2a5e;
-            background-color: #f0f0f0;
-        }
-
-        .nav-links a.active {
-            color: #1a2a5e;
-            background-color: #e8f0fe;
-            font-weight: 600;
-        }
-
-        .profile-btn {
-            background-color: #1a2a5e;
-            color: white;
-            padding: 10px 25px;
-            border: none;
-            border-radius: 5px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background-color 0.3s;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .profile-btn:hover {
-            background-color: #0d1535;
-        }
-
+{% block extra_css %}
         /* Main Content */
         .container {
             max-width: 1200px;
@@ -260,53 +176,11 @@
         }
 
         /* Responsive */
-        @media (max-width: 768px) {
-            nav {
-                flex-direction: column;
-                gap: 15px;
-            }
+{% endblock %}
 
-            .nav-links {
-                flex-wrap: wrap;
-                margin-left: 0;
-                margin-right: 0;
-                gap: 15px;
-                justify-content: center;
-            }
-
-            .search-box {
-                width: 100%;
-            }
-
-            .header-section {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 15px;
-            }
-
-            .header-section h1 {
-                font-size: 2em;
-            }
-
-            .section-header {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 10px;
-            }
-
-            table {
-                font-size: 0.85em;
-            }
-
-            th, td {
-                padding: 10px 8px;
-            }
-        }
-    </style>
-</head>
-<body>
-    <!-- Navigation Bar -->
-    <nav>
+{% block base_nav %}
+<!-- Navigation Bar -->
+    <nav class="nav-spacious">
         <div class="nav-logo">
             <svg width="40" height="40" viewBox="0 0 40 40" style="fill: #1a2a5e;">
                 <circle cx="20" cy="10" r="4"/>
@@ -332,7 +206,9 @@
             Profile
         </a>
     </nav>
+{% endblock %}
 
+{% block content %}
     <!-- Main Content -->
     <div class="container">
         <div class="header-section">
@@ -395,8 +271,10 @@
             {% endif %}
         </div>
     </div>
+{% endblock %}
 
-    <script>
+{% block extra_js %}
+<script>
         // Search functionality
         document.getElementById('searchInput').addEventListener('keyup', function() {
             const searchValue = this.value.toLowerCase();
@@ -425,5 +303,4 @@
             }
         });
     </script>
-</body>
-</html>
+{% endblock %}
