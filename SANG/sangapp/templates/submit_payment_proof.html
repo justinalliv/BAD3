@@ -38,13 +38,14 @@
             border: 1px solid #ddd;
             border-radius: 5px;
             font-size: 1em;
-            transition: border-color 0.3s;
+            transition: border-color 0.2s, box-shadow 0.2s;
             font-family: inherit;
         }
         .form-group select:focus,
         .form-group input:focus {
             outline: none;
             border-color: #1a2a5e;
+            box-shadow: 0 0 0 3px rgba(26, 42, 94, 0.12);
         }
         .file-upload {
             position: relative;
@@ -69,6 +70,7 @@
             cursor: pointer;
             font-weight: 500;
             font-size: 0.95em;
+            transition: background-color 0.2s, box-shadow 0.2s;
         }
         .file-label:hover {
             background-color: #d0d0d0;
@@ -117,6 +119,14 @@
         }
         .submit-btn:hover {
             background-color: #0d1535;
+        }
+
+        .go-back-btn:focus-visible,
+        .submit-btn:focus-visible,
+        .file-label:focus-visible,
+        .back-btn:focus-visible {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(26, 42, 94, 0.2);
         }
         /* Confirmation Modal */
         .continue-edit-btn {
