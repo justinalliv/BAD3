@@ -5,27 +5,28 @@
 {% block extra_css %}
 /* Main Content */
         .container {
-            max-width: 800px;
-            margin: 40px auto;
+            max-width: 560px;
+            margin: 34px auto 48px;
             padding: 0 20px;
         }
         .card {
-            background-color: white;
-            border-radius: 10px;
-            padding: 40px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            background: transparent;
+            border-radius: 0;
+            padding: 0;
+            box-shadow: none;
         }
         .card h1 {
             color: #1a2a5e;
-            font-size: 2em;
+            font-size: 3.2em;
             margin-bottom: 30px;
             text-align: center;
+            line-height: 1.1;
         }
         .info-section {
             margin-bottom: 30px;
             padding: 20px;
             background-color: #f9f9f9;
-            border-radius: 5px;
+            border-radius: 14px;
             border-left: 4px solid #1a2a5e;
         }
         .info-section h3 {
@@ -45,20 +46,25 @@
         }
         .button-group {
             display: flex;
-            gap: 15px;
+            gap: 14px;
             justify-content: center;
-            margin-top: 40px;
+            margin-top: 32px;
         }
         .cancel-btn {
             background-color: #e0e0e0;
             color: #333;
-            padding: 12px 40px;
+            min-width: 215px;
+            min-height: 52px;
+            padding: 0 24px;
             border: none;
-            border-radius: 5px;
-            font-size: 1em;
+            border-radius: 14px;
+            font-size: 1.05em;
             font-weight: 600;
             cursor: pointer;
-            transition: background-color 0.3s;
+            transition: background-color 0.2s, box-shadow 0.2s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
         }
         .cancel-btn:hover {
             background-color: #d0d0d0;
@@ -66,16 +72,27 @@
         .continue-btn {
             background-color: #1a2a5e;
             color: white;
-            padding: 12px 40px;
+            min-width: 215px;
+            min-height: 52px;
+            padding: 0 24px;
             border: none;
-            border-radius: 5px;
-            font-size: 1em;
+            border-radius: 14px;
+            font-size: 1.05em;
             font-weight: 600;
             cursor: pointer;
-            transition: background-color 0.3s;
+            transition: background-color 0.2s, box-shadow 0.2s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
         }
         .continue-btn:hover {
             background-color: #0d1535;
+        }
+        .cancel-btn:focus-visible,
+        .continue-btn:focus-visible {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(26, 42, 94, 0.2);
         }
             .button-group {
                 flex-direction: column;
@@ -147,7 +164,7 @@
 
             <div class="button-group">
                 <button type="button" class="cancel-btn" onclick="window.history.back()">Cancel</button>
-                <a href="{% url 'submit_payment_proof' %}" class="continue-btn" style="text-decoration: none; display: inline-block;">Continue</a>
+                <a href="{% url 'submit_payment_proof' %}" class="continue-btn">Continue</a>
             </div>
         </div>
     </div>
