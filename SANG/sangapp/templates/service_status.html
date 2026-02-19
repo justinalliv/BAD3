@@ -3,24 +3,15 @@
 {% block title %}Service Status - Supreme Biotech Solutions{% endblock %}
 
 {% block extra_css %}
-/* Main Content */
-        .container {
-            max-width: 1200px;
-            margin: 40px auto;
-            padding: 0 20px;
-        }
-        .page-header {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-        .page-header h1 {
-            color: #1a2a5e;
-            font-size: 2.5em;
+        .header-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
         }
 
         .header-section {
-            text-align: center;
-            margin-bottom: 30px;
+            text-align: left;
         }
 
         .header-section h1 {
@@ -37,21 +28,15 @@
 
         .section-header h2 {
             color: #1a2a5e;
-            font-size: 1.8em;
+            font-size: 1.3em;
+            font-weight: 600;
             margin: 0;
         }
 
-        /* Search Section */
-        .search-section {
-            display: flex;
-            justify-content: flex-end;
-            margin-bottom: 20px;
-        }
         .search-box {
             padding: 10px 15px;
             border: 1px solid #ddd;
             border-radius: 5px;
-            width: 300px;
             font-size: 0.95em;
             transition: border-color 0.3s;
         }

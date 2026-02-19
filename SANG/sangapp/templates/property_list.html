@@ -45,8 +45,21 @@
         cursor: pointer;
         transition: background-color 0.3s;
         text-decoration: none;
-        display: inline-block;
-        margin-right: 8px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 110px;
+        min-height: 44px;
+        line-height: 1.2;
+        box-sizing: border-box;
+        font-family: inherit;
+        vertical-align: middle;
+    }
+
+    .action-cell {
+        display: flex;
+        align-items: center;
+        gap: 8px;
     }
 
     .action-btn:hover {
@@ -152,7 +165,7 @@
                             <td>{{ property.street_number }} {{ property.street }}, {{ property.city }}, {{ property.province }}</td>
                             <td>{{ property.property_type }}</td>
                             <td>{{ property.floor_area }} sqm</td>
-                            <td>
+                            <td class="action-cell">
                                 <a href="{% url 'edit_property' property.id %}" class="action-btn">Edit</a>
                                 <button type="button" class="action-btn delete-btn delete-action" data-property-id="{{ property.id }}" data-property-name="{{ property.property_name|escapejs }}">Delete</button>
                             </td>
