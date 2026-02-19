@@ -35,6 +35,30 @@
         background-color: #0d1535;
     }
 
+    .action-buttons {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+    }
+
+    .logout-btn {
+        background-color: #e0e0e0;
+        color: #333;
+        padding: 12px 30px;
+        border-radius: 5px;
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: background-color 0.3s;
+        font-size: 1em;
+    }
+
+    .logout-btn:hover {
+        background-color: #d0d0d0;
+    }
+
     .section-header {
         display: flex;
         justify-content: space-between;
@@ -105,11 +129,107 @@
             </div>
         </div>
 
+        <!-- Service Status Section -->
         <div class="section">
-            <div class="empty-state">
-                <h2>Profile</h2>
-                <p>No additional details to display for now.</p>
+            <div class="section-header">
+                <h2>Service Status</h2>
+                <input type="text" class="search-box" placeholder="Search" id="serviceStatusSearch">
             </div>
+            <table id="serviceStatusTable">
+                <thead>
+                    <tr>
+                        <th>Service ID</th>
+                        <th>Property Address</th>
+                        <th>Service Type</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if services %}
+                        {% for service in services %}
+                        <tr>
+                            <td>{{ service.id|stringformat:"07d" }}</td>
+                            <td>{{ service.property.street_number }} {{ service.property.street }}, {{ service.property.city }}</td>
+                            <td>
+                                {% if service.status == 'For Treatment' or service.status == 'Ongoing Treatment' or service.status == 'Pending Payment' or service.status == 'Payment Confirmed' %}
+                                    {{ service.preferred_service }}
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="status-badge status-{{ service.status|lower|cut:' ' }}">
+                                    {{ service.status }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="4" style="text-align: center; color: #999; padding: 30px;">No service status records</td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Service History Section -->
+        <div class="section">
+            <div class="section-header">
+                <h2>Service History</h2>
+                <input type="text" class="search-box" placeholder="Search">
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Service ID</th>
+                        <th>Property Address</th>
+                        <th>Service Type</th>
+                        <th>Service Date</th>
+                        <th>Invoice</th>
+                        <th>Service Report</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td colspan="6" style="text-align: center; color: #999; padding: 30px;">No service history records</td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
     </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.getElementById('serviceStatusSearch').addEventListener('keyup', function() {
+        const searchValue = this.value.toLowerCase();
+        const table = document.getElementById('serviceStatusTable');
+
+        if (!table) return;
+
+        const rows = table.getElementsByTagName('tbody')[0].getElementsByTagName('tr');
+
+        for (let i = 0; i < rows.length; i++) {
+            const row = rows[i];
+            const cells = row.getElementsByTagName('td');
+
+            if (cells[0] && cells[0].getAttribute('colspan')) {
+                continue;
+            }
+
+            let found = false;
+
+            for (let j = 0; j < cells.length; j++) {
+                const cellText = cells[j].textContent.toLowerCase();
+                if (cellText.includes(searchValue)) {
+                    found = true;
+                    break;
+                }
+            }
+
+            row.style.display = found ? '' : 'none';
+        }
+    });
+</script>
 {% endblock %}

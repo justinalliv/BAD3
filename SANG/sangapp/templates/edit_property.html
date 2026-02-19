@@ -81,7 +81,7 @@
         <ul class="nav-links">
             <li><a href="{% url 'customer_home' %}">Home</a></li>
             <li><a href="{% url 'book_inspection' %}">Book Inspection</a></li>
-            <li><a href="{% url 'property_list' %}">Manage Properties</a></li>
+            <li><a href="{% url 'property_list' %}" class="active">Manage Properties</a></li>
             <li><a href="{% url 'service_status' %}">Service Status</a></li>
         </ul>
 
@@ -97,7 +97,7 @@
 
 {% block content %}
     <!-- Main Content -->
-    <div class="container">
+    <div class="form-container">
         <div class="form-card">
             {% if success %}
                 <!-- Success State -->

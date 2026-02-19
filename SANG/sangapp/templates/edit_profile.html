@@ -32,6 +32,11 @@
         justify-content: center;
         margin-top: 40px;
     }
+
+    .button-row .cancel-btn,
+    .button-row .confirm-btn {
+        min-width: 170px;
+    }
 {% endblock %}
 
 {% block base_nav %}
@@ -66,7 +71,7 @@
 
 {% block content %}
     <!-- Main Content -->
-    <div class="container">
+    <div class="form-container">
         <div class="form-card">
             <div class="form-header">
                 <h1>Edit Profile</h1>
@@ -99,13 +104,9 @@
                     {% endif %}
                 </div>
 
-                <div class="secondary-actions">
-                    <a href="{% url 'change_password' %}" class="change-password-btn">Change my Password</a>
-                </div>
-
                 <div class="button-row">
                     <button type="button" class="cancel-btn" onclick="window.location.href='{% url 'profile' %}'">Cancel</button>
-                    <button type="button" class="save-btn" onclick="showConfirmation()">Save Changes</button>
+                    <button type="button" class="confirm-btn" onclick="showConfirmation()">Save Changes</button>
                 </div>
             </form>
         </div>
@@ -117,8 +118,8 @@
             <h2>Confirmation</h2>
             <p>Are you sure you want to save changes?</p>
             <div class="modal-buttons">
-                <button type="button" class="continue-btn" onclick="hideConfirmation()">Continue Editing</button>
-                <button type="button" class="confirm-btn" onclick="submitForm()">Confirm</button>
+                <button type="button" class="modal-btn modal-btn-cancel" onclick="hideConfirmation()">Continue Editing</button>
+                <button type="button" class="modal-btn modal-btn-confirm" onclick="submitForm()">Confirm</button>
             </div>
         </div>
     </div>
