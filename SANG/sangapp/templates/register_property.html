@@ -3,10 +3,23 @@
 {% block title %}Register Property - Supreme Biotech Solutions{% endblock %}
 
 {% block extra_css %}
+    .form-container {
+        max-width: 620px;
+        margin: 40px auto;
+        padding: 0 24px;
+    }
+
+    .form-card {
+        background: transparent;
+        border-radius: 0;
+        padding: 0;
+        box-shadow: none;
+    }
+
     .form-card h1 {
         color: #1a2a5e;
-        font-size: 2em;
-        margin-bottom: 30px;
+        font-size: 3em;
+        margin-bottom: 26px;
         text-align: center;
     }
 
@@ -26,6 +39,28 @@
         font-size: 0.85em;
         margin-top: 5px;
         display: block;
+    }
+
+    .form-group label,
+    .form-row label {
+        font-weight: 600;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-row input,
+    .form-row select {
+        min-height: 46px;
+    }
+
+    .button-group {
+        justify-content: center;
+        margin-top: 34px;
+    }
+
+    .button-group .cancel-btn,
+    .button-group .confirm-btn {
+        min-width: 210px;
     }
 
     input.error,
@@ -68,7 +103,7 @@
                 <circle cx="15" cy="22" r="1.5"/>
                 <circle cx="25" cy="22" r="1.5"/>
             </svg>
-            Supreme
+            <span class="nav-logo-text">Supreme</span>
         </div>
 
         <ul class="nav-links">
