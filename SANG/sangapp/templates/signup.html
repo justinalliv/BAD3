@@ -1,6 +1,231 @@
 {% extends 'base.html' %}
 
-{% block title %}Create an Account - Supreme Biotech Solutions{% endblock %}{% block base_nav %}{% endblock %}
+{% block title %}Create an Account - Supreme Biotech Solutions{% endblock %}
+
+{% block extra_css %}
+    body {
+        flex-direction: column;
+    }
+
+    nav {
+        display: none;
+    }
+
+    main {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, #1a2a5e 0%, #2d3e6f 100%);
+        padding: 20px;
+    }
+
+    .container {
+        display: flex;
+        gap: 40px;
+        align-items: center;
+        max-width: 1200px;
+        width: 100%;
+    }
+
+    .logo-section {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        color: white;
+    }
+
+    .logo {
+        width: 250px;
+        height: 250px;
+        border: 3px solid #00a8ff;
+        border-radius: 15px;
+        padding: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 20px;
+        background: rgba(0, 0, 0, 0.3);
+    }
+
+    .company-name {
+        text-align: center;
+    }
+
+    .company-name h1 {
+        font-size: 2.5em;
+        font-weight: bold;
+        letter-spacing: 3px;
+    }
+
+    .company-name p {
+        font-size: 1.2em;
+        letter-spacing: 2px;
+        margin-top: 10px;
+    }
+
+    .form-section {
+        flex: 1;
+        background: white;
+        padding: 50px;
+        border-radius: 20px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        max-width: 450px;
+        width: 100%;
+    }
+
+    .form-section h2 {
+        color: #1a2a5e;
+        margin-bottom: 30px;
+        font-size: 1.8em;
+        text-align: center;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 15px;
+        margin-bottom: 20px;
+    }
+
+    .form-row .form-group {
+        margin-bottom: 0;
+    }
+
+    .form-group label {
+        font-weight: 500;
+        font-size: 0.9em;
+    }
+
+    input[type="text"],
+    input[type="email"],
+    input[type="password"] {
+        padding: 12px 15px;
+        border-radius: 5px;
+        font-size: 0.95em;
+        font-family: inherit;
+    }
+
+    input[type="text"]:focus,
+    input[type="email"]:focus,
+    input[type="password"]:focus {
+        border-color: #00a8ff;
+        box-shadow: 0 0 5px rgba(0, 168, 255, 0.3);
+    }
+
+    input.error {
+        border-color: #ff4444;
+    }
+
+    .error-message {
+        color: #ff4444;
+        font-size: 0.85em;
+        margin-top: 4px;
+        display: block;
+    }
+
+    .success-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+    }
+
+    .success-container .logo-section {
+        flex: 1;
+    }
+
+    .success-container .form-section {
+        flex: 1;
+        max-width: 450px;
+        padding: 80px 50px;
+        background: white;
+        border-radius: 30px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        text-align: center;
+    }
+
+    .success-text {
+        font-size: 1.8em;
+        color: #1a2a5e;
+        font-weight: 700;
+        line-height: 1.4;
+        margin-bottom: 40px;
+    }
+
+    .register-btn {
+        width: 100%;
+        padding: 12px;
+        background: #1a2a5e;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        font-size: 1em;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.3s;
+        margin-top: 10px;
+    }
+
+    .register-btn:hover {
+        background: #0d1535;
+    }
+
+    .register-btn:active {
+        transform: scale(0.98);
+    }
+
+    .login-link {
+        text-align: center;
+        margin-top: 20px;
+        color: #666;
+        font-size: 0.9em;
+    }
+
+    .login-link a {
+        color: #1a2a5e;
+        text-decoration: none;
+        font-weight: 600;
+    }
+
+    .login-link a:hover {
+        text-decoration: underline;
+    }
+
+    .login-btn {
+        display: inline-block;
+        padding: 12px 40px;
+        background: #1a2a5e;
+        color: white;
+        text-decoration: none;
+        border-radius: 5px;
+        font-weight: 600;
+        transition: background 0.3s;
+        border: none;
+        cursor: pointer;
+        font-size: 1em;
+    }
+
+    .login-btn:hover {
+        background: #0d1535;
+    }
+
+    .success-container .login-btn {
+        width: 100%;
+        padding: 15px 40px;
+        font-size: 1.05em;
+        font-weight: 600;
+    }
+{% endblock %}
+
+{% block base_nav %}{% endblock %}
 
 {% block content %}
     {% if success %}

@@ -1,6 +1,40 @@
 {% extends 'base.html' %}
 
-{% block title %}Edit Profile - Supreme Biotech Solutions{% endblock %}{% block base_nav %}
+{% block title %}Edit Profile - Supreme Biotech Solutions{% endblock %}
+
+{% block extra_css %}
+    .form-header {
+        text-align: center;
+        margin-bottom: 40px;
+    }
+
+    .form-header h1 {
+        color: #1a2a5e;
+        font-size: 2em;
+    }
+
+    .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+        margin-bottom: 25px;
+    }
+
+    .error-message {
+        color: #d32f2f;
+        font-size: 0.85em;
+        margin-top: 5px;
+    }
+
+    .button-row {
+        display: flex;
+        gap: 15px;
+        justify-content: center;
+        margin-top: 40px;
+    }
+{% endblock %}
+
+{% block base_nav %}
 <!-- Navigation Bar -->
     <nav class="nav-spacious">
         <div class="nav-logo">

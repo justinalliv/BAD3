@@ -2,6 +2,90 @@
 
 {% block title %}Book Inspection - SANG Pest Control{% endblock %}
 
+{% block extra_css %}
+    .form-card h1 {
+        color: #1a2a5e;
+        font-size: 2em;
+        margin-bottom: 30px;
+        text-align: center;
+    }
+
+    .form-group label .required {
+        color: red;
+    }
+
+    .form-group .error {
+        color: red;
+        font-size: 0.875rem;
+        margin-top: 0.25rem;
+    }
+
+    .form-group small {
+        display: block;
+        margin-top: 0.25rem;
+        color: #666;
+        font-size: 0.875rem;
+    }
+
+    .hidden {
+        display: none;
+    }
+
+    .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+        margin-bottom: 20px;
+    }
+
+    .form-row.full {
+        grid-template-columns: 1fr;
+    }
+
+    .success-container {
+        text-align: center;
+        padding: 40px 20px;
+    }
+
+    .success-icon {
+        width: 60px;
+        height: 60px;
+        background-color: #28a745;
+        border-radius: 50%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin: 0 auto 20px;
+        color: white;
+        font-size: 2em;
+        font-weight: bold;
+    }
+
+    .success-icon::before {
+        content: "✓";
+    }
+
+    .success-container h2 {
+        color: #1a2a5e;
+        margin-bottom: 15px;
+        font-size: 1.5em;
+    }
+
+    .success-container p {
+        color: #333;
+        font-size: 1em;
+        line-height: 1.6;
+        margin-bottom: 10px;
+    }
+
+    .service-id {
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: #1a2a5e;
+        margin: 1rem 0 2rem 0;
+    }
+{% endblock %}
+
 {% block base_nav %}
 <nav class="nav-spacious">
         <div class="nav-logo">

@@ -1,6 +1,92 @@
 {% extends 'base.html' %}
 
-{% block title %}Payment Instructions - Supreme Biotech Solutions{% endblock %}{% block base_nav %}
+{% block title %}Payment Instructions - Supreme Biotech Solutions{% endblock %}
+
+{% block extra_css %}
+/* Main Content */
+        .container {
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+        .card {
+            background-color: white;
+            border-radius: 10px;
+            padding: 40px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .card h1 {
+            color: #1a2a5e;
+            font-size: 2em;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .info-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background-color: #f9f9f9;
+            border-radius: 5px;
+            border-left: 4px solid #1a2a5e;
+        }
+        .info-section h3 {
+            color: #1a2a5e;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+        .info-section p {
+            color: #666;
+            line-height: 1.6;
+        }
+        .amount-display {
+            font-size: 1.2em;
+            font-weight: 600;
+            color: #1a2a5e;
+            margin-top: 10px;
+        }
+        .button-group {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 40px;
+        }
+        .cancel-btn {
+            background-color: #e0e0e0;
+            color: #333;
+            padding: 12px 40px;
+            border: none;
+            border-radius: 5px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .cancel-btn:hover {
+            background-color: #d0d0d0;
+        }
+        .continue-btn {
+            background-color: #1a2a5e;
+            color: white;
+            padding: 12px 40px;
+            border: none;
+            border-radius: 5px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .continue-btn:hover {
+            background-color: #0d1535;
+        }
+            .button-group {
+                flex-direction: column;
+            }
+            .cancel-btn, .continue-btn {
+                width: 100%;
+            }
+        }
+{% endblock %}
+
+{% block base_nav %}
 <!-- Navigation Bar -->
     <nav class="nav-spacious">
         <div class="nav-logo">

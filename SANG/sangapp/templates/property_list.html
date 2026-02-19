@@ -1,6 +1,81 @@
 {% extends 'base.html' %}
 
-{% block title %}Manage Properties - Supreme Biotech Solutions{% endblock %}{% block base_nav %}
+{% block title %}Manage Properties - Supreme Biotech Solutions{% endblock %}
+
+{% block extra_css %}
+    .header-section {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 40px;
+    }
+
+    .header-section h1 {
+        color: #1a2a5e;
+        font-size: 2.5em;
+    }
+
+    .register-btn {
+        background-color: #1a2a5e;
+        color: white;
+        padding: 12px 30px;
+        border: none;
+        border-radius: 5px;
+        font-weight: 600;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 1em;
+        transition: background-color 0.3s;
+    }
+
+    .register-btn:hover {
+        background-color: #0d1535;
+    }
+
+    .action-btn {
+        background-color: #1a2a5e;
+        color: white;
+        padding: 8px 16px;
+        border: none;
+        border-radius: 5px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background-color 0.3s;
+        text-decoration: none;
+        display: inline-block;
+        margin-right: 8px;
+    }
+
+    .action-btn:hover {
+        background-color: #0d1535;
+    }
+
+    .delete-btn {
+        background-color: #e74c3c;
+    }
+
+    .delete-btn:hover {
+        background-color: #c0392b;
+    }
+
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+
+    .section-header h2 {
+        color: #1a2a5e;
+        font-size: 1.3em;
+        font-weight: 600;
+    }
+{% endblock %}
+
+{% block base_nav %}
 <!-- Navigation Bar -->
     <nav class="nav-spacious">
         <div class="nav-logo">

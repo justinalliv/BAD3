@@ -1,6 +1,64 @@
 {% extends 'base.html' %}
 
-{% block title %}Profile - Supreme Biotech Solutions{% endblock %}{% block base_nav %}
+{% block title %}Profile - Supreme Biotech Solutions{% endblock %}
+
+{% block extra_css %}
+    .header-section {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 40px;
+    }
+
+    .header-section h1 {
+        color: #1a2a5e;
+        font-size: 2.5em;
+    }
+
+    .edit-profile-btn {
+        background-color: #1a2a5e;
+        color: white;
+        padding: 12px 30px;
+        border: none;
+        border-radius: 5px;
+        font-weight: 600;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 1em;
+        transition: background-color 0.3s;
+    }
+
+    .edit-profile-btn:hover {
+        background-color: #0d1535;
+    }
+
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+
+    .section-header h2 {
+        color: #1a2a5e;
+        font-size: 1.8em;
+    }
+
+    .file-link {
+        color: #1a2a5e;
+        text-decoration: underline;
+        cursor: pointer;
+    }
+
+    .file-link:hover {
+        color: #0d1535;
+    }
+{% endblock %}
+
+{% block base_nav %}
 <!-- Navigation Bar -->
     <nav class="nav-spacious">
         <div class="nav-logo">
