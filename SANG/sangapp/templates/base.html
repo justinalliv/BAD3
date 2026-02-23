@@ -591,8 +591,6 @@
         {% else %}
         <!-- Public Navigation -->
         <ul class="nav-links">
-            <li><a href="{% url 'home' %}" {% if current == 'home' %}class="active"{% endif %}>Home</a></li>
-            <li><a href="{% url 'book_inspection' %}" {% if current == 'book_inspection' %}class="active"{% endif %}>Book Inspection</a></li>
             <li><a href="{% url 'login' %}" class="nav-auth-btn login {% if current == 'login' %}active{% endif %}">Login</a></li>
             <li><a href="{% url 'signup' %}" class="nav-auth-btn signup {% if current == 'signup' %}active{% endif %}">Sign Up</a></li>
         </ul>
