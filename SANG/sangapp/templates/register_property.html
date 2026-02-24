@@ -303,6 +303,8 @@
                                 step="0.01"
                                 placeholder="XXX"
                                 value="{{ form_data.floor_area }}"
+                                min="0"
+                                required
                                 {% if errors.floor_area %}class="error"{% endif %}
                             >
                             {% if errors.floor_area %}<span class="error-message">{{ errors.floor_area }}</span>{% endif %}
@@ -400,5 +402,35 @@
                 closeConfirmModal();
             }
         });
+
+        // Clear error messages when user interacts with form fields
+        const formInputs = document.querySelectorAll('input, select, textarea');
+        formInputs.forEach(input => {
+            input.addEventListener('focus', function() {
+                clearErrorMessage(this);
+            });
+            input.addEventListener('change', function() {
+                clearErrorMessage(this);
+            });
+        });
+
+        function clearErrorMessage(field) {
+            // Remove error class from the input
+            field.classList.remove('error');
+            
+            // Find and hide error message - look through parent and siblings
+            let parent = field.parentElement;
+            while (parent) {
+                const errorSpan = parent.querySelector('.error-message');
+                if (errorSpan) {
+                    errorSpan.style.visibility = 'hidden';
+                    errorSpan.style.height = '0';
+                    errorSpan.style.margin = '0';
+                    errorSpan.style.padding = '0';
+                    break;
+                }
+                parent = parent.parentElement;
+            }
+        }
     </script>
 {% endblock %}

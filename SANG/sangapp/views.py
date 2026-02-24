@@ -77,7 +77,11 @@ def profile(request):
     if 'customer_id' not in request.session:
         return redirect('login')
     
-    customer = Customer.objects.get(id=request.session['customer_id'])
+    try:
+        customer = Customer.objects.get(id=request.session['customer_id'])
+    except Customer.DoesNotExist:
+        request.session.flush()
+        return redirect('login')
     
     # Get ongoing services (not completed or cancelled)
     services = Service.objects.filter(
@@ -104,7 +108,11 @@ def edit_profile(request):
     if 'customer_id' not in request.session:
         return redirect('login')
     
-    customer = Customer.objects.get(id=request.session['customer_id'])
+    try:
+        customer = Customer.objects.get(id=request.session['customer_id'])
+    except Customer.DoesNotExist:
+        request.session.flush()
+        return redirect('login')
     
     if request.method == 'POST':
         first_name = request.POST.get('first_name', '').strip()
@@ -145,7 +153,11 @@ def change_password(request):
     if 'customer_id' not in request.session:
         return redirect('login')
 
-    customer = Customer.objects.get(id=request.session['customer_id'])
+    try:
+        customer = Customer.objects.get(id=request.session['customer_id'])
+    except Customer.DoesNotExist:
+        request.session.flush()
+        return redirect('login')
 
     if request.method == 'POST':
         current_password = request.POST.get('current_password', '').strip()
@@ -259,7 +271,11 @@ def property_list(request):
     if 'customer_id' not in request.session:
         return redirect('login')
     
-    customer = Customer.objects.get(id=request.session['customer_id'])
+    try:
+        customer = Customer.objects.get(id=request.session['customer_id'])
+    except Customer.DoesNotExist:
+        request.session.flush()
+        return redirect('login')
     properties = Property.objects.filter(customer=customer)
     
     return render(request, 'property_list.html', {
@@ -274,7 +290,11 @@ def register_property(request):
     if 'customer_id' not in request.session:
         return redirect('login')
     
-    customer = Customer.objects.get(id=request.session['customer_id'])
+    try:
+        customer = Customer.objects.get(id=request.session['customer_id'])
+    except Customer.DoesNotExist:
+        request.session.flush()
+        return redirect('login')
     
     if request.method == 'POST':
         property_name = request.POST.get('property_name', '').strip()
@@ -307,6 +327,13 @@ def register_property(request):
             errors['property_type'] = 'Property type is required'
         if not floor_area:
             errors['floor_area'] = 'Floor area is required'
+        else:
+            try:
+                floor_area_float = float(floor_area)
+                if floor_area_float <= 0:
+                    errors['floor_area'] = 'Floor area must be a positive number'
+            except ValueError:
+                errors['floor_area'] = 'Floor area must be a valid number'
         
         # Check if property name already exists for this customer (extension 5.1)
         if property_name and Property.objects.filter(customer=customer, property_name=property_name).exists():
@@ -357,7 +384,11 @@ def edit_property(request, property_id):
     if 'customer_id' not in request.session:
         return redirect('login')
     
-    customer = Customer.objects.get(id=request.session['customer_id'])
+    try:
+        customer = Customer.objects.get(id=request.session['customer_id'])
+    except Customer.DoesNotExist:
+        request.session.flush()
+        return redirect('login')
     
     try:
         property_obj = Property.objects.get(id=property_id, customer=customer)
@@ -395,6 +426,13 @@ def edit_property(request, property_id):
             errors['property_type'] = 'Property type is required'
         if not floor_area:
             errors['floor_area'] = 'Floor area is required'
+        else:
+            try:
+                floor_area_float = float(floor_area)
+                if floor_area_float <= 0:
+                    errors['floor_area'] = 'Floor area must be a positive number'
+            except ValueError:
+                errors['floor_area'] = 'Floor area must be a valid number'
         
         # Check if new property name already exists for this customer (excluding current property)
         if property_name and Property.objects.filter(
@@ -463,7 +501,11 @@ def delete_property(request, property_id):
     if 'customer_id' not in request.session:
         return redirect('login')
     
-    customer = Customer.objects.get(id=request.session['customer_id'])
+    try:
+        customer = Customer.objects.get(id=request.session['customer_id'])
+    except Customer.DoesNotExist:
+        request.session.flush()
+        return redirect('login')
     
     try:
         property_obj = Property.objects.get(id=property_id, customer=customer)
@@ -494,7 +536,11 @@ def book_inspection(request):
     if 'customer_id' not in request.session:
         return redirect('login')
     
-    customer = Customer.objects.get(id=request.session['customer_id'])
+    try:
+        customer = Customer.objects.get(id=request.session['customer_id'])
+    except Customer.DoesNotExist:
+        request.session.flush()
+        return redirect('login')
     properties = Property.objects.filter(customer=customer)
     
     # Check if customer has any properties
@@ -611,7 +657,11 @@ def service_status(request):
     if 'customer_id' not in request.session:
         return redirect('login')
     
-    customer = Customer.objects.get(id=request.session['customer_id'])
+    try:
+        customer = Customer.objects.get(id=request.session['customer_id'])
+    except Customer.DoesNotExist:
+        request.session.flush()
+        return redirect('login')
     
     # Get all services that are not completed or cancelled (ongoing services)
     services = Service.objects.filter(
