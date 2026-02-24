@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}Customer Home - Supreme Biotech Solutions{% endblock %}
 
@@ -9,7 +10,13 @@
 
     /* Hero Section */
     .hero {
-        background: linear-gradient(135deg, #1a2a5e 0%, #2d3e6f 50%, #1f3a5f 100%);
+        background-color: #1a2a5e;
+        background-image:
+            linear-gradient(rgba(13, 21, 53, 0.58), rgba(13, 21, 53, 0.58)),
+            url("{% static 'images/home-bg.png' %}");
+        background-position: center;
+        background-repeat: no-repeat;
+        background-size: cover;
         min-height: calc(100vh - 70px);
         display: flex;
         align-items: center;

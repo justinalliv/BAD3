@@ -8,15 +8,6 @@ def home(request):
     return render(request, 'home.html')
 
 
-def customer_home(request):
-    """Authenticated customer home page/dashboard."""
-    # Check if user is logged in
-    if 'customer_id' not in request.session:
-        return redirect('login')
-    
-    return render(request, 'customer_home.html')
-
-
 def login(request):
     if request.method == 'POST':
         email = request.POST.get('email', '').strip()
@@ -26,7 +17,7 @@ def login(request):
         if customer and customer.password == password:
             request.session['customer_id'] = customer.id
             request.session['customer_name'] = f"{customer.first_name} {customer.last_name}"
-            return redirect('customer_home')
+            return redirect('home')
 
         messages.error(request, 'Invalid email or password.')
         return render(request, 'login.html', status=401)

@@ -64,6 +64,13 @@
             display: inline;
         }
 
+        .nav-logo-image {
+            width: 40px;
+            height: 40px;
+            object-fit: contain;
+            display: block;
+        }
+
         .nav-logo:hover {
             color: #2d3e6f;
         }
@@ -562,12 +569,7 @@
     <!-- Navigation Bar -->
     <nav class="nav-spacious">
         <a href="{% url 'home' %}" class="nav-logo">
-            <svg width="40" height="40" viewBox="0 0 40 40" style="fill: #1a2a5e;">
-                <circle cx="20" cy="10" r="4"/>
-                <path d="M 20 14 Q 15 18 20 26 Q 25 18 20 14 Z"/>
-                <circle cx="15" cy="22" r="1.5"/>
-                <circle cx="25" cy="22" r="1.5"/>
-            </svg>
+            <img src="/static/images/logo.png" alt="Supreme logo" class="nav-logo-image">
             <span class="nav-logo-text">Supreme</span>
         </a>
 
@@ -575,7 +577,6 @@
         {% if request.session.customer_id %}
         <!-- Authenticated Navigation -->
         <ul class="nav-links">
-            <li><a href="{% url 'customer_home' %}" {% if current == 'customer_home' %}class="active"{% endif %}>Home</a></li>
             <li><a href="{% url 'book_inspection' %}" {% if current == 'book_inspection' %}class="active"{% endif %}>Book Inspection</a></li>
             <li><a href="{% url 'property_list' %}" {% if current == 'property_list' or current == 'register_property' or current == 'edit_property' %}class="active"{% endif %}>Manage Properties</a></li>
             <li><a href="{% url 'service_status' %}" {% if current == 'service_status' or current == 'pending_payment' or current == 'payment_instructions' or current == 'submit_payment_proof' %}class="active"{% endif %}>Service Status</a></li>
