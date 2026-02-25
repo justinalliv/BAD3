@@ -19,6 +19,8 @@ from pathlib import Path
 # Use PyMySQL as the MySQL database driver for compatibility with Django's MySQL backend
 import pymysql
 pymysql.install_as_MySQLdb()
+pymysql.version_info = (2, 2, 1, "final", 0)
+pymysql.__version__ = "2.2.1"
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -102,16 +104,26 @@ WSGI_APPLICATION = 'SANG.wsgi.application'
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
 
-DATABASES = {
-   'default': {
-       'ENGINE': 'django.db.backends.mysql',
-       'NAME': 'sangapp_db',
-       'USER': 'root',
-       'PASSWORD': 'lu1smysql',
-       'HOST': '127.0.0.1',
-       'PORT': '3306',
+USE_MYSQL = os.getenv('USE_MYSQL', '0') == '1'
+
+if USE_MYSQL:
+   DATABASES = {
+       'default': {
+           'ENGINE': 'django.db.backends.mysql',
+           'NAME': os.getenv('MYSQL_DATABASE', 'sangapp_db'),
+           'USER': os.getenv('MYSQL_USER', 'root'),
+           'PASSWORD': os.getenv('MYSQL_PASSWORD', ''),
+           'HOST': os.getenv('MYSQL_HOST', '127.0.0.1'),
+           'PORT': os.getenv('MYSQL_PORT', '3306'),
+       }
    }
-}
+else:
+   DATABASES = {
+       'default': {
+           'ENGINE': 'django.db.backends.sqlite3',
+           'NAME': BASE_DIR / 'db.sqlite3',
+       }
+   }
 
 
 
