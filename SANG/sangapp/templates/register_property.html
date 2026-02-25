@@ -134,7 +134,10 @@
 
     .success-container {
         text-align: center;
-        padding: 40px 20px;
+        padding: 40px 28px;
+        background-color: white;
+        border-radius: 14px;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
     }
 
     .success-icon {
@@ -153,7 +156,17 @@
     .success-text {
         color: #1a2a5e;
         font-size: 1.1em;
-        margin-bottom: 30px;
+        line-height: 1.6;
+        margin: 0 auto 30px;
+        max-width: 480px;
+    }
+
+    .success-container .btn {
+        min-width: 200px;
+        min-height: 46px;
+        border-radius: 12px;
+        font-size: 0.96em;
+        font-weight: 700;
     }
 {% endblock %}
 
@@ -166,7 +179,7 @@
                 <div class="success-container">
                     <div class="success-icon">✓</div>
                     <p class="success-text">You have successfully registered a property. You may now proceed to booking an inspection.</p>
-                    <a href="{% url 'property_list' %}" class="confirm-btn" style="text-decoration: none; display: inline-block;">Back to Properties</a>
+                    <a href="{% url 'property_list' %}" class="btn btn-primary">Back to Properties</a>
                 </div>
             {% else %}
                 <!-- Form -->
