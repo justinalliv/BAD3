@@ -1,5 +1,18 @@
 from django.db import models
-from django.contrib.auth.hashers import make_password
+
+
+class OperationsManager(models.Model):
+    first_name = models.CharField(max_length=100, default='Operations')
+    last_name = models.CharField(max_length=100, default='Manager')
+    email = models.EmailField(unique=True)
+    password = models.CharField(max_length=255)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.first_name} {self.last_name} ({self.email})"
+
+    class Meta:
+        db_table = 'operations_managers'
 
 class Customer(models.Model):
     first_name = models.CharField(max_length=100)
@@ -97,6 +110,7 @@ class Service(models.Model):
     pest_problem = models.CharField(max_length=255)
     pest_problem_other = models.CharField(max_length=255, blank=True, null=True)
     date = models.DateField()
+    confirmed_date = models.DateField(blank=True, null=True)
     time_slot = models.CharField(max_length=50)
     status = models.CharField(max_length=50, choices=STATUS_CHOICES, default='For Inspection')
     created_at = models.DateTimeField(auto_now_add=True)
@@ -106,4 +120,19 @@ class Service(models.Model):
 
     class Meta:
         db_table = 'services'
+        ordering = ['-created_at']
+
+
+class TreatmentBooking(models.Model):
+    service = models.ForeignKey(Service, on_delete=models.CASCADE, related_name='treatment_bookings')
+    treatment_service = models.CharField(max_length=255)
+    date = models.DateField()
+    time_slot = models.CharField(max_length=50)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Treatment Booking #{self.id} for Service #{self.service_id}"
+
+    class Meta:
+        db_table = 'treatment_bookings'
         ordering = ['-created_at']

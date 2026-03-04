@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+
+{% block title %}OM Home - Supreme Biotech Solutions{% endblock %}
+
+{% block extra_css %}
+    .container {
+        max-width: 1280px;
+        margin: 34px auto 48px;
+        padding: 0 24px;
+    }
+
+    .identified {
+        text-align: right;
+        color: #333;
+        font-size: 0.95em;
+        margin-bottom: 18px;
+    }
+
+    .card-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 26px;
+    }
+
+    .om-card {
+        background: #fff;
+        border: 1px solid #d9d9d9;
+        border-radius: 18px;
+        min-height: 210px;
+        padding: 30px 26px;
+        text-decoration: none;
+        color: inherit;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .om-card:hover {
+        border-color: #1a2a5e;
+        box-shadow: 0 6px 16px rgba(17, 31, 76, 0.08);
+    }
+
+    .om-card h2 {
+        color: #1a2a5e;
+        font-size: 2em;
+        margin-bottom: 8px;
+        text-align: center;
+    }
+
+    .om-card p {
+        color: #4e5b82;
+        font-size: 1.05em;
+        text-align: center;
+    }
+
+    .icon {
+        font-size: 2.2em;
+        color: #1a2a5e;
+        margin-bottom: 14px;
+    }
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <p class="identified">User Identified As: Operations Manager</p>
+
+    <div class="card-grid">
+        <a href="{% url 'om_service_history' %}" class="om-card">
+            <div class="icon">📅</div>
+            <h2>Service History</h2>
+            <p>View previous service records</p>
+        </a>
+        <a href="{% url 'om_billing' %}" class="om-card">
+            <div class="icon">💳</div>
+            <h2>Billing</h2>
+            <p>View and generate estimated bill or invoice</p>
+        </a>
+        <a href="{% url 'om_service_status' %}" class="om-card">
+            <div class="icon">▦</div>
+            <h2>Service Status</h2>
+            <p>View ongoing services and edit bookings</p>
+        </a>
+        <a href="{% url 'om_service_reports' %}" class="om-card">
+            <div class="icon">📄</div>
+            <h2>Service Reports</h2>
+            <p>View service reports</p>
+        </a>
+        <a href="{% url 'om_remittance_records' %}" class="om-card">
+            <div class="icon">📖</div>
+            <h2>Remittance Records</h2>
+            <p>View remittance records</p>
+        </a>
+        <a href="{% url 'om_manage_service_forms' %}" class="om-card">
+            <div class="icon">✎</div>
+            <h2>Manage Service Forms</h2>
+            <p>Create, edit, and delete field options</p>
+        </a>
+        <a href="{% url 'om_manage_accounts' %}" class="om-card">
+            <div class="icon">👥</div>
+            <h2>Manage Accounts</h2>
+            <p>Create and delete employee accounts</p>
+        </a>
+    </div>
+</div>
+{% endblock %}

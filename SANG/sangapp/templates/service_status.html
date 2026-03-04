@@ -155,7 +155,8 @@
                         <th>Service ID</th>
                         <th>Property Address</th>
                         <th>Service Type</th>
-                        <th>Invoice</th>
+                        <th>Preferred Date</th>
+                        <th>Confirmed Date</th>
                         <th>Status</th>
                     </tr>
                 </thead>
@@ -167,16 +168,11 @@
                         <td>
                             {{ service.preferred_service|default:'-' }}
                         </td>
-                        <td>
-                            {% if service.status == 'Pending Payment' or service.status == 'Payment Confirmed' %}
-                                <a href="#" class="invoice-link">File Name.pdf</a>
-                            {% else %}
-                                -
-                            {% endif %}
-                        </td>
+                        <td>{{ service.date|date:'M d, Y' }}</td>
+                        <td>{% if service.confirmed_date %}{{ service.confirmed_date|date:'M d, Y' }}{% else %}-{% endif %}</td>
                         <td>
                             <span class="status-badge status-{{ service.status|lower|cut:' ' }}">
-                                {{ service.status }}
+                                {% if service.status == 'For Inspection' %}Ongoing Inspection{% else %}{{ service.status }}{% endif %}
                             </span>
                         </td>
                     </tr>

@@ -133,6 +133,44 @@
             padding: 8px 12px;
         }
 
+        .nav-om {
+            padding: 10px 18px;
+            justify-content: flex-start;
+            gap: 10px;
+        }
+
+        .nav-om .nav-logo {
+            gap: 6px;
+            font-size: 0.9em;
+            flex-shrink: 0;
+        }
+
+        .nav-om .nav-logo-image {
+            width: 34px;
+            height: 34px;
+        }
+
+        .nav-om .nav-links {
+            gap: 8px;
+            margin-left: auto;
+            margin-right: 8px;
+            min-width: 0;
+            flex: 1;
+            justify-content: flex-end;
+        }
+
+        .nav-om .nav-links a {
+            font-size: 0.78em;
+            padding: 6px 8px;
+        }
+
+        .nav-om .profile-btn {
+            padding: 8px 16px;
+            min-height: 36px;
+            font-size: 0.82em;
+            flex-shrink: 0;
+        }
+
         .profile-btn {
             background-color: #1a2a5e;
             color: white;
@@ -567,14 +605,33 @@
 <body>
     {% block base_nav %}
     <!-- Navigation Bar -->
-    <nav class="nav-spacious">
-        <a href="{% url 'home' %}" class="nav-logo">
+    <nav class="nav-spacious {% if request.session.om_id %}nav-om{% endif %}">
+        <a href="{% if request.session.om_id %}{% url 'om_home' %}{% else %}{% url 'home' %}{% endif %}" class="nav-logo">
             <img src="/static/images/logo.png" alt="Supreme logo" class="nav-logo-image">
             <span class="nav-logo-text">Supreme</span>
         </a>
 
         {% with current=request.resolver_match.url_name %}
-        {% if request.session.customer_id %}
+        {% if request.session.om_id %}
+        <ul class="nav-links">
+            <li><a href="{% url 'om_home' %}" {% if current == 'om_home' %}class="active"{% endif %}>Home</a></li>
+            <li><a href="{% url 'om_service_history' %}" {% if current == 'om_service_history' %}class="active"{% endif %}>Service History</a></li>
+            <li><a href="{% url 'om_service_status' %}" {% if current == 'om_service_status' or current == 'om_book_treatment' %}class="active"{% endif %}>Service Status</a></li>
+            <li><a href="{% url 'om_billing' %}" {% if current == 'om_billing' %}class="active"{% endif %}>Billing</a></li>
+            <li><a href="{% url 'om_service_reports' %}" {% if current == 'om_service_reports' %}class="active"{% endif %}>Service Reports</a></li>
+            <li><a href="{% url 'om_remittance_records' %}" {% if current == 'om_remittance_records' %}class="active"{% endif %}>Remittance Records</a></li>
+            <li><a href="{% url 'om_manage_service_forms' %}" {% if current == 'om_manage_service_forms' %}class="active"{% endif %}>Manage Service Forms</a></li>
+            <li><a href="{% url 'om_manage_accounts' %}" {% if current == 'om_manage_accounts' %}class="active"{% endif %}>Manage Accounts</a></li>
+        </ul>
+
+        <a href="{% url 'om_profile' %}" class="profile-btn {% if current == 'om_profile' or current == 'om_change_password' %}active{% endif %}">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                <circle cx="10" cy="6" r="4"/>
+                <path d="M 4 18 Q 4 12 10 12 Q 16 12 16 18 Z"/>
+            </svg>
+            Profile
+        </a>
+        {% elif request.session.customer_id %}
         <!-- Authenticated Navigation -->
         <ul class="nav-links">
             <li><a href="{% url 'book_inspection' %}" {% if current == 'book_inspection' %}class="active"{% endif %}>Book Inspection</a></li>

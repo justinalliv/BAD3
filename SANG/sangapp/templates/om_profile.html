@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+
+{% block title %}OM Profile - Supreme Biotech Solutions{% endblock %}
+
+{% block extra_css %}
+    .container {
+        max-width: 1000px;
+        margin: 40px auto;
+        padding: 0 24px;
+    }
+
+    .header-section {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 24px;
+    }
+
+    .header-section h1 {
+        color: #1a2a5e;
+        font-size: 2.3em;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+    }
+
+    .btn {
+        padding: 12px 26px;
+        border-radius: 10px;
+        text-decoration: none;
+        font-weight: 600;
+    }
+
+    .btn-primary {
+        background: #1a2a5e;
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background: #0d1535;
+    }
+
+    .btn-secondary {
+        background: #e0e0e0;
+        color: #333;
+    }
+
+    .btn-secondary:hover {
+        background: #d0d0d0;
+    }
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="header-section">
+        <h1>Hi, {{ om.first_name }} {{ om.last_name }}!</h1>
+        <div class="action-buttons">
+            <a href="{% url 'om_change_password' %}" class="btn btn-primary">Change Password</a>
+            <a href="{% url 'logout' %}" class="btn btn-secondary">Logout</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

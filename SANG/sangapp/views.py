@@ -1,10 +1,12 @@
 from django.shortcuts import render, redirect
 from django.contrib import messages
-from .models import Customer, Property, Service
+from .models import Customer, Property, Service, OperationsManager, TreatmentBooking
 from .forms import CustomerRegistrationForm
 
 def home(request):
     """Public home page."""
+    if request.session.get('om_id'):
+        return redirect('om_home')
     return render(request, 'home.html')
 
 
@@ -13,8 +15,16 @@ def login(request):
         email = request.POST.get('email', '').strip()
         password = request.POST.get('password', '')
 
+        om = OperationsManager.objects.filter(email__iexact=email).only('id', 'password', 'first_name', 'last_name').first()
+        if om and om.password == password:
+            request.session.flush()
+            request.session['om_id'] = om.id
+            request.session['om_name'] = f"{om.first_name} {om.last_name}"
+            return redirect('om_home')
+
         customer = Customer.objects.filter(email=email).only('id', 'password', 'first_name', 'last_name').first()
         if customer and customer.password == password:
+            request.session.flush()
             request.session['customer_id'] = customer.id
             request.session['customer_name'] = f"{customer.first_name} {customer.last_name}"
             return redirect('home')
@@ -673,4 +683,226 @@ def service_status(request):
     return render(request, 'service_status.html', {
         'customer': customer,
         'services': services,
+    })
+
+
+def om_home(request):
+    """Display OM home page."""
+    if 'om_id' not in request.session:
+        return redirect('login')
+
+    try:
+        om = OperationsManager.objects.get(id=request.session['om_id'])
+    except OperationsManager.DoesNotExist:
+        request.session.flush()
+        return redirect('login')
+
+    return render(request, 'om_home.html', {'om': om})
+
+
+def om_profile(request):
+    """Display OM profile page."""
+    if 'om_id' not in request.session:
+        return redirect('login')
+
+    try:
+        om = OperationsManager.objects.get(id=request.session['om_id'])
+    except OperationsManager.DoesNotExist:
+        request.session.flush()
+        return redirect('login')
+
+    return render(request, 'om_profile.html', {'om': om})
+
+
+def om_change_password(request):
+    """Handle OM password change."""
+    if 'om_id' not in request.session:
+        return redirect('login')
+
+    try:
+        om = OperationsManager.objects.get(id=request.session['om_id'])
+    except OperationsManager.DoesNotExist:
+        request.session.flush()
+        return redirect('login')
+
+    if request.method == 'POST':
+        current_password = request.POST.get('current_password', '').strip()
+        new_password = request.POST.get('new_password', '').strip()
+        confirm_new_password = request.POST.get('confirm_new_password', '').strip()
+
+        errors = {}
+        if not current_password:
+            errors['current_password'] = 'Current password is required.'
+        if not new_password:
+            errors['new_password'] = 'New password is required.'
+        if not confirm_new_password:
+            errors['confirm_new_password'] = 'Please confirm your new password.'
+
+        if current_password and current_password != om.password:
+            errors['current_password'] = 'Current password is incorrect.'
+
+        if new_password and confirm_new_password and new_password != confirm_new_password:
+            errors['confirm_new_password'] = 'New passwords do not match.'
+
+        if new_password and len(new_password) < 8:
+            errors['new_password'] = 'New password must be at least 8 characters.'
+
+        if not errors:
+            om.password = new_password
+            om.save(update_fields=['password'])
+            return render(request, 'om_change_password.html', {
+                'om': om,
+                'success': True,
+            })
+
+        return render(request, 'om_change_password.html', {
+            'om': om,
+            'errors': errors,
+        })
+
+    return render(request, 'om_change_password.html', {'om': om})
+
+
+def om_placeholder(request, page_title):
+    """Render inactive OM pages."""
+    if 'om_id' not in request.session:
+        return redirect('login')
+
+    try:
+        om = OperationsManager.objects.get(id=request.session['om_id'])
+    except OperationsManager.DoesNotExist:
+        request.session.flush()
+        return redirect('login')
+
+    return render(request, 'om_placeholder.html', {
+        'om': om,
+        'page_title': page_title,
+    })
+
+
+def om_service_history(request):
+    return om_placeholder(request, 'Service History')
+
+
+def om_billing(request):
+    return om_placeholder(request, 'Billing')
+
+
+def om_service_reports(request):
+    return om_placeholder(request, 'Service Reports')
+
+
+def om_remittance_records(request):
+    return om_placeholder(request, 'Remittance Records')
+
+
+def om_manage_service_forms(request):
+    return om_placeholder(request, 'Manage Service Forms')
+
+
+def om_manage_accounts(request):
+    return om_placeholder(request, 'Manage Accounts')
+
+
+def om_service_status(request):
+    """Display OM service status page with ongoing services."""
+    if 'om_id' not in request.session:
+        return redirect('login')
+
+    try:
+        om = OperationsManager.objects.get(id=request.session['om_id'])
+    except OperationsManager.DoesNotExist:
+        request.session.flush()
+        return redirect('login')
+
+    services = Service.objects.exclude(
+        status__in=['Completed', 'Cancelled']
+    ).select_related('customer', 'property').order_by('-created_at')
+
+    return render(request, 'om_service_status.html', {
+        'om': om,
+        'services': services,
+    })
+
+
+def om_book_treatment(request, service_id):
+    """Handle OM treatment booking (UC 11)."""
+    from datetime import date as date_cls
+
+    if 'om_id' not in request.session:
+        return redirect('login')
+
+    try:
+        om = OperationsManager.objects.get(id=request.session['om_id'])
+    except OperationsManager.DoesNotExist:
+        request.session.flush()
+        return redirect('login')
+
+    try:
+        service = Service.objects.select_related('customer', 'property').get(id=service_id)
+    except Service.DoesNotExist:
+        messages.error(request, 'Service record not found.')
+        return redirect('om_service_status')
+
+    if service.status != 'Ongoing Inspection':
+        messages.error(request, 'Book Treatment is only available for services with Ongoing Inspection status.')
+        return redirect('om_service_status')
+
+    treatment_service_choices = [
+        choice for choice in Service.PREFERRED_SERVICE_CHOICES if choice[0] != 'Other'
+    ]
+
+    if request.method == 'POST':
+        if request.POST.get('action') == 'cancel':
+            return redirect('om_service_status')
+
+        treatment_service = request.POST.get('treatment_service', '').strip()
+        booking_date = request.POST.get('date', '').strip()
+        time_slot = request.POST.get('time_slot', '').strip()
+
+        errors = {}
+        if not treatment_service:
+            errors['treatment_service'] = 'Required fields must be filled in.'
+        if not booking_date:
+            errors['date'] = 'Required fields must be filled in.'
+        if not time_slot:
+            errors['time_slot'] = 'Required fields must be filled in.'
+
+        if not errors:
+            TreatmentBooking.objects.create(
+                service=service,
+                treatment_service=treatment_service,
+                date=booking_date,
+                time_slot=time_slot,
+            )
+            service.status = 'For Treatment'
+            service.confirmed_date = booking_date
+            service.save(update_fields=['status', 'confirmed_date'])
+
+            return render(request, 'om_book_treatment.html', {
+                'om': om,
+                'service': service,
+                'success': True,
+                'treatment_service_choices': treatment_service_choices,
+                'time_slot_choices': Service.TIME_SLOT_CHOICES,
+                'today': date_cls.today().isoformat(),
+            })
+
+        return render(request, 'om_book_treatment.html', {
+            'om': om,
+            'service': service,
+            'errors': errors,
+            'form_data': request.POST,
+            'treatment_service_choices': treatment_service_choices,
+            'time_slot_choices': Service.TIME_SLOT_CHOICES,
+            'today': date_cls.today().isoformat(),
+        })
+
+    return render(request, 'om_book_treatment.html', {
+        'om': om,
+        'service': service,
+        'form_data': {},
+        'treatment_service_choices': treatment_service_choices,
+        'time_slot_choices': Service.TIME_SLOT_CHOICES,
+        'today': date_cls.today().isoformat(),
     })
