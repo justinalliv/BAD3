@@ -1,0 +1,143 @@
+{% extends 'base.html' %}
+
+{% block title %}Service Reports - Supreme Biotech Solutions{% endblock %}
+
+{% block extra_css %}
+    .container {
+        max-width: 1120px;
+        margin: 0 auto;
+        padding: 0 24px 20px;
+    }
+
+    .identified-top {
+        text-align: right;
+        color: #333;
+        margin: 10px 0 8px;
+        font-size: 0.9em;
+    }
+
+    .toolbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 14px;
+    }
+
+    .create-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 40px;
+        padding: 0 18px;
+        border-radius: 999px;
+        border: none;
+        background: #6c7293;
+        color: #fff;
+        font-size: 0.9em;
+        font-weight: 700;
+        text-decoration: none;
+    }
+
+    .create-btn:hover {
+        background: #585e7a;
+    }
+
+    .search-box {
+        width: 260px;
+        min-height: 40px;
+        border: 1px solid #ddd;
+        border-radius: 12px;
+        padding: 0 12px;
+        font-size: 0.9em;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        background: white;
+    }
+
+    th, td {
+        border: 1px solid #d8d8d8;
+        padding: 11px 10px;
+        text-align: left;
+        color: #333;
+        font-size: 0.9em;
+    }
+
+    th {
+        background: #1a2a5e;
+        color: #fff;
+        font-size: 1em;
+    }
+
+    .report-link {
+        color: #4a4a4a;
+        text-decoration: underline;
+        font-weight: 600;
+    }
+
+    .empty {
+        text-align: center;
+        color: #777;
+        padding: 28px 0;
+        background: #fff;
+        border: 1px solid #d8d8d8;
+        border-top: none;
+    }
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <p class="identified-top">User Identified As: Technician</p>
+
+    <div class="toolbar">
+        <a href="{% url 'technician_create_service_report' %}" class="create-btn">+ Create Service Report</a>
+        <input type="text" id="searchBox" class="search-box" placeholder="Search">
+    </div>
+
+    <table id="reportTable">
+        <thead>
+            <tr>
+                <th>Service ID</th>
+                <th>Customer Name</th>
+                <th>Property Address</th>
+                <th>Service Type</th>
+                <th>Service Date</th>
+                <th>Service Report</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for report in reports %}
+            <tr class="report-row">
+                <td>{{ report.service.id|stringformat:'07d' }}</td>
+                <td>{{ report.service.customer.first_name }} {{ report.service.customer.last_name }}</td>
+                <td>{{ report.service.property.street_number }} {{ report.service.property.street }}, {{ report.service.property.city }}</td>
+                <td>{{ report.service.preferred_service }}</td>
+                <td>{{ report.service.confirmed_date|default:report.service.date|date:'m/d/Y' }}</td>
+                <td><a href="{% url 'technician_view_service_report' report.id %}" class="report-link">File_Name.pdf</a></td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="6" class="empty">No service reports available.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const searchBox = document.getElementById('searchBox');
+    const reportTable = document.getElementById('reportTable');
+
+    if (searchBox && reportTable) {
+        searchBox.addEventListener('keyup', function () {
+            const term = this.value.toLowerCase();
+            reportTable.querySelectorAll('tbody tr').forEach((row) => {
+                row.style.display = row.textContent.toLowerCase().includes(term) ? '' : 'none';
+            });
+        });
+    }
+</script>
+{% endblock %}

@@ -1,7 +1,24 @@
 from django.shortcuts import render, redirect
 from django.contrib import messages
+from django.db import transaction
+from django.core.mail import send_mail
+from django.conf import settings
+from decimal import Decimal, InvalidOperation
+import json
 import re
-from .models import Customer, Property, Service, OperationsManager, TreatmentBooking, Technician
+from .models import (
+    Customer,
+    Property,
+    Service,
+    OperationsManager,
+    TreatmentBooking,
+    Technician,
+    ServiceReport,
+    ServiceReportChemical,
+    ServiceReportArea,
+    EstimatedBill,
+    EstimatedBillItem,
+)
 from .forms import CustomerRegistrationForm
 
 def home(request):
@@ -795,11 +812,230 @@ def om_service_history(request):
 
 
 def om_billing(request):
-    return om_placeholder(request, 'Billing')
+    if 'om_id' not in request.session:
+        return redirect('login')
+
+    try:
+        om = OperationsManager.objects.get(id=request.session['om_id'])
+    except OperationsManager.DoesNotExist:
+        request.session.flush()
+        return redirect('login')
+
+    return render(request, 'om_billing.html', {'om': om})
+
+
+def om_estimated_bills(request):
+    if 'om_id' not in request.session:
+        return redirect('login')
+
+    try:
+        om = OperationsManager.objects.get(id=request.session['om_id'])
+    except OperationsManager.DoesNotExist:
+        request.session.flush()
+        return redirect('login')
+
+    estimated_bills = EstimatedBill.objects.select_related(
+        'service__customer', 'service__property'
+    ).order_by('-created_at')
+
+    return render(request, 'om_estimated_bills.html', {
+        'om': om,
+        'estimated_bills': estimated_bills,
+    })
+
+
+def om_view_estimated_bill(request, estimated_bill_id):
+    if 'om_id' not in request.session:
+        return redirect('login')
+
+    estimated_bill = EstimatedBill.objects.select_related(
+        'service__customer', 'service__property', 'operations_manager'
+    ).prefetch_related('items').filter(id=estimated_bill_id).first()
+
+    if not estimated_bill:
+        messages.error(request, 'Estimated bill not found.')
+        return redirect('om_estimated_bills')
+
+    return render(request, 'om_estimated_bill_view.html', {
+        'estimated_bill': estimated_bill,
+    })
+
+
+def _parse_estimated_items(raw_payload):
+    if not raw_payload:
+        return []
+    try:
+        parsed = json.loads(raw_payload)
+        return parsed if isinstance(parsed, list) else []
+    except (TypeError, ValueError):
+        return []
+
+
+def _clean_estimated_items(raw_items):
+    cleaned_items = []
+    has_invalid = False
+
+    for item in raw_items:
+        if not isinstance(item, dict):
+            continue
+
+        service_type = (item.get('service_type') or '').strip()
+        quantity_raw = str(item.get('quantity') or '').strip()
+
+        if not (service_type or quantity_raw):
+            continue
+
+        if not service_type or not quantity_raw:
+            has_invalid = True
+            continue
+
+        try:
+            quantity = int(quantity_raw)
+            if quantity <= 0:
+                has_invalid = True
+                continue
+        except (ValueError, TypeError):
+            has_invalid = True
+            continue
+
+        cleaned_items.append({
+            'service_type': service_type,
+            'quantity': quantity,
+        })
+
+    return cleaned_items, has_invalid
+
+
+def om_create_estimated_bill(request):
+    if 'om_id' not in request.session:
+        return redirect('login')
+
+    try:
+        om = OperationsManager.objects.get(id=request.session['om_id'])
+    except OperationsManager.DoesNotExist:
+        request.session.flush()
+        return redirect('login')
+
+    ongoing_inspection_services = Service.objects.filter(
+        status='Ongoing Inspection',
+        estimated_bill__isnull=True,
+    ).select_related('customer', 'property').order_by('-date', '-created_at')
+
+    default_items = [{'service_type': '', 'quantity': ''}]
+    errors = {}
+
+    if request.method == 'POST':
+        if request.POST.get('action') == 'cancel':
+            return redirect('om_estimated_bills')
+
+        selected_service_id = request.POST.get('selected_service_id', '').strip()
+        raw_items = _parse_estimated_items(request.POST.get('items_json'))
+        items, has_invalid_items = _clean_estimated_items(raw_items)
+
+        selected_service = ongoing_inspection_services.filter(id=selected_service_id).first()
+        if not selected_service:
+            errors['general'] = 'Required fields must be filled in.'
+
+        if not items:
+            errors['general'] = 'Required fields must be filled in.'
+        elif has_invalid_items:
+            errors['general'] = 'Required fields must be filled in.'
+
+        if errors:
+            return render(request, 'om_create_estimated_bill.html', {
+                'om': om,
+                'services': ongoing_inspection_services,
+                'selected_service_id': selected_service_id,
+                'errors': errors,
+                'items_json': json.dumps(raw_items if raw_items else default_items),
+                'service_type_choices': Service.PREFERRED_SERVICE_CHOICES,
+                'service_type_choices_json': json.dumps([
+                    {'value': value, 'label': label}
+                    for value, label in Service.PREFERRED_SERVICE_CHOICES
+                ]),
+            })
+
+        if EstimatedBill.objects.filter(service=selected_service).exists():
+            messages.error(request, 'An estimated bill for this service already exists.')
+            return redirect('om_estimated_bills')
+
+        price_map = {
+            'General Pest Control Treatment': Decimal('2500.00'),
+            'Termite Control': Decimal('3000.00'),
+            'Rodent Control': Decimal('2200.00'),
+            'Mosquito Control': Decimal('1800.00'),
+            'Bed Bug Treatment': Decimal('2800.00'),
+            'Cockroach Control': Decimal('2000.00'),
+            'Other': Decimal('1500.00'),
+        }
+
+        with transaction.atomic():
+            estimated_bill = EstimatedBill.objects.create(
+                service=selected_service,
+                operations_manager=om,
+            )
+
+            EstimatedBillItem.objects.bulk_create([
+                EstimatedBillItem(
+                    estimated_bill=estimated_bill,
+                    service_type=item['service_type'],
+                    quantity=item['quantity'],
+                    unit_price=price_map.get(item['service_type'], Decimal('1500.00')),
+                )
+                for item in items
+            ])
+
+        email_subject = 'Your Estimated Bill from Supreme Biotech Solutions'
+        email_body = (
+            f"Hello {selected_service.customer.first_name},\n\n"
+            f"Your estimated bill (ID: {estimated_bill.id:07d}) has been created for Service {selected_service.id:07d}.\n"
+            "Please log in to your account to view the details.\n\n"
+            "Thank you."
+        )
+
+        send_mail(
+            subject=email_subject,
+            message=email_body,
+            from_email=getattr(settings, 'DEFAULT_FROM_EMAIL', 'noreply@supreme.local'),
+            recipient_list=[selected_service.customer.email],
+            fail_silently=True,
+        )
+
+        messages.success(request, 'You have successfully created an estimated bill.')
+        return redirect('om_estimated_bills')
+
+    return render(request, 'om_create_estimated_bill.html', {
+        'om': om,
+        'services': ongoing_inspection_services,
+        'selected_service_id': '',
+        'errors': {},
+        'items_json': json.dumps(default_items),
+        'service_type_choices': Service.PREFERRED_SERVICE_CHOICES,
+        'service_type_choices_json': json.dumps([
+            {'value': value, 'label': label}
+            for value, label in Service.PREFERRED_SERVICE_CHOICES
+        ]),
+    })
 
 
 def om_service_reports(request):
-    return om_placeholder(request, 'Service Reports')
+    if 'om_id' not in request.session:
+        return redirect('login')
+
+    try:
+        om = OperationsManager.objects.get(id=request.session['om_id'])
+    except OperationsManager.DoesNotExist:
+        request.session.flush()
+        return redirect('login')
+
+    reports = ServiceReport.objects.select_related(
+        'service__customer', 'service__property'
+    ).order_by('-created_at')
+
+    return render(request, 'om_service_reports.html', {
+        'om': om,
+        'reports': reports,
+    })
 
 
 def om_remittance_records(request):
@@ -1237,7 +1473,339 @@ def technician_service_reports(request):
     if 'technician_id' not in request.session:
         return redirect('login')
 
-    return render(request, 'technician_placeholder.html', {'page_title': 'Service Reports'})
+    try:
+        technician = Technician.objects.get(id=request.session['technician_id'])
+    except Technician.DoesNotExist:
+        request.session.flush()
+        return redirect('login')
+
+    reports = ServiceReport.objects.select_related(
+        'service__customer', 'service__property'
+    ).order_by('-created_at')
+
+    return render(request, 'technician_service_reports.html', {
+        'technician': technician,
+        'reports': reports,
+    })
+
+
+def _parse_report_json(raw_payload):
+    if not raw_payload:
+        return []
+    try:
+        parsed = json.loads(raw_payload)
+        return parsed if isinstance(parsed, list) else []
+    except (TypeError, ValueError):
+        return []
+
+
+def _clean_chemical_rows(raw_rows):
+    cleaned_rows = []
+    has_invalid = False
+
+    for row in raw_rows:
+        if not isinstance(row, dict):
+            continue
+
+        chemical_name = (row.get('chemical_name') or '').strip()
+        unit_measure = (row.get('unit_measure') or '').strip()
+        amount_raw = str(row.get('amount') or '').strip()
+
+        if not (chemical_name or unit_measure or amount_raw):
+            continue
+
+        if not (chemical_name and unit_measure and amount_raw):
+            has_invalid = True
+            continue
+
+        try:
+            amount_value = Decimal(amount_raw)
+            if amount_value <= 0:
+                has_invalid = True
+                continue
+        except (InvalidOperation, ValueError):
+            has_invalid = True
+            continue
+
+        cleaned_rows.append({
+            'chemical_name': chemical_name,
+            'unit_measure': unit_measure,
+            'amount': amount_value,
+        })
+
+    return cleaned_rows, has_invalid
+
+
+def _clean_area_rows(raw_rows):
+    cleaned_rows = []
+    has_invalid = False
+    infestation_values = {'Low', 'Medium', 'High'}
+
+    for row in raw_rows:
+        if not isinstance(row, dict):
+            continue
+
+        area_name = (row.get('area_name') or '').strip()
+        infestation_level = (row.get('infestation_level') or '').strip()
+        spray = bool(row.get('spray'))
+        mist = bool(row.get('mist'))
+        rat_bait = bool(row.get('rat_bait'))
+        powder = bool(row.get('powder'))
+        remarks = (row.get('remarks') or '').strip()
+        recommendation = (row.get('recommendation') or '').strip()
+
+        has_any_input = (
+            area_name
+            or infestation_level
+            or spray
+            or mist
+            or rat_bait
+            or powder
+            or remarks
+            or recommendation
+        )
+
+        if not has_any_input:
+            continue
+
+        if not area_name or infestation_level not in infestation_values:
+            has_invalid = True
+            continue
+
+        cleaned_rows.append({
+            'area_name': area_name,
+            'infestation_level': infestation_level,
+            'spray': spray,
+            'mist': mist,
+            'rat_bait': rat_bait,
+            'powder': powder,
+            'remarks': remarks,
+            'recommendation': recommendation,
+        })
+
+    return cleaned_rows, has_invalid
+
+
+def technician_create_service_report(request):
+    if 'technician_id' not in request.session:
+        return redirect('login')
+
+    try:
+        technician = Technician.objects.get(id=request.session['technician_id'])
+    except Technician.DoesNotExist:
+        request.session.flush()
+        return redirect('login')
+
+    draft = request.session.get('tech_service_report_draft', {})
+    selected_service_id = draft.get('service_id')
+    default_chemicals = draft.get('chemicals') or [
+        {'chemical_name': '', 'unit_measure': 'mL', 'amount': ''}
+    ]
+    default_areas = draft.get('treated_areas') or [
+        {
+            'area_name': '',
+            'infestation_level': 'Low',
+            'spray': False,
+            'mist': False,
+            'rat_bait': False,
+            'powder': False,
+            'remarks': '',
+            'recommendation': '',
+        }
+    ]
+
+    selectable_services = Service.objects.filter(
+        status='Ongoing Treatment',
+        service_report__isnull=True,
+    ).select_related('customer', 'property').order_by('-confirmed_date', '-date', '-created_at')
+
+    def render_step_one(errors=None):
+        return render(request, 'technician_create_service_report.html', {
+            'technician': technician,
+            'step': 'select',
+            'services': selectable_services,
+            'errors': errors or {},
+            'selected_service_id': str(selected_service_id or ''),
+        })
+
+    def render_step_two(service, errors=None, chemicals=None, treated_areas=None):
+        return render(request, 'technician_create_service_report.html', {
+            'technician': technician,
+            'step': 'details',
+            'service': service,
+            'errors': errors or {},
+            'chemicals_json': json.dumps(chemicals if chemicals is not None else default_chemicals),
+            'treated_areas_json': json.dumps(treated_areas if treated_areas is not None else default_areas),
+        })
+
+    if request.method == 'POST':
+        action = request.POST.get('action', '').strip()
+        step = request.POST.get('step', 'select').strip()
+
+        if action == 'confirm_cancel':
+            request.session.pop('tech_service_report_draft', None)
+            return redirect('technician_home')
+
+        if step == 'select':
+            if action == 'continue':
+                chosen_service_id = request.POST.get('selected_service_id', '').strip()
+                selected_service = selectable_services.filter(id=chosen_service_id).first()
+
+                if not selected_service:
+                    return render_step_one({'selected_service': 'Please select an Ongoing Treatment service record.'})
+
+                if str(selected_service_id or '') != str(selected_service.id):
+                    default_chemicals = [{'chemical_name': '', 'unit_measure': 'mL', 'amount': ''}]
+                    default_areas = [{
+                        'area_name': '',
+                        'infestation_level': 'Low',
+                        'spray': False,
+                        'mist': False,
+                        'rat_bait': False,
+                        'powder': False,
+                        'remarks': '',
+                        'recommendation': '',
+                    }]
+
+                request.session['tech_service_report_draft'] = {
+                    'service_id': selected_service.id,
+                    'chemicals': default_chemicals,
+                    'treated_areas': default_areas,
+                }
+                request.session.modified = True
+                return render_step_two(selected_service)
+
+            return render_step_one()
+
+        if step == 'details':
+            selected_service = None
+            if selected_service_id:
+                selected_service = selectable_services.filter(id=selected_service_id).first()
+
+            if not selected_service:
+                request.session.pop('tech_service_report_draft', None)
+                return render_step_one({'selected_service': 'Selected service is no longer available for report creation.'})
+
+            raw_chemicals = _parse_report_json(request.POST.get('chemicals_json'))
+            raw_areas = _parse_report_json(request.POST.get('treated_areas_json'))
+
+            request.session['tech_service_report_draft'] = {
+                'service_id': selected_service.id,
+                'chemicals': raw_chemicals,
+                'treated_areas': raw_areas,
+            }
+            request.session.modified = True
+
+            if action == 'go_back':
+                return render_step_one()
+
+            if action == 'submit':
+                errors = {}
+                chemicals, chemical_has_invalid = _clean_chemical_rows(raw_chemicals)
+                treated_areas, area_has_invalid = _clean_area_rows(raw_areas)
+
+                if not chemicals:
+                    errors['chemicals'] = 'At least one chemical used must be filled in.'
+                elif chemical_has_invalid:
+                    errors['chemicals'] = 'Please complete each filled chemical row with valid values.'
+
+                if not treated_areas:
+                    errors['treated_areas'] = 'At least one area must be filled in.'
+                elif area_has_invalid:
+                    errors['treated_areas'] = 'Please complete each filled treated area row with valid values.'
+
+                if errors:
+                    return render_step_two(selected_service, errors=errors, chemicals=raw_chemicals, treated_areas=raw_areas)
+
+                if ServiceReport.objects.filter(service=selected_service).exists():
+                    request.session.pop('tech_service_report_draft', None)
+                    messages.error(request, 'A service report for this service already exists.')
+                    return redirect('technician_service_reports')
+
+                with transaction.atomic():
+                    report = ServiceReport.objects.create(
+                        service=selected_service,
+                        technician=technician,
+                    )
+
+                    ServiceReportChemical.objects.bulk_create([
+                        ServiceReportChemical(
+                            report=report,
+                            chemical_name=row['chemical_name'],
+                            unit_measure=row['unit_measure'],
+                            amount=row['amount'],
+                        )
+                        for row in chemicals
+                    ])
+
+                    ServiceReportArea.objects.bulk_create([
+                        ServiceReportArea(
+                            report=report,
+                            area_name=row['area_name'],
+                            infestation_level=row['infestation_level'],
+                            spray=row['spray'],
+                            mist=row['mist'],
+                            rat_bait=row['rat_bait'],
+                            powder=row['powder'],
+                            remarks=row['remarks'],
+                            recommendation=row['recommendation'],
+                        )
+                        for row in treated_areas
+                    ])
+
+                request.session.pop('tech_service_report_draft', None)
+                return render(request, 'technician_create_service_report.html', {
+                    'technician': technician,
+                    'step': 'success',
+                })
+
+            return render_step_two(selected_service, chemicals=raw_chemicals, treated_areas=raw_areas)
+
+    if selected_service_id:
+        selected_service = selectable_services.filter(id=selected_service_id).first()
+        if selected_service:
+            return render_step_two(selected_service)
+        request.session.pop('tech_service_report_draft', None)
+
+    return render_step_one()
+
+
+def technician_view_service_report(request, report_id):
+    if 'technician_id' not in request.session:
+        return redirect('login')
+
+    report = ServiceReport.objects.select_related(
+        'service__customer', 'service__property', 'technician'
+    ).prefetch_related('chemicals', 'treated_areas').filter(id=report_id).first()
+
+    if not report:
+        messages.error(request, 'Service report not found.')
+        return redirect('technician_service_reports')
+
+    return render(request, 'service_report_view.html', {
+        'report': report,
+        'role': 'technician',
+        'back_url_name': 'technician_service_reports',
+    })
+
+
+def om_view_service_report(request, report_id):
+    if 'om_id' not in request.session:
+        return redirect('login')
+
+    report = ServiceReport.objects.select_related(
+        'service__customer', 'service__property', 'technician'
+    ).prefetch_related('chemicals', 'treated_areas').filter(id=report_id).first()
+
+    if not report:
+        messages.error(request, 'Service report not found.')
+        return redirect('om_service_reports')
+
+    return render(request, 'service_report_view.html', {
+        'report': report,
+        'role': 'om',
+        'back_url_name': 'om_service_reports',
+    })
 
 
 def om_service_status(request):

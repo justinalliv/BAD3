@@ -137,8 +137,8 @@
                             <td>{{ property.property_type }}</td>
                             <td>{{ property.floor_area }} sqm</td>
                             <td class="action-cell">
-                                <a href="{% url 'edit_property' property.id %}" class="action-btn">Edit</a>
-                                <button type="button" class="action-btn delete-btn delete-action" data-property-id="{{ property.id }}" data-property-name="{{ property.property_name|escapejs }}">Delete</button>
+                                <a href="{% url 'edit_property' property.id %}" class="action-btn">Update Status</a>
+                                <button type="button" class="action-btn delete-btn delete-action" data-property-id="{{ property.id }}" data-property-name="{{ property.property_name|escapejs }}">Delete Booking</button>
                             </td>
                         </tr>
                         {% endfor %}

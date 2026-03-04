@@ -1,0 +1,106 @@
+{% extends 'base.html' %}
+
+{% block title %}Estimated Bill - Supreme Biotech Solutions{% endblock %}
+
+{% block extra_css %}
+    .container {
+        max-width: 980px;
+        margin: 0 auto;
+        padding: 14px 24px 24px;
+    }
+
+    .sheet {
+        background: #fff;
+        border: 1px solid #ddd;
+        padding: 20px;
+    }
+
+    .title {
+        color: #1a2a5e;
+        text-align: center;
+        margin: 0 0 14px;
+        font-size: 2.2em;
+    }
+
+    .meta {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px 12px;
+        margin-bottom: 14px;
+        font-size: 0.95em;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    th, td {
+        border: 1px solid #d8d8d8;
+        padding: 10px 8px;
+        font-size: 0.9em;
+        text-align: left;
+    }
+
+    th {
+        background: #1a2a5e;
+        color: #fff;
+    }
+
+    .total {
+        margin-top: 12px;
+        text-align: right;
+        font-weight: 700;
+        color: #222;
+    }
+
+    .back-link {
+        display: inline-block;
+        margin-bottom: 10px;
+        color: #1a2a5e;
+        font-weight: 700;
+        text-decoration: none;
+    }
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <a href="{% url 'om_estimated_bills' %}" class="back-link">Back to Estimated Bills</a>
+
+    <div class="sheet">
+        <h1 class="title">Estimated Bill</h1>
+
+        <div class="meta">
+            <div><strong>Estimated Bill ID:</strong> {{ estimated_bill.id|stringformat:'07d' }}</div>
+            <div><strong>Service ID:</strong> {{ estimated_bill.service.id|stringformat:'07d' }}</div>
+            <div><strong>Customer Name:</strong> {{ estimated_bill.service.customer.first_name }} {{ estimated_bill.service.customer.last_name }}</div>
+            <div><strong>Address:</strong> {{ estimated_bill.service.property.street_number }} {{ estimated_bill.service.property.street }}, {{ estimated_bill.service.property.city }}</div>
+            <div><strong>Date Created:</strong> {{ estimated_bill.created_at|date:'m/d/Y' }}</div>
+            <div><strong>Service Date:</strong> {{ estimated_bill.service.date|date:'m/d/Y' }}</div>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Service Type</th>
+                    <th>Quantity</th>
+                    <th>Unit Price</th>
+                    <th>Line Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in estimated_bill.items.all %}
+                <tr>
+                    <td>{{ item.service_type }}</td>
+                    <td>{{ item.quantity }}</td>
+                    <td>₱ {{ item.unit_price }}</td>
+                    <td>₱ {{ item.line_total }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <p class="total">Total Estimated Amount: ₱ {{ estimated_bill.total_amount }}</p>
+    </div>
+</div>
+{% endblock %}

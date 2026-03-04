@@ -151,3 +151,87 @@ class TreatmentBooking(models.Model):
     class Meta:
         db_table = 'treatment_bookings'
         ordering = ['-created_at']
+
+
+class ServiceReport(models.Model):
+    service = models.OneToOneField(Service, on_delete=models.CASCADE, related_name='service_report')
+    technician = models.ForeignKey(Technician, on_delete=models.SET_NULL, null=True, blank=True, related_name='service_reports')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Service Report #{self.id} for Service #{self.service_id}"
+
+    class Meta:
+        db_table = 'service_reports'
+        ordering = ['-created_at']
+
+
+class ServiceReportChemical(models.Model):
+    report = models.ForeignKey(ServiceReport, on_delete=models.CASCADE, related_name='chemicals')
+    chemical_name = models.CharField(max_length=255)
+    unit_measure = models.CharField(max_length=50)
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+
+    def __str__(self):
+        return f"{self.chemical_name} ({self.amount} {self.unit_measure})"
+
+    class Meta:
+        db_table = 'service_report_chemicals'
+
+
+class ServiceReportArea(models.Model):
+    INFESTATION_CHOICES = [
+        ('Low', 'Low'),
+        ('Medium', 'Medium'),
+        ('High', 'High'),
+    ]
+
+    report = models.ForeignKey(ServiceReport, on_delete=models.CASCADE, related_name='treated_areas')
+    area_name = models.CharField(max_length=255)
+    infestation_level = models.CharField(max_length=20, choices=INFESTATION_CHOICES)
+    spray = models.BooleanField(default=False)
+    mist = models.BooleanField(default=False)
+    rat_bait = models.BooleanField(default=False)
+    powder = models.BooleanField(default=False)
+    remarks = models.TextField(blank=True)
+    recommendation = models.TextField(blank=True)
+
+    def __str__(self):
+        return f"{self.area_name} ({self.infestation_level})"
+
+    class Meta:
+        db_table = 'service_report_areas'
+
+
+class EstimatedBill(models.Model):
+    service = models.OneToOneField(Service, on_delete=models.CASCADE, related_name='estimated_bill')
+    operations_manager = models.ForeignKey(OperationsManager, on_delete=models.SET_NULL, null=True, blank=True, related_name='estimated_bills')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Estimated Bill #{self.id} for Service #{self.service_id}"
+
+    @property
+    def total_amount(self):
+        return sum((item.line_total for item in self.items.all()), 0)
+
+    class Meta:
+        db_table = 'estimated_bills'
+        ordering = ['-created_at']
+
+
+class EstimatedBillItem(models.Model):
+    estimated_bill = models.ForeignKey(EstimatedBill, on_delete=models.CASCADE, related_name='items')
+    service_type = models.CharField(max_length=255)
+    quantity = models.PositiveIntegerField()
+    unit_price = models.DecimalField(max_digits=12, decimal_places=2)
+
+    def __str__(self):
+        return f"{self.service_type} x{self.quantity}"
+
+    @property
+    def line_total(self):
+        return self.quantity * self.unit_price
+
+    class Meta:
+        db_table = 'estimated_bill_items'

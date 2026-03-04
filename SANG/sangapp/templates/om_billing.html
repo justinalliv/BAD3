@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+
+{% block title %}Billing - Supreme Biotech Solutions{% endblock %}
+
+{% block extra_css %}
+    .container {
+        max-width: 980px;
+        margin: 0 auto;
+        padding: 0 24px 24px;
+    }
+
+    .identified-top {
+        text-align: right;
+        color: #333;
+        margin: 10px 0 8px;
+        font-size: 0.9em;
+    }
+
+    .title {
+        text-align: center;
+        color: #1a2a5e;
+        font-size: clamp(2.2rem, 5vh, 3.2rem);
+        margin: 16px 0 26px;
+    }
+
+    .billing-actions {
+        display: flex;
+        justify-content: center;
+        gap: 20px;
+    }
+
+    .billing-btn {
+        min-width: 240px;
+        min-height: 56px;
+        border: none;
+        border-radius: 12px;
+        font-size: 1rem;
+        font-weight: 700;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .billing-btn.estimated {
+        background: #1a2a5e;
+        color: #fff;
+    }
+
+    .billing-btn.invoice {
+        background: #e4e4e4;
+        color: #444;
+        cursor: not-allowed;
+        pointer-events: none;
+    }
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <p class="identified-top">User Identified As: Operations Manager</p>
+    <h1 class="title">Billing</h1>
+
+    <div class="billing-actions">
+        <a href="{% url 'om_estimated_bills' %}" class="billing-btn estimated">Estimated Bill</a>
+        <a href="#" class="billing-btn invoice">Invoice</a>
+    </div>
+</div>
+{% endblock %}
