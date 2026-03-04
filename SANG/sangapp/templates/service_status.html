@@ -172,7 +172,7 @@
                         <td>{% if service.confirmed_date %}{{ service.confirmed_date|date:'M d, Y' }}{% else %}-{% endif %}</td>
                         <td>
                             <span class="status-badge status-{{ service.status|lower|cut:' ' }}">
-                                {% if service.status == 'For Inspection' %}Ongoing Inspection{% else %}{{ service.status }}{% endif %}
+                                {{ service.status }}
                             </span>
                         </td>
                     </tr>
