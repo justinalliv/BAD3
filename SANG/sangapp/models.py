@@ -61,6 +61,7 @@ class Property(models.Model):
 class Service(models.Model):
     STATUS_CHOICES = [
         ('For Inspection', 'For Inspection'),
+        ('Ongoing Inspection', 'Ongoing Inspection'),
         ('For Treatment', 'For Treatment'),
         ('Ongoing Treatment', 'Ongoing Treatment'),
         ('Pending Payment', 'Pending Payment'),

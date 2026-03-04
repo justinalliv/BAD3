@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% block title %}Book Treatment - Supreme Biotech Solutions{% endblock %}
+{% block title %}Update Booking - Supreme Biotech Solutions{% endblock %}
 
 {% block extra_css %}
     .form-container {
@@ -55,6 +55,12 @@
         transition: border-color 0.2s, box-shadow 0.2s;
     }
 
+    .form-group input[readonly] {
+        background: #ececec;
+        color: #666;
+        border-color: #d0d0d0;
+    }
+
     .form-group select {
         appearance: none;
         -webkit-appearance: none;
@@ -64,12 +70,6 @@
         background-position: right 16px center;
         background-size: 14px 10px;
         padding-right: 42px;
-    }
-
-    .form-group input[readonly] {
-        background: #ececec;
-        color: #666;
-        border-color: #d0d0d0;
     }
 
     .form-group input:focus,
@@ -119,38 +119,16 @@
     .btn-confirm:hover {
         background: #0d1535;
     }
-
-    .success-message {
-        background-color: #d4edda;
-        border: 1px solid #c3e6cb;
-        color: #155724;
-        padding: 15px;
-        border-radius: 10px;
-        margin-bottom: 18px;
-        text-align: center;
-        font-weight: 500;
-    }
-
-    .btn:focus-visible {
-        outline: none;
-        box-shadow: 0 0 0 3px rgba(26, 42, 94, 0.2);
-    }
 {% endblock %}
 
 {% block content %}
 <p class="identified-top">User Identified As: Operations Manager</p>
 <div class="form-container">
     <div class="form-header">
-        <h1>Book a treatment</h1>
+        <h1>{% if is_treatment %}Update Treatment Booking{% else %}Update Inspection Booking{% endif %}</h1>
     </div>
 
-    {% if success %}
-        <div class="success-message">You have successfully booked a treatment.</div>
-        <div class="button-row">
-            <a href="{% url 'om_service_status' %}" class="btn btn-confirm" style="text-decoration:none;display:inline-flex;align-items:center;justify-content:center;">Back to Service Status</a>
-        </div>
-    {% else %}
-    <form method="POST" id="bookTreatmentForm">
+    <form method="POST" id="editBookingForm">
         {% csrf_token %}
 
         <div class="form-group">
@@ -178,20 +156,57 @@
             <input id="floor_area" type="text" value="{{ service.property.floor_area }}" readonly>
         </div>
 
-        <div class="form-group">
-            <label for="treatment_service">Treatment Service</label>
-            <select id="treatment_service" name="treatment_service" {% if errors.treatment_service %}class="error"{% endif %}>
-                <option value="">Select treatment service</option>
-                {% for value, label in treatment_service_choices %}
-                    <option value="{{ value }}" {% if form_data.treatment_service == value %}selected{% endif %}>{{ label }}</option>
-                {% endfor %}
-            </select>
-            {% if errors.treatment_service %}<div class="error-message">{{ errors.treatment_service }}</div>{% endif %}
-        </div>
+        {% if is_treatment %}
+            <div class="form-group">
+                <label for="treatment_service">Treatment Service</label>
+                <select id="treatment_service" name="treatment_service" {% if errors.treatment_service %}class="error"{% endif %}>
+                    <option value="">Select treatment service</option>
+                    {% for value, label in treatment_service_choices %}
+                        <option value="{{ value }}" {% if form_data.treatment_service == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+                {% if errors.treatment_service %}<div class="error-message">{{ errors.treatment_service }}</div>{% endif %}
+            </div>
+        {% else %}
+            <div class="form-group">
+                <label for="property_id">Property Address</label>
+                <select id="property_id" name="property_id" {% if errors.property_id %}class="error"{% endif %}>
+                    <option value="">Select property</option>
+                    {% for property in customer_properties %}
+                        <option value="{{ property.id }}" {% if form_data.property_id == property.id|stringformat:'s' %}selected{% endif %}>
+                            {{ property.street_number }} {{ property.street }}, {{ property.city }}
+                        </option>
+                    {% endfor %}
+                </select>
+                {% if errors.property_id %}<div class="error-message">{{ errors.property_id }}</div>{% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="preferred_service">Preferred Service</label>
+                <select id="preferred_service" name="preferred_service" {% if errors.preferred_service %}class="error"{% endif %}>
+                    <option value="">Select service</option>
+                    {% for value, label in service_choices %}
+                        <option value="{{ value }}" {% if form_data.preferred_service == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+                {% if errors.preferred_service %}<div class="error-message">{{ errors.preferred_service }}</div>{% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="pest_problem">Pest Problem</label>
+                <select id="pest_problem" name="pest_problem" {% if errors.pest_problem %}class="error"{% endif %}>
+                    <option value="">Select pest problem</option>
+                    {% for value, label in pest_choices %}
+                        <option value="{{ value }}" {% if form_data.pest_problem == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+                {% if errors.pest_problem %}<div class="error-message">{{ errors.pest_problem }}</div>{% endif %}
+            </div>
+        {% endif %}
 
         <div class="form-group">
             <label for="date">Date</label>
-            <input id="date" type="date" name="date" min="{{ today }}" value="{{ form_data.date|default:'' }}" {% if errors.date %}class="error"{% endif %}>
+            <input id="date" type="date" name="date" min="{{ today }}" value="{{ form_data.date|date:'Y-m-d'|default:'' }}" {% if errors.date %}class="error"{% endif %}>
             {% if errors.date %}<div class="error-message">{{ errors.date }}</div>{% endif %}
         </div>
 
@@ -207,60 +222,33 @@
         </div>
 
         <div class="button-row">
-            <button type="submit" class="btn btn-cancel" name="action" value="cancel">Cancel Booking</button>
-            <button type="button" class="btn btn-confirm" id="openConfirmModal">Confirm Booking</button>
+            <button type="submit" class="btn btn-cancel" name="action" value="cancel">Cancel</button>
+            <button type="button" class="btn btn-confirm" id="openConfirmModal">Save Changes</button>
         </div>
     </form>
 
     <div id="confirmModal" class="modal">
         <div class="modal-content">
-            <h2>Confirm booking</h2>
-            <p>Are you sure you want to add a new treatment booking?</p>
+            <h2>Confirm changes</h2>
+            <p>Are you sure you want to save the updated booking details?</p>
             <div class="modal-buttons">
                 <button type="button" class="modal-btn modal-btn-cancel" id="continueEditing">Continue Editing</button>
                 <button type="button" class="modal-btn modal-btn-confirm" id="confirmSubmit">Confirm</button>
             </div>
         </div>
     </div>
-    {% endif %}
 </div>
 {% endblock %}
 
 {% block extra_js %}
 <script>
-    const treatmentService = document.getElementById('treatment_service');
-    const dateInput = document.getElementById('date');
-    const timeSlot = document.getElementById('time_slot');
-
-    function updateAvailabilityControls() {
-        if (!treatmentService || !dateInput || !timeSlot) {
-            return;
-        }
-
-        const hasTreatmentService = Boolean(treatmentService.value);
-        const hasDate = Boolean(dateInput.value);
-
-        dateInput.disabled = !hasTreatmentService;
-        timeSlot.disabled = !hasTreatmentService || !hasDate;
-
-        if (!hasTreatmentService) {
-            return;
-        }
-    }
-
-    if (treatmentService && dateInput && timeSlot) {
-        treatmentService.addEventListener('change', updateAvailabilityControls);
-        dateInput.addEventListener('change', updateAvailabilityControls);
-        updateAvailabilityControls();
-    }
-
     const openConfirmModal = document.getElementById('openConfirmModal');
     const confirmModal = document.getElementById('confirmModal');
     const continueEditing = document.getElementById('continueEditing');
     const confirmSubmit = document.getElementById('confirmSubmit');
-    const bookTreatmentForm = document.getElementById('bookTreatmentForm');
+    const editBookingForm = document.getElementById('editBookingForm');
 
-    if (openConfirmModal && confirmModal && continueEditing && confirmSubmit && bookTreatmentForm) {
+    if (openConfirmModal && confirmModal && continueEditing && confirmSubmit && editBookingForm) {
         openConfirmModal.addEventListener('click', function () {
             confirmModal.classList.add('show');
         });
@@ -271,7 +259,7 @@
 
         confirmSubmit.addEventListener('click', function () {
             confirmModal.classList.remove('show');
-            bookTreatmentForm.submit();
+            editBookingForm.submit();
         });
     }
 </script>
