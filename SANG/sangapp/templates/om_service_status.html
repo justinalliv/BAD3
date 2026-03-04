@@ -98,7 +98,7 @@
                         <span class="status-badge status-{{ service.status|lower|cut:' ' }}">{{ service.status }}</span>
                     </td>
                     <td>
-                        {% if service.status == 'Ongoing Inspection' %}
+                        {% if service.status == 'For Inspection' %}
                             <a href="{% url 'om_book_treatment' service.id %}" class="book-btn">Book Treatment</a>
                         {% else %}
                             <span class="muted">Unavailable</span>

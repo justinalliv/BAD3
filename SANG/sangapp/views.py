@@ -844,8 +844,8 @@ def om_book_treatment(request, service_id):
         messages.error(request, 'Service record not found.')
         return redirect('om_service_status')
 
-    if service.status != 'Ongoing Inspection':
-        messages.error(request, 'Book Treatment is only available for services with Ongoing Inspection status.')
+    if service.status != 'For Inspection':
+        messages.error(request, 'Book Treatment is only available for services with For Inspection status.')
         return redirect('om_service_status')
 
     treatment_service_choices = [
