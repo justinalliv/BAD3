@@ -235,3 +235,37 @@ class EstimatedBillItem(models.Model):
 
     class Meta:
         db_table = 'estimated_bill_items'
+
+
+class Invoice(models.Model):
+    service = models.ForeignKey(Service, on_delete=models.CASCADE, related_name='invoices')
+    operations_manager = models.ForeignKey(OperationsManager, on_delete=models.SET_NULL, null=True, blank=True, related_name='invoices')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Invoice #{self.id} for Service #{self.service_id}"
+
+    @property
+    def total_amount(self):
+        return sum((item.line_total for item in self.items.all()), 0)
+
+    class Meta:
+        db_table = 'invoices'
+        ordering = ['-created_at']
+
+
+class InvoiceItem(models.Model):
+    invoice = models.ForeignKey(Invoice, on_delete=models.CASCADE, related_name='items')
+    item_type = models.CharField(max_length=255)
+    quantity = models.PositiveIntegerField()
+    unit_price = models.DecimalField(max_digits=12, decimal_places=2)
+
+    def __str__(self):
+        return f"{self.item_type} x{self.quantity}"
+
+    @property
+    def line_total(self):
+        return self.quantity * self.unit_price
+
+    class Meta:
+        db_table = 'invoice_items'

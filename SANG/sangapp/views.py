@@ -18,6 +18,8 @@ from .models import (
     ServiceReportArea,
     EstimatedBill,
     EstimatedBillItem,
+    Invoice,
+    InvoiceItem,
 )
 from .forms import CustomerRegistrationForm
 
@@ -861,6 +863,43 @@ def om_view_estimated_bill(request, estimated_bill_id):
     })
 
 
+def om_invoices(request):
+    if 'om_id' not in request.session:
+        return redirect('login')
+
+    try:
+        om = OperationsManager.objects.get(id=request.session['om_id'])
+    except OperationsManager.DoesNotExist:
+        request.session.flush()
+        return redirect('login')
+
+    invoices = Invoice.objects.select_related(
+        'service__customer', 'service__property'
+    ).order_by('-created_at')
+
+    return render(request, 'om_invoices.html', {
+        'om': om,
+        'invoices': invoices,
+    })
+
+
+def om_view_invoice(request, invoice_id):
+    if 'om_id' not in request.session:
+        return redirect('login')
+
+    invoice = Invoice.objects.select_related(
+        'service__customer', 'service__property', 'operations_manager'
+    ).prefetch_related('items').filter(id=invoice_id).first()
+
+    if not invoice:
+        messages.error(request, 'Invoice not found.')
+        return redirect('om_invoices')
+
+    return render(request, 'om_invoice_view.html', {
+        'invoice': invoice,
+    })
+
+
 def _parse_estimated_items(raw_payload):
     if not raw_payload:
         return []
@@ -904,6 +943,195 @@ def _clean_estimated_items(raw_items):
         })
 
     return cleaned_items, has_invalid
+
+
+def _parse_invoice_items(raw_payload):
+    if not raw_payload:
+        return []
+    try:
+        parsed = json.loads(raw_payload)
+        return parsed if isinstance(parsed, list) else []
+    except (TypeError, ValueError):
+        return []
+
+
+def _clean_invoice_items(raw_items):
+    cleaned_items = []
+    has_invalid = False
+
+    for item in raw_items:
+        if not isinstance(item, dict):
+            continue
+
+        item_type = (item.get('item_type') or '').strip()
+        quantity_raw = str(item.get('quantity') or '').strip()
+
+        if not (item_type or quantity_raw):
+            continue
+
+        if not item_type or not quantity_raw:
+            has_invalid = True
+            continue
+
+        try:
+            quantity = int(quantity_raw)
+            if quantity <= 0:
+                has_invalid = True
+                continue
+        except (TypeError, ValueError):
+            has_invalid = True
+            continue
+
+        cleaned_items.append({
+            'item_type': item_type,
+            'quantity': quantity,
+        })
+
+    return cleaned_items, has_invalid
+
+
+def om_create_invoice(request):
+    if 'om_id' not in request.session:
+        return redirect('login')
+
+    try:
+        om = OperationsManager.objects.get(id=request.session['om_id'])
+    except OperationsManager.DoesNotExist:
+        request.session.flush()
+        return redirect('login')
+
+    selectable_services = Service.objects.filter(
+        status__in=['Ongoing Treatment', 'Pending Payment'],
+        estimated_bill__isnull=False,
+    ).select_related('customer', 'property', 'estimated_bill').order_by('-confirmed_date', '-date', '-created_at')
+
+    invoice_item_choices = [
+        ('Item1', 'Item1'),
+        ('Item2', 'Item2'),
+        ('Item3', 'Item3'),
+        ('Item4', 'Item4'),
+    ]
+
+    service_seed_map = {}
+    for service in selectable_services:
+        latest_invoice = service.invoices.order_by('-created_at').first()
+
+        if latest_invoice:
+            seed_items = [
+                {
+                    'item_type': item.item_type,
+                    'quantity': item.quantity,
+                    'unit_price': str(item.unit_price),
+                }
+                for item in latest_invoice.items.all()
+            ]
+        else:
+            seed_items = [
+                {
+                    'item_type': item.service_type,
+                    'quantity': item.quantity,
+                    'unit_price': str(item.unit_price),
+                }
+                for item in service.estimated_bill.items.all()
+            ]
+
+        if not seed_items:
+            seed_items = [{'item_type': '', 'quantity': '', 'unit_price': '1500.00'}]
+
+        service_seed_map[str(service.id)] = seed_items
+
+    if request.method == 'POST':
+        if request.POST.get('action') == 'cancel':
+            return redirect('om_invoices')
+
+        selected_service_id = request.POST.get('selected_service_id', '').strip()
+        raw_items = _parse_invoice_items(request.POST.get('items_json'))
+        cleaned_items, has_invalid = _clean_invoice_items(raw_items)
+
+        selected_service = selectable_services.filter(id=selected_service_id).first()
+        errors = {}
+
+        if not selected_service:
+            errors['general'] = 'Required fields must be filled in.'
+
+        if not cleaned_items:
+            errors['general'] = 'Required fields must be filled in.'
+        elif has_invalid:
+            errors['general'] = 'Required fields must be filled in.'
+
+        if errors:
+            return render(request, 'om_create_invoice.html', {
+                'om': om,
+                'services': selectable_services,
+                'selected_service_id': selected_service_id,
+                'errors': errors,
+                'items_json': json.dumps(raw_items if raw_items else [{'item_type': '', 'quantity': ''}]),
+                'invoice_item_choices_json': json.dumps([
+                    {'value': value, 'label': label}
+                    for value, label in invoice_item_choices
+                ]),
+                'service_seed_map_json': json.dumps(service_seed_map),
+            })
+
+        source_price_map = {}
+        latest_invoice = selected_service.invoices.order_by('-created_at').first()
+        if latest_invoice:
+            for item in latest_invoice.items.all():
+                source_price_map[item.item_type] = item.unit_price
+        else:
+            for item in selected_service.estimated_bill.items.all():
+                source_price_map[item.service_type] = item.unit_price
+
+        with transaction.atomic():
+            invoice = Invoice.objects.create(
+                service=selected_service,
+                operations_manager=om,
+            )
+
+            InvoiceItem.objects.bulk_create([
+                InvoiceItem(
+                    invoice=invoice,
+                    item_type=item['item_type'],
+                    quantity=item['quantity'],
+                    unit_price=source_price_map.get(item['item_type'], Decimal('1500.00')),
+                )
+                for item in cleaned_items
+            ])
+
+            selected_service.status = 'Pending Payment'
+            selected_service.save(update_fields=['status'])
+
+        email_subject = 'Your Invoice from Supreme Biotech Solutions'
+        email_body = (
+            f"Hello {selected_service.customer.first_name},\n\n"
+            f"Your invoice (ID: INV{invoice.id:04d}) has been created for Service {selected_service.id:07d}.\n"
+            "Please log in to your account to view the details and settle your balance.\n\n"
+            "Thank you."
+        )
+
+        send_mail(
+            subject=email_subject,
+            message=email_body,
+            from_email=getattr(settings, 'DEFAULT_FROM_EMAIL', 'noreply@supreme.local'),
+            recipient_list=[selected_service.customer.email],
+            fail_silently=True,
+        )
+
+        messages.success(request, 'You have successfully created an invoice.')
+        return redirect('om_invoices')
+
+    return render(request, 'om_create_invoice.html', {
+        'om': om,
+        'services': selectable_services,
+        'selected_service_id': '',
+        'errors': {},
+        'items_json': json.dumps([{'item_type': '', 'quantity': ''}]),
+        'invoice_item_choices_json': json.dumps([
+            {'value': value, 'label': label}
+            for value, label in invoice_item_choices
+        ]),
+        'service_seed_map_json': json.dumps(service_seed_map),
+    })
 
 
 def om_create_estimated_bill(request):

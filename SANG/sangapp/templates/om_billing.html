@@ -4,7 +4,7 @@
 
 {% block extra_css %}
     .container {
-        max-width: 980px;
+        max-width: 1120px;
         margin: 0 auto;
         padding: 0 24px 24px;
     }
@@ -26,32 +26,46 @@
     .billing-actions {
         display: flex;
         justify-content: center;
-        gap: 20px;
+        gap: 22px;
     }
 
     .billing-btn {
-        min-width: 240px;
-        min-height: 56px;
-        border: none;
+        width: 360px;
+        min-height: 190px;
+        border: 1px solid #d6d6d6;
         border-radius: 12px;
         font-size: 1rem;
-        font-weight: 700;
         text-decoration: none;
         display: inline-flex;
+        flex-direction: column;
         align-items: center;
         justify-content: center;
+        gap: 10px;
+        background: #f9f9f9;
     }
 
-    .billing-btn.estimated {
-        background: #1a2a5e;
-        color: #fff;
+    .billing-btn .icon {
+        width: 56px;
+        height: 56px;
+        color: #1a2a5e;
     }
 
-    .billing-btn.invoice {
-        background: #e4e4e4;
-        color: #444;
-        cursor: not-allowed;
-        pointer-events: none;
+    .billing-btn .card-title {
+        color: #1a2a5e;
+        font-size: 2em;
+        line-height: 1;
+        font-weight: 800;
+    }
+
+    .billing-btn .card-sub {
+        color: #2f2f2f;
+        font-size: 0.92em;
+        font-weight: 500;
+    }
+
+    .billing-btn:hover {
+        border-color: #b9bfd4;
+        background: #fff;
     }
 {% endblock %}
 
@@ -61,8 +75,26 @@
     <h1 class="title">Billing</h1>
 
     <div class="billing-actions">
-        <a href="{% url 'om_estimated_bills' %}" class="billing-btn estimated">Estimated Bill</a>
-        <a href="#" class="billing-btn invoice">Invoice</a>
+        <a href="{% url 'om_estimated_bills' %}" class="billing-btn">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <path d="M14 2v6h6"></path>
+                <path d="M8 13h8"></path>
+                <path d="M8 17h5"></path>
+            </svg>
+            <span class="card-title">Estimated Bill</span>
+            <span class="card-sub">View and generate estimated bill</span>
+        </a>
+        <a href="{% url 'om_invoices' %}" class="billing-btn">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <path d="M14 2v6h6"></path>
+                <path d="M8 13h8"></path>
+                <path d="M8 17h5"></path>
+            </svg>
+            <span class="card-title">Invoice</span>
+            <span class="card-sub">View and generate invoice</span>
+        </a>
     </div>
 </div>
 {% endblock %}
