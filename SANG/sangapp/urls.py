@@ -37,6 +37,9 @@ urlpatterns = [
     path('technician/home/', views.technician_home, name='technician_home'),
     path('technician/profile/', views.technician_profile, name='technician_profile'),
     path('technician/service-status/', views.technician_service_status, name='technician_service_status'),
+    path('technician/service-status/<int:service_id>/update-status/', views.technician_update_service_status, name='technician_update_service_status'),
+    path('technician/service-status/<int:service_id>/edit-booking/', views.technician_edit_booking, name='technician_edit_booking'),
+    path('technician/service-status/<int:service_id>/delete-booking/', views.technician_delete_booking, name='technician_delete_booking'),
     path('technician/service-history/', views.technician_service_history, name='technician_service_history'),
     path('technician/service-reports/', views.technician_service_reports, name='technician_service_reports'),
 ]

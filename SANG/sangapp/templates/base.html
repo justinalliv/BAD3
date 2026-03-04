@@ -635,7 +635,7 @@
         <ul class="nav-links">
             <li><a href="{% url 'technician_home' %}" {% if current == 'technician_home' %}class="active"{% endif %}>Home</a></li>
             <li><a href="{% url 'technician_service_history' %}" {% if current == 'technician_service_history' %}class="active"{% endif %}>Service History</a></li>
-            <li><a href="{% url 'technician_service_status' %}" {% if current == 'technician_service_status' %}class="active"{% endif %}>Service Status</a></li>
+            <li><a href="{% url 'technician_service_status' %}" {% if current == 'technician_service_status' or current == 'technician_update_service_status' or current == 'technician_edit_booking' %}class="active"{% endif %}>Service Status</a></li>
             <li><a href="{% url 'technician_service_reports' %}" {% if current == 'technician_service_reports' %}class="active"{% endif %}>Service Reports</a></li>
         </ul>
 

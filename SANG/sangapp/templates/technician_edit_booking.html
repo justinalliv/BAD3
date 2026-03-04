@@ -1,0 +1,266 @@
+{% extends 'base.html' %}
+
+{% block title %}Update Booking - Supreme Biotech Solutions{% endblock %}
+
+{% block extra_css %}
+    .form-container {
+        max-width: 560px;
+        margin: 14px auto 18px;
+        padding: 0 24px;
+    }
+
+    .identified-top {
+        width: 100%;
+        text-align: right;
+        color: #333;
+        margin: 10px 0 6px;
+        padding: 0 28px;
+        font-size: 0.9em;
+    }
+
+    .form-header {
+        text-align: center;
+        margin-bottom: 14px;
+    }
+
+    .form-header h1 {
+        color: #1a2a5e;
+        font-size: clamp(1.75rem, 3.8vh, 2.4rem);
+        line-height: 1.1;
+        margin: 0;
+    }
+
+    .form-group {
+        margin-bottom: 8px;
+    }
+
+    .form-group label {
+        display: block;
+        color: #4a4a4a;
+        font-size: 0.96em;
+        font-weight: 600;
+        margin-bottom: 4px;
+    }
+
+    .form-group input,
+    .form-group select {
+        width: 100%;
+        min-height: 46px;
+        padding: 10px 12px;
+        border: 1px solid #d6d6d6;
+        border-radius: 12px;
+        font-size: 0.96em;
+        color: #4a4a4a;
+        background: white;
+        transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .form-group input[readonly] {
+        background: #ececec;
+        color: #666;
+        border-color: #d0d0d0;
+    }
+
+    .form-group select {
+        appearance: none;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='10' viewBox='0 0 14 10'%3E%3Cpath fill='none' stroke='%234a4a4a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M1 1l6 6 6-6'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 16px center;
+        background-size: 14px 10px;
+        padding-right: 42px;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus {
+        outline: none;
+        border-color: #1a2a5e;
+        box-shadow: 0 0 0 3px rgba(26, 42, 94, 0.12);
+    }
+
+    .error-message {
+        color: #d32f2f;
+        font-size: 0.85em;
+        margin-top: 5px;
+    }
+
+    .button-row {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+        margin-top: 16px;
+    }
+
+    .btn {
+        min-width: 180px;
+        min-height: 46px;
+        border: none;
+        border-radius: 12px;
+        font-size: 0.96em;
+        font-weight: 700;
+        cursor: pointer;
+    }
+
+    .btn-cancel {
+        background: #e8e8e8;
+        color: #2d2d2d;
+    }
+
+    .btn-confirm {
+        background: #1a2a5e;
+        color: white;
+    }
+
+    .btn-cancel:hover {
+        background: #d0d0d0;
+    }
+
+    .btn-confirm:hover {
+        background: #0d1535;
+    }
+{% endblock %}
+
+{% block content %}
+<p class="identified-top">User Identified As: Technician</p>
+<div class="form-container">
+    <div class="form-header">
+        <h1>{% if is_treatment %}Update Treatment Booking{% else %}Update Inspection Booking{% endif %}</h1>
+    </div>
+
+    <form method="POST" id="editBookingForm">
+        {% csrf_token %}
+
+        <div class="form-group">
+            <label for="service_id">Service ID</label>
+            <input id="service_id" type="text" value="{{ service.id|stringformat:'07d' }}" readonly>
+        </div>
+
+        <div class="form-group">
+            <label for="customer_name">Customer Name</label>
+            <input id="customer_name" type="text" value="{{ service.customer.first_name }} {{ service.customer.last_name }}" readonly>
+        </div>
+
+        <div class="form-group">
+            <label for="address">Property Address</label>
+            <input id="address" type="text" value="{{ service.property.street_number }} {{ service.property.street }}, {{ service.property.city }}" readonly>
+        </div>
+
+        <div class="form-group">
+            <label for="property_type">Type of Property</label>
+            <input id="property_type" type="text" value="{{ service.property.property_type }}" readonly>
+        </div>
+
+        <div class="form-group">
+            <label for="floor_area">Floor Area (in sqm)</label>
+            <input id="floor_area" type="text" value="{{ service.property.floor_area }}" readonly>
+        </div>
+
+        {% if is_treatment %}
+            <div class="form-group">
+                <label for="treatment_service">Treatment Service</label>
+                <select id="treatment_service" name="treatment_service" {% if errors.treatment_service %}class="error"{% endif %}>
+                    <option value="">Select treatment service</option>
+                    {% for value, label in treatment_service_choices %}
+                        <option value="{{ value }}" {% if form_data.treatment_service == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+                {% if errors.treatment_service %}<div class="error-message">{{ errors.treatment_service }}</div>{% endif %}
+            </div>
+        {% else %}
+            <div class="form-group">
+                <label for="property_id">Property Address</label>
+                <select id="property_id" name="property_id" {% if errors.property_id %}class="error"{% endif %}>
+                    <option value="">Select property</option>
+                    {% for property in customer_properties %}
+                        <option value="{{ property.id }}" {% if form_data.property_id == property.id|stringformat:'s' %}selected{% endif %}>
+                            {{ property.street_number }} {{ property.street }}, {{ property.city }}
+                        </option>
+                    {% endfor %}
+                </select>
+                {% if errors.property_id %}<div class="error-message">{{ errors.property_id }}</div>{% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="preferred_service">Preferred Service</label>
+                <select id="preferred_service" name="preferred_service" {% if errors.preferred_service %}class="error"{% endif %}>
+                    <option value="">Select service</option>
+                    {% for value, label in service_choices %}
+                        <option value="{{ value }}" {% if form_data.preferred_service == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+                {% if errors.preferred_service %}<div class="error-message">{{ errors.preferred_service }}</div>{% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="pest_problem">Pest Problem</label>
+                <select id="pest_problem" name="pest_problem" {% if errors.pest_problem %}class="error"{% endif %}>
+                    <option value="">Select pest problem</option>
+                    {% for value, label in pest_choices %}
+                        <option value="{{ value }}" {% if form_data.pest_problem == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+                {% if errors.pest_problem %}<div class="error-message">{{ errors.pest_problem }}</div>{% endif %}
+            </div>
+        {% endif %}
+
+        <div class="form-group">
+            <label for="date">Date</label>
+            <input id="date" type="date" name="date" min="{{ today }}" value="{{ form_data.date|date:'Y-m-d'|default:'' }}" {% if errors.date %}class="error"{% endif %}>
+            {% if errors.date %}<div class="error-message">{{ errors.date }}</div>{% endif %}
+        </div>
+
+        <div class="form-group">
+            <label for="time_slot">Time Slot</label>
+            <select id="time_slot" name="time_slot" {% if errors.time_slot %}class="error"{% endif %}>
+                <option value="">Select time slot</option>
+                {% for value, label in time_slot_choices %}
+                    <option value="{{ value }}" {% if form_data.time_slot == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+            {% if errors.time_slot %}<div class="error-message">{{ errors.time_slot }}</div>{% endif %}
+        </div>
+
+        <div class="button-row">
+            <button type="submit" class="btn btn-cancel" name="action" value="cancel">Cancel</button>
+            <button type="button" class="btn btn-confirm" id="openConfirmModal">Save Changes</button>
+        </div>
+    </form>
+
+    <div id="confirmModal" class="modal">
+        <div class="modal-content">
+            <h2>Confirm changes</h2>
+            <p>Are you sure you want to save the updated booking details?</p>
+            <div class="modal-buttons">
+                <button type="button" class="modal-btn modal-btn-cancel" id="continueEditing">Continue Editing</button>
+                <button type="button" class="modal-btn modal-btn-confirm" id="confirmSubmit">Confirm</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const openConfirmModal = document.getElementById('openConfirmModal');
+    const confirmModal = document.getElementById('confirmModal');
+    const continueEditing = document.getElementById('continueEditing');
+    const confirmSubmit = document.getElementById('confirmSubmit');
+    const editBookingForm = document.getElementById('editBookingForm');
+
+    if (openConfirmModal && confirmModal && continueEditing && confirmSubmit && editBookingForm) {
+        openConfirmModal.addEventListener('click', function () {
+            confirmModal.classList.add('show');
+        });
+
+        continueEditing.addEventListener('click', function () {
+            confirmModal.classList.remove('show');
+        });
+
+        confirmSubmit.addEventListener('click', function () {
+            confirmModal.classList.remove('show');
+            editBookingForm.submit();
+        });
+    }
+</script>
+{% endblock %}

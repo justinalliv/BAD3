@@ -40,6 +40,53 @@
         width: 230px;
     }
 
+    .action-stack {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .action-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 128px;
+        min-height: 34px;
+        padding: 7px 12px;
+        border-radius: 8px;
+        color: white;
+        text-decoration: none;
+        font-size: 0.84em;
+        font-weight: 700;
+        border: none;
+        cursor: pointer;
+        transition: background-color 0.2s;
+    }
+
+    .action-btn.update {
+        background: #6c7293;
+    }
+
+    .action-btn.update:hover {
+        background: #585e7a;
+    }
+
+    .action-btn.edit {
+        background: #3aa655;
+    }
+
+    .action-btn.edit:hover {
+        background: #308c48;
+    }
+
+    .action-btn.delete {
+        background: #d9534f;
+    }
+
+    .action-btn.delete:hover {
+        background: #c74743;
+    }
+
     .empty {
         text-align: center;
         padding: 40px 20px;
@@ -66,6 +113,7 @@
                     <th>Property Address</th>
                     <th>Service Type</th>
                     <th>Status</th>
+                    <th>Action</th>
                 </tr>
             </thead>
             <tbody>
@@ -84,6 +132,16 @@
                     <td>
                         <span class="status-badge status-{{ service.status|lower|cut:' ' }}">{{ service.status }}</span>
                     </td>
+                    <td>
+                        <div class="action-stack">
+                            <a href="{% url 'technician_update_service_status' service.id %}" class="action-btn update">Update Status</a>
+
+                            {% if service.status == 'For Inspection' or service.status == 'For Treatment' %}
+                                <a href="{% url 'technician_edit_booking' service.id %}" class="action-btn edit">Edit Booking</a>
+                                <button type="button" class="action-btn delete" onclick="openDeleteModal('{{ service.id }}')">Delete Booking</button>
+                            {% endif %}
+                        </div>
+                    </td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -91,6 +149,20 @@
         {% else %}
             <div class="empty">No service records available.</div>
         {% endif %}
+    </div>
+
+    <div id="deleteModal" class="modal">
+        <div class="modal-content">
+            <h2>Delete booking</h2>
+            <p>Are you sure you want to delete this booking?</p>
+            <div class="modal-buttons">
+                <button type="button" class="modal-btn modal-btn-cancel" onclick="closeDeleteModal()">Cancel</button>
+                <form id="deleteForm" method="POST" style="margin:0;">
+                    {% csrf_token %}
+                    <button type="submit" class="modal-btn modal-btn-confirm">Confirm</button>
+                </form>
+            </div>
+        </div>
     </div>
 </div>
 {% endblock %}
@@ -110,6 +182,17 @@
                 row.style.display = text.includes(query) ? '' : 'none';
             }
         });
+    }
+
+    function openDeleteModal(serviceId) {
+        const modal = document.getElementById('deleteModal');
+        const form = document.getElementById('deleteForm');
+        form.action = `/technician/service-status/${serviceId}/delete-booking/`;
+        modal.classList.add('show');
+    }
+
+    function closeDeleteModal() {
+        document.getElementById('deleteModal').classList.remove('show');
     }
 </script>
 {% endblock %}

@@ -1,0 +1,194 @@
+{% extends 'base.html' %}
+
+{% block title %}Update Service Status - Supreme Biotech Solutions{% endblock %}
+
+{% block extra_css %}
+    .form-container {
+        max-width: 560px;
+        margin: 14px auto 18px;
+        padding: 0 24px;
+    }
+
+    .identified-top {
+        width: 100%;
+        text-align: right;
+        color: #333;
+        margin: 10px 0 6px;
+        padding: 0 28px;
+        font-size: 0.9em;
+    }
+
+    .form-header {
+        text-align: center;
+        margin-bottom: 14px;
+    }
+
+    .form-header h1 {
+        color: #1a2a5e;
+        font-size: clamp(1.75rem, 3.8vh, 2.4rem);
+        line-height: 1.1;
+        margin: 0;
+    }
+
+    .form-group {
+        margin-bottom: 8px;
+    }
+
+    .form-group label {
+        display: block;
+        color: #4a4a4a;
+        font-size: 0.96em;
+        font-weight: 600;
+        margin-bottom: 4px;
+    }
+
+    .form-group input,
+    .form-group select {
+        width: 100%;
+        min-height: 46px;
+        padding: 10px 12px;
+        border: 1px solid #d6d6d6;
+        border-radius: 12px;
+        font-size: 0.96em;
+        color: #4a4a4a;
+        background: white;
+    }
+
+    .form-group input[readonly] {
+        background: #ececec;
+        color: #666;
+        border-color: #d0d0d0;
+    }
+
+    .form-group select {
+        appearance: none;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='10' viewBox='0 0 14 10'%3E%3Cpath fill='none' stroke='%234a4a4a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M1 1l6 6 6-6'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 16px center;
+        background-size: 14px 10px;
+        padding-right: 42px;
+    }
+
+    .error-message {
+        color: #d32f2f;
+        font-size: 0.85em;
+        margin-top: 5px;
+    }
+
+    .button-row {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+        margin-top: 16px;
+    }
+
+    .btn {
+        min-width: 180px;
+        min-height: 46px;
+        border: none;
+        border-radius: 12px;
+        font-size: 0.96em;
+        font-weight: 700;
+        cursor: pointer;
+    }
+
+    .btn-cancel {
+        background: #e8e8e8;
+        color: #2d2d2d;
+    }
+
+    .btn-confirm {
+        background: #1a2a5e;
+        color: white;
+    }
+
+    .btn-cancel:hover {
+        background: #d0d0d0;
+    }
+
+    .btn-confirm:hover {
+        background: #0d1535;
+    }
+{% endblock %}
+
+{% block content %}
+<p class="identified-top">User Identified As: Technician</p>
+<div class="form-container">
+    <div class="form-header">
+        <h1>Update service status</h1>
+    </div>
+
+    <form method="POST" id="updateStatusForm">
+        {% csrf_token %}
+
+        <div class="form-group">
+            <label for="service_id">Service ID</label>
+            <input id="service_id" type="text" value="{{ service.id|stringformat:'07d' }}" readonly>
+        </div>
+
+        <div class="form-group">
+            <label for="customer_name">Customer Name</label>
+            <input id="customer_name" type="text" value="{{ service.customer.first_name }} {{ service.customer.last_name }}" readonly>
+        </div>
+
+        <div class="form-group">
+            <label for="current_status">Current Status</label>
+            <input id="current_status" type="text" value="{{ service.status }}" readonly>
+        </div>
+
+        <div class="form-group">
+            <label for="new_status">New Status</label>
+            <select id="new_status" name="new_status" {% if errors.new_status %}class="error"{% endif %}>
+                <option value="">Select an option</option>
+                {% for value, label in status_choices %}
+                    <option value="{{ value }}" {% if form_data.new_status == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+            {% if errors.new_status %}<div class="error-message">{{ errors.new_status }}</div>{% endif %}
+        </div>
+
+        <div class="button-row">
+            <button type="submit" class="btn btn-cancel" name="action" value="cancel">Cancel</button>
+            <button type="button" class="btn btn-confirm" id="openConfirmModal">Save Changes</button>
+        </div>
+    </form>
+
+    <div id="confirmModal" class="modal">
+        <div class="modal-content">
+            <h2>Confirm changes</h2>
+            <p>Are you sure you want to save changes?</p>
+            <div class="modal-buttons">
+                <button type="button" class="modal-btn modal-btn-cancel" id="continueEditing">Continue Editing</button>
+                <button type="button" class="modal-btn modal-btn-confirm" id="confirmSubmit">Confirm</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const openConfirmModal = document.getElementById('openConfirmModal');
+    const confirmModal = document.getElementById('confirmModal');
+    const continueEditing = document.getElementById('continueEditing');
+    const confirmSubmit = document.getElementById('confirmSubmit');
+    const updateStatusForm = document.getElementById('updateStatusForm');
+
+    if (openConfirmModal && confirmModal && continueEditing && confirmSubmit && updateStatusForm) {
+        openConfirmModal.addEventListener('click', function () {
+            confirmModal.classList.add('show');
+        });
+
+        continueEditing.addEventListener('click', function () {
+            confirmModal.classList.remove('show');
+        });
+
+        confirmSubmit.addEventListener('click', function () {
+            confirmModal.classList.remove('show');
+            updateStatusForm.submit();
+        });
+    }
+</script>
+{% endblock %}

@@ -1011,6 +1011,221 @@ def technician_service_status(request):
     })
 
 
+def technician_update_service_status(request, service_id):
+    if 'technician_id' not in request.session:
+        return redirect('login')
+
+    try:
+        technician = Technician.objects.get(id=request.session['technician_id'])
+    except Technician.DoesNotExist:
+        request.session.flush()
+        return redirect('login')
+
+    try:
+        service = Service.objects.select_related('customer').get(id=service_id)
+    except Service.DoesNotExist:
+        messages.error(request, 'Service record not found.')
+        return redirect('technician_service_status')
+
+    status_choices = [
+        ('Ongoing Inspection', 'Ongoing Inspection'),
+        ('Ongoing Treatment', 'Ongoing Treatment'),
+    ]
+
+    if request.method == 'POST':
+        if request.POST.get('action') == 'cancel':
+            return redirect('technician_service_status')
+
+        new_status = request.POST.get('new_status', '').strip()
+        errors = {}
+
+        if not new_status:
+            errors['new_status'] = 'Required fields must be filled in.'
+        elif new_status not in {'Ongoing Inspection', 'Ongoing Treatment'}:
+            errors['new_status'] = 'Invalid status selected.'
+
+        if errors:
+            return render(request, 'technician_update_service_status.html', {
+                'technician': technician,
+                'service': service,
+                'errors': errors,
+                'form_data': request.POST,
+                'status_choices': status_choices,
+            })
+
+        service.status = new_status
+        service.save(update_fields=['status'])
+        messages.success(request, 'Service status updated successfully.')
+        return redirect('technician_service_status')
+
+    return render(request, 'technician_update_service_status.html', {
+        'technician': technician,
+        'service': service,
+        'status_choices': status_choices,
+        'form_data': {},
+    })
+
+
+def technician_edit_booking(request, service_id):
+    from datetime import date as date_cls
+
+    if 'technician_id' not in request.session:
+        return redirect('login')
+
+    try:
+        technician = Technician.objects.get(id=request.session['technician_id'])
+    except Technician.DoesNotExist:
+        request.session.flush()
+        return redirect('login')
+
+    try:
+        service = Service.objects.select_related('customer', 'property').get(id=service_id)
+    except Service.DoesNotExist:
+        messages.error(request, 'Service record not found.')
+        return redirect('technician_service_status')
+
+    if service.status not in {'For Inspection', 'For Treatment'}:
+        messages.error(request, 'Edit booking is only available for For Inspection or For Treatment statuses.')
+        return redirect('technician_service_status')
+
+    customer_properties = Property.objects.filter(customer=service.customer)
+    is_treatment = service.status == 'For Treatment'
+    treatment_service_choices = [choice for choice in Service.PREFERRED_SERVICE_CHOICES if choice[0] != 'Other']
+
+    if request.method == 'POST':
+        if request.POST.get('action') == 'cancel':
+            return redirect('technician_service_status')
+
+        errors = {}
+        booking_date = request.POST.get('date', '').strip()
+        time_slot = request.POST.get('time_slot', '').strip()
+
+        if not booking_date:
+            errors['date'] = 'Required fields must be filled in.'
+        if not time_slot:
+            errors['time_slot'] = 'Required fields must be filled in.'
+
+        if is_treatment:
+            treatment_service = request.POST.get('treatment_service', '').strip()
+            if not treatment_service:
+                errors['treatment_service'] = 'Required fields must be filled in.'
+        else:
+            property_id = request.POST.get('property_id', '').strip()
+            preferred_service = request.POST.get('preferred_service', '').strip()
+            pest_problem = request.POST.get('pest_problem', '').strip()
+
+            if not property_id:
+                errors['property_id'] = 'Required fields must be filled in.'
+            if not preferred_service:
+                errors['preferred_service'] = 'Required fields must be filled in.'
+            if not pest_problem:
+                errors['pest_problem'] = 'Required fields must be filled in.'
+
+            property_obj = None
+            if property_id:
+                property_obj = customer_properties.filter(id=property_id).first()
+                if not property_obj:
+                    errors['property_id'] = 'Invalid property selected.'
+
+        if errors:
+            return render(request, 'technician_edit_booking.html', {
+                'technician': technician,
+                'service': service,
+                'is_treatment': is_treatment,
+                'customer_properties': customer_properties,
+                'treatment_service_choices': treatment_service_choices,
+                'errors': errors,
+                'form_data': request.POST,
+                'time_slot_choices': Service.TIME_SLOT_CHOICES,
+                'service_choices': Service.PREFERRED_SERVICE_CHOICES,
+                'pest_choices': Service.PEST_PROBLEM_CHOICES,
+                'today': date_cls.today().isoformat(),
+            })
+
+        if is_treatment:
+            latest_booking = service.treatment_bookings.order_by('-created_at').first()
+            if latest_booking:
+                latest_booking.treatment_service = treatment_service
+                latest_booking.date = booking_date
+                latest_booking.time_slot = time_slot
+                latest_booking.save(update_fields=['treatment_service', 'date', 'time_slot'])
+            else:
+                TreatmentBooking.objects.create(
+                    service=service,
+                    treatment_service=treatment_service,
+                    date=booking_date,
+                    time_slot=time_slot,
+                )
+
+            service.preferred_service = treatment_service
+            service.date = booking_date
+            service.confirmed_date = booking_date
+            service.time_slot = time_slot
+            service.save(update_fields=['preferred_service', 'date', 'confirmed_date', 'time_slot'])
+        else:
+            service.property = property_obj
+            service.preferred_service = preferred_service
+            service.pest_problem = pest_problem
+            service.date = booking_date
+            service.time_slot = time_slot
+            service.save(update_fields=['property', 'preferred_service', 'pest_problem', 'date', 'time_slot'])
+
+        messages.success(request, 'Booking updated successfully.')
+        return redirect('technician_service_status')
+
+    form_data = {
+        'property_id': str(service.property_id),
+        'preferred_service': service.preferred_service,
+        'pest_problem': service.pest_problem,
+        'date': service.date,
+        'time_slot': service.time_slot,
+        'treatment_service': service.preferred_service,
+    }
+
+    latest_booking = service.treatment_bookings.order_by('-created_at').first()
+    if is_treatment and latest_booking:
+        form_data.update({
+            'date': latest_booking.date,
+            'time_slot': latest_booking.time_slot,
+            'treatment_service': latest_booking.treatment_service,
+        })
+
+    return render(request, 'technician_edit_booking.html', {
+        'technician': technician,
+        'service': service,
+        'is_treatment': is_treatment,
+        'customer_properties': customer_properties,
+        'treatment_service_choices': treatment_service_choices,
+        'form_data': form_data,
+        'time_slot_choices': Service.TIME_SLOT_CHOICES,
+        'service_choices': Service.PREFERRED_SERVICE_CHOICES,
+        'pest_choices': Service.PEST_PROBLEM_CHOICES,
+        'today': date_cls.today().isoformat(),
+    })
+
+
+def technician_delete_booking(request, service_id):
+    if 'technician_id' not in request.session:
+        return redirect('login')
+
+    if request.method != 'POST':
+        return redirect('technician_service_status')
+
+    try:
+        service = Service.objects.get(id=service_id)
+    except Service.DoesNotExist:
+        messages.error(request, 'Service record not found.')
+        return redirect('technician_service_status')
+
+    if service.status not in {'For Inspection', 'For Treatment'}:
+        messages.error(request, 'Only bookings with For Inspection or For Treatment status can be deleted.')
+        return redirect('technician_service_status')
+
+    service.delete()
+    messages.success(request, 'Booking deleted successfully.')
+    return redirect('technician_service_status')
+
+
 def technician_service_history(request):
     if 'technician_id' not in request.session:
         return redirect('login')
