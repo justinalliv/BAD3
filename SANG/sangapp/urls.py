@@ -33,4 +33,10 @@ urlpatterns = [
     path('om/remittance-records/', views.om_remittance_records, name='om_remittance_records'),
     path('om/manage-service-forms/', views.om_manage_service_forms, name='om_manage_service_forms'),
     path('om/manage-accounts/', views.om_manage_accounts, name='om_manage_accounts'),
+    path('om/manage-accounts/<int:technician_pk>/edit/', views.om_edit_technician_account, name='om_edit_technician_account'),
+    path('technician/home/', views.technician_home, name='technician_home'),
+    path('technician/profile/', views.technician_profile, name='technician_profile'),
+    path('technician/service-status/', views.technician_service_status, name='technician_service_status'),
+    path('technician/service-history/', views.technician_service_history, name='technician_service_history'),
+    path('technician/service-reports/', views.technician_service_reports, name='technician_service_reports'),
 ]

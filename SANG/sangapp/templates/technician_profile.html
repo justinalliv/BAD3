@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+
+{% block title %}Technician Profile - Supreme Biotech Solutions{% endblock %}
+
+{% block extra_css %}
+    .container {
+        max-width: 1000px;
+        margin: 40px auto;
+        padding: 0 24px;
+    }
+
+    .header-section {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 24px;
+    }
+
+    .header-section h1 {
+        color: #1a2a5e;
+        font-size: 2.3em;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+    }
+
+    .btn {
+        padding: 12px 26px;
+        border-radius: 10px;
+        text-decoration: none;
+        font-weight: 600;
+    }
+
+    .btn-secondary {
+        background: #e0e0e0;
+        color: #333;
+    }
+
+    .btn-secondary:hover {
+        background: #d0d0d0;
+    }
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="header-section">
+        <h1>Hi, {{ technician.first_name }} {{ technician.last_name }}!</h1>
+        <div class="action-buttons">
+            <a href="{% url 'logout' %}" class="btn btn-secondary">Logout</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

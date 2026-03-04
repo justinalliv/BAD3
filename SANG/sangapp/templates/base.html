@@ -605,8 +605,8 @@
 <body>
     {% block base_nav %}
     <!-- Navigation Bar -->
-    <nav class="nav-spacious {% if request.session.om_id %}nav-om{% endif %}">
-        <a href="{% if request.session.om_id %}{% url 'om_home' %}{% else %}{% url 'home' %}{% endif %}" class="nav-logo">
+    <nav class="nav-spacious {% if request.session.om_id or request.session.technician_id %}nav-om{% endif %}">
+        <a href="{% if request.session.om_id %}{% url 'om_home' %}{% elif request.session.technician_id %}{% url 'technician_home' %}{% else %}{% url 'home' %}{% endif %}" class="nav-logo">
             <img src="/static/images/logo.png" alt="Supreme logo" class="nav-logo-image">
             <span class="nav-logo-text">Supreme</span>
         </a>
@@ -621,10 +621,25 @@
             <li><a href="{% url 'om_service_reports' %}" {% if current == 'om_service_reports' %}class="active"{% endif %}>Service Reports</a></li>
             <li><a href="{% url 'om_remittance_records' %}" {% if current == 'om_remittance_records' %}class="active"{% endif %}>Remittance Records</a></li>
             <li><a href="{% url 'om_manage_service_forms' %}" {% if current == 'om_manage_service_forms' %}class="active"{% endif %}>Manage Service Forms</a></li>
-            <li><a href="{% url 'om_manage_accounts' %}" {% if current == 'om_manage_accounts' %}class="active"{% endif %}>Manage Accounts</a></li>
+            <li><a href="{% url 'om_manage_accounts' %}" {% if current == 'om_manage_accounts' or current == 'om_edit_technician_account' %}class="active"{% endif %}>Manage Accounts</a></li>
         </ul>
 
         <a href="{% url 'om_profile' %}" class="profile-btn {% if current == 'om_profile' or current == 'om_change_password' %}active{% endif %}">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                <circle cx="10" cy="6" r="4"/>
+                <path d="M 4 18 Q 4 12 10 12 Q 16 12 16 18 Z"/>
+            </svg>
+            Profile
+        </a>
+        {% elif request.session.technician_id %}
+        <ul class="nav-links">
+            <li><a href="{% url 'technician_home' %}" {% if current == 'technician_home' %}class="active"{% endif %}>Home</a></li>
+            <li><a href="{% url 'technician_service_history' %}" {% if current == 'technician_service_history' %}class="active"{% endif %}>Service History</a></li>
+            <li><a href="{% url 'technician_service_status' %}" {% if current == 'technician_service_status' %}class="active"{% endif %}>Service Status</a></li>
+            <li><a href="{% url 'technician_service_reports' %}" {% if current == 'technician_service_reports' %}class="active"{% endif %}>Service Reports</a></li>
+        </ul>
+
+        <a href="{% url 'technician_profile' %}" class="profile-btn {% if current == 'technician_profile' %}active{% endif %}">
             <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
                 <circle cx="10" cy="6" r="4"/>
                 <path d="M 4 18 Q 4 12 10 12 Q 16 12 16 18 Z"/>

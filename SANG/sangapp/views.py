@@ -1,12 +1,15 @@
 from django.shortcuts import render, redirect
 from django.contrib import messages
-from .models import Customer, Property, Service, OperationsManager, TreatmentBooking
+import re
+from .models import Customer, Property, Service, OperationsManager, TreatmentBooking, Technician
 from .forms import CustomerRegistrationForm
 
 def home(request):
     """Public home page."""
     if request.session.get('om_id'):
         return redirect('om_home')
+    if request.session.get('technician_id'):
+        return redirect('technician_home')
     return render(request, 'home.html')
 
 
@@ -21,6 +24,13 @@ def login(request):
             request.session['om_id'] = om.id
             request.session['om_name'] = f"{om.first_name} {om.last_name}"
             return redirect('om_home')
+
+        technician = Technician.objects.filter(email__iexact=email).only('id', 'password', 'first_name', 'last_name').first()
+        if technician and technician.password == password:
+            request.session.flush()
+            request.session['technician_id'] = technician.id
+            request.session['technician_name'] = f"{technician.first_name} {technician.last_name}"
+            return redirect('technician_home')
 
         customer = Customer.objects.filter(email=email).only('id', 'password', 'first_name', 'last_name').first()
         if customer and customer.password == password:
@@ -801,7 +811,218 @@ def om_manage_service_forms(request):
 
 
 def om_manage_accounts(request):
-    return om_placeholder(request, 'Manage Accounts')
+    if 'om_id' not in request.session:
+        return redirect('login')
+
+    try:
+        om = OperationsManager.objects.get(id=request.session['om_id'])
+    except OperationsManager.DoesNotExist:
+        request.session.flush()
+        return redirect('login')
+
+    if request.method == 'POST':
+        action = request.POST.get('action', '').strip()
+
+        if action == 'create_technician':
+            first_name = request.POST.get('first_name', '').strip()
+            last_name = request.POST.get('last_name', '').strip()
+            password = request.POST.get('password', '').strip()
+
+            errors = {}
+            if not first_name:
+                errors['first_name'] = 'First name is required.'
+            if not last_name:
+                errors['last_name'] = 'Last name is required.'
+            if not password:
+                errors['password'] = 'Password is required.'
+
+            if errors:
+                return render(request, 'om_manage_accounts.html', {
+                    'om': om,
+                    'errors': errors,
+                    'form_data': request.POST,
+                    'technicians': Technician.objects.all().order_by('technician_id'),
+                })
+
+            existing_ids = []
+            for tech in Technician.objects.only('technician_id'):
+                digits = re.sub(r'\D', '', tech.technician_id or '')
+                if digits:
+                    existing_ids.append(int(digits))
+
+            next_id = (max(existing_ids) + 1) if existing_ids else 1
+            technician_id = str(next_id)
+            email = f"tech{technician_id}@companyemail.com"
+
+            Technician.objects.create(
+                technician_id=technician_id,
+                first_name=first_name,
+                last_name=last_name,
+                email=email,
+                password=password,
+            )
+            messages.success(request, f'Technician account created: ID {technician_id} ({email})')
+            return redirect('om_manage_accounts')
+
+        if action == 'change_technician_password':
+            technician_pk = request.POST.get('technician_pk', '').strip()
+            new_password = request.POST.get('new_password', '').strip()
+
+            if not technician_pk or not new_password:
+                messages.error(request, 'Technician and new password are required.')
+                return redirect('om_manage_accounts')
+
+            technician = Technician.objects.filter(id=technician_pk).first()
+            if not technician:
+                messages.error(request, 'Technician account not found.')
+                return redirect('om_manage_accounts')
+
+            technician.password = new_password
+            technician.save(update_fields=['password'])
+            messages.success(request, f'Password updated for {technician.email}.')
+            return redirect('om_manage_accounts')
+
+        if action == 'delete_technician':
+            technician_pk = request.POST.get('technician_pk', '').strip()
+
+            if not technician_pk:
+                messages.error(request, 'Technician account not found.')
+                return redirect('om_manage_accounts')
+
+            technician = Technician.objects.filter(id=technician_pk).first()
+            if not technician:
+                messages.error(request, 'Technician account not found.')
+                return redirect('om_manage_accounts')
+
+            deleted_email = technician.email
+            technician.delete()
+            messages.success(request, f'Technician account deleted: {deleted_email}')
+            return redirect('om_manage_accounts')
+
+    return render(request, 'om_manage_accounts.html', {
+        'om': om,
+        'technicians': Technician.objects.all().order_by('technician_id'),
+        'form_data': {},
+    })
+
+
+def om_edit_technician_account(request, technician_pk):
+    if 'om_id' not in request.session:
+        return redirect('login')
+
+    try:
+        om = OperationsManager.objects.get(id=request.session['om_id'])
+    except OperationsManager.DoesNotExist:
+        request.session.flush()
+        return redirect('login')
+
+    technician = Technician.objects.filter(id=technician_pk).first()
+    if not technician:
+        messages.error(request, 'Technician account not found.')
+        return redirect('om_manage_accounts')
+
+    if request.method == 'POST':
+        if request.POST.get('action') == 'cancel':
+            return redirect('om_manage_accounts')
+
+        first_name = request.POST.get('first_name', '').strip()
+        last_name = request.POST.get('last_name', '').strip()
+        new_password = request.POST.get('password', '').strip()
+
+        errors = {}
+        if not first_name:
+            errors['first_name'] = 'First name is required.'
+        if not last_name:
+            errors['last_name'] = 'Last name is required.'
+
+        if errors:
+            return render(request, 'om_edit_technician_account.html', {
+                'om': om,
+                'technician': technician,
+                'errors': errors,
+                'form_data': request.POST,
+            })
+
+        technician.first_name = first_name
+        technician.last_name = last_name
+        update_fields = ['first_name', 'last_name']
+
+        if new_password:
+            technician.password = new_password
+            update_fields.append('password')
+
+        technician.save(update_fields=update_fields)
+        messages.success(request, f'Technician account updated: {technician.email}')
+        return redirect('om_manage_accounts')
+
+    return render(request, 'om_edit_technician_account.html', {
+        'om': om,
+        'technician': technician,
+        'form_data': {
+            'first_name': technician.first_name,
+            'last_name': technician.last_name,
+        },
+    })
+
+
+def technician_home(request):
+    if 'technician_id' not in request.session:
+        return redirect('login')
+
+    try:
+        technician = Technician.objects.get(id=request.session['technician_id'])
+    except Technician.DoesNotExist:
+        request.session.flush()
+        return redirect('login')
+
+    return render(request, 'technician_home.html', {'technician': technician})
+
+
+def technician_profile(request):
+    if 'technician_id' not in request.session:
+        return redirect('login')
+
+    try:
+        technician = Technician.objects.get(id=request.session['technician_id'])
+    except Technician.DoesNotExist:
+        request.session.flush()
+        return redirect('login')
+
+    return render(request, 'technician_profile.html', {'technician': technician})
+
+
+def technician_service_status(request):
+    if 'technician_id' not in request.session:
+        return redirect('login')
+
+    try:
+        technician = Technician.objects.get(id=request.session['technician_id'])
+    except Technician.DoesNotExist:
+        request.session.flush()
+        return redirect('login')
+
+    services = Service.objects.exclude(
+        status__in=['Completed', 'Cancelled']
+    ).select_related('customer', 'property').order_by('-created_at')
+
+    return render(request, 'technician_service_status.html', {
+        'technician': technician,
+        'services': services,
+    })
+
+
+def technician_service_history(request):
+    if 'technician_id' not in request.session:
+        return redirect('login')
+
+    return render(request, 'technician_placeholder.html', {'page_title': 'Service History'})
+
+
+def technician_service_reports(request):
+    if 'technician_id' not in request.session:
+        return redirect('login')
+
+    return render(request, 'technician_placeholder.html', {'page_title': 'Service Reports'})
 
 
 def om_service_status(request):

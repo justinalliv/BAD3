@@ -1,0 +1,161 @@
+{% extends 'base.html' %}
+
+{% block title %}Edit Technician Account - Supreme Biotech Solutions{% endblock %}
+
+{% block extra_css %}
+    .form-container {
+        max-width: 560px;
+        margin: 20px auto 40px;
+        padding: 0 24px;
+    }
+
+    .identified-top {
+        width: 100%;
+        text-align: right;
+        color: #333;
+        margin: 10px 0 6px;
+        padding: 0 28px;
+        font-size: 0.9em;
+    }
+
+    .form-header {
+        text-align: center;
+        margin-bottom: 16px;
+    }
+
+    .form-header h1 {
+        color: #1a2a5e;
+        font-size: clamp(1.75rem, 3.8vh, 2.4rem);
+        line-height: 1.1;
+        margin: 0;
+    }
+
+    .form-group {
+        margin-bottom: 10px;
+    }
+
+    .form-group label {
+        display: block;
+        color: #4a4a4a;
+        font-size: 0.96em;
+        font-weight: 600;
+        margin-bottom: 4px;
+    }
+
+    .form-group input {
+        width: 100%;
+        min-height: 46px;
+        padding: 10px 12px;
+        border: 1px solid #d6d6d6;
+        border-radius: 12px;
+        font-size: 0.96em;
+        color: #4a4a4a;
+        background: white;
+        transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .form-group input[readonly] {
+        background: #ececec;
+        color: #666;
+        border-color: #d0d0d0;
+    }
+
+    .form-group input:focus {
+        outline: none;
+        border-color: #1a2a5e;
+        box-shadow: 0 0 0 3px rgba(26, 42, 94, 0.12);
+    }
+
+    .hint {
+        color: #666;
+        font-size: 0.86em;
+        margin-top: 4px;
+    }
+
+    .error-message {
+        color: #d32f2f;
+        font-size: 0.85em;
+        margin-top: 5px;
+    }
+
+    .button-row {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+        margin-top: 16px;
+    }
+
+    .btn {
+        min-width: 180px;
+        min-height: 46px;
+        border: none;
+        border-radius: 12px;
+        font-size: 0.96em;
+        font-weight: 700;
+        cursor: pointer;
+    }
+
+    .btn-cancel {
+        background: #e8e8e8;
+        color: #2d2d2d;
+    }
+
+    .btn-confirm {
+        background: #1a2a5e;
+        color: white;
+    }
+
+    .btn-cancel:hover {
+        background: #d0d0d0;
+    }
+
+    .btn-confirm:hover {
+        background: #0d1535;
+    }
+{% endblock %}
+
+{% block content %}
+<p class="identified-top">User Identified As: Operations Manager</p>
+<div class="form-container">
+    <div class="form-header">
+        <h1>Edit Technician Account</h1>
+    </div>
+
+    <form method="POST">
+        {% csrf_token %}
+
+        <div class="form-group">
+            <label for="technician_id">Technician ID</label>
+            <input id="technician_id" type="text" value="{{ technician.technician_id }}" readonly>
+        </div>
+
+        <div class="form-group">
+            <label for="email">Email</label>
+            <input id="email" type="text" value="{{ technician.email }}" readonly>
+        </div>
+
+        <div class="form-group">
+            <label for="first_name">First Name</label>
+            <input id="first_name" type="text" name="first_name" value="{{ form_data.first_name|default:'' }}">
+            {% if errors.first_name %}<div class="error-message">{{ errors.first_name }}</div>{% endif %}
+        </div>
+
+        <div class="form-group">
+            <label for="last_name">Last Name</label>
+            <input id="last_name" type="text" name="last_name" value="{{ form_data.last_name|default:'' }}">
+            {% if errors.last_name %}<div class="error-message">{{ errors.last_name }}</div>{% endif %}
+        </div>
+
+        <div class="form-group">
+            <label for="password">New Password</label>
+            <input id="password" type="password" name="password">
+            <p class="hint">Leave blank to keep the current password.</p>
+        </div>
+
+        <div class="button-row">
+            <button type="submit" class="btn btn-cancel" name="action" value="cancel">Cancel</button>
+            <button type="submit" class="btn btn-confirm">Save Changes</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

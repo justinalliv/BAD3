@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+
+{% block title %}Technician Home - Supreme Biotech Solutions{% endblock %}
+
+{% block extra_css %}
+    .container {
+        max-width: 1180px;
+        margin: 28px auto 48px;
+        padding: 0 24px;
+    }
+
+    .identified {
+        text-align: right;
+        color: #333;
+        margin-bottom: 16px;
+        font-size: 0.95em;
+    }
+
+    .card-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 22px;
+    }
+
+    .tech-card {
+        background: white;
+        border: 1px solid #ddd;
+        border-radius: 16px;
+        min-height: 190px;
+        padding: 24px 20px;
+        text-decoration: none;
+        color: inherit;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .tech-card h2 {
+        color: #1a2a5e;
+        font-size: 1.95em;
+        margin-bottom: 8px;
+        text-align: center;
+    }
+
+    .tech-card p {
+        color: #4e5b82;
+        font-size: 1em;
+        text-align: center;
+    }
+
+    .icon {
+        font-size: 2.1em;
+        margin-bottom: 10px;
+        color: #1a2a5e;
+    }
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <p class="identified">User Identified As: Technician</p>
+
+    <div class="card-grid">
+        <a href="{% url 'technician_service_history' %}" class="tech-card">
+            <div class="icon">📅</div>
+            <h2>Service History</h2>
+            <p>View previous service records</p>
+        </a>
+
+        <a href="{% url 'technician_service_reports' %}" class="tech-card">
+            <div class="icon">📄</div>
+            <h2>Service Reports</h2>
+            <p>View service reports</p>
+        </a>
+
+        <a href="{% url 'technician_service_status' %}" class="tech-card">
+            <div class="icon">▦</div>
+            <h2>Service Status</h2>
+            <p>View ongoing services and edit bookings</p>
+        </a>
+    </div>
+</div>
+{% endblock %}

@@ -14,6 +14,21 @@ class OperationsManager(models.Model):
     class Meta:
         db_table = 'operations_managers'
 
+
+class Technician(models.Model):
+    technician_id = models.CharField(max_length=20, unique=True)
+    first_name = models.CharField(max_length=100)
+    last_name = models.CharField(max_length=100)
+    email = models.EmailField(unique=True)
+    password = models.CharField(max_length=255)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.technician_id} - {self.first_name} {self.last_name}"
+
+    class Meta:
+        db_table = 'technicians'
+
 class Customer(models.Model):
     first_name = models.CharField(max_length=100)
     last_name = models.CharField(max_length=100)
