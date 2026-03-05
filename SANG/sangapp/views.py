@@ -3,9 +3,13 @@ from django.contrib import messages
 from django.db import transaction
 from django.core.mail import send_mail
 from django.conf import settings
+from django.http import HttpResponse
 from decimal import Decimal, InvalidOperation
+from io import BytesIO
 import json
 import re
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
 from .models import (
     Customer,
     Property,
@@ -707,11 +711,48 @@ def service_status(request):
         customer=customer
     ).exclude(
         status__in=['Completed', 'Cancelled']
-    ).select_related('property').order_by('-created_at')
+    ).select_related('property', 'estimated_bill').order_by('-created_at')
     
     return render(request, 'service_status.html', {
         'customer': customer,
         'services': services,
+    })
+
+
+def customer_view_estimated_bill(request, service_id):
+    if 'customer_id' not in request.session:
+        return redirect('login')
+
+    try:
+        customer = Customer.objects.get(id=request.session['customer_id'])
+    except Customer.DoesNotExist:
+        request.session.flush()
+        return redirect('login')
+
+    estimated_bill = EstimatedBill.objects.select_related(
+        'service__customer', 'service__property', 'operations_manager'
+    ).prefetch_related('items').filter(
+        service_id=service_id,
+        service__customer=customer,
+    ).first()
+
+    if not estimated_bill:
+        messages.error(request, 'Estimated bill not found.')
+        return redirect('service_status')
+
+    if request.method == 'POST':
+        if request.POST.get('action') == 'confirm':
+            service = estimated_bill.service
+            service.status = 'Estimated Bill Confirmed'
+            service.save(update_fields=['status'])
+            messages.success(request, 'Estimated bill confirmed successfully.')
+            return redirect('service_status')
+
+    return render(request, 'om_estimated_bill_view.html', {
+        'estimated_bill': estimated_bill,
+        'role': 'customer',
+        'back_url_name': 'service_status',
+        'allow_confirm': estimated_bill.service.status == 'Estimated Bill Created',
     })
 
 
@@ -860,7 +901,146 @@ def om_view_estimated_bill(request, estimated_bill_id):
 
     return render(request, 'om_estimated_bill_view.html', {
         'estimated_bill': estimated_bill,
+        'role': 'om',
+        'back_url_name': 'om_estimated_bills',
+        'allow_confirm': False,
     })
+
+
+def om_download_estimated_bill_pdf(request, estimated_bill_id):
+    if 'om_id' not in request.session:
+        return redirect('login')
+
+    estimated_bill = EstimatedBill.objects.select_related(
+        'service__customer', 'service__property'
+    ).prefetch_related('items').filter(id=estimated_bill_id).first()
+
+    if not estimated_bill:
+        messages.error(request, 'Estimated bill not found.')
+        return redirect('om_estimated_bills')
+
+    pdf_bytes = _render_simple_pdf(
+        title='Estimated Bill',
+        header_lines=[
+            f"Estimated Bill ID: {estimated_bill.id:07d}",
+            f"Service ID: {estimated_bill.service.id:07d}",
+            f"Customer: {estimated_bill.service.customer.first_name} {estimated_bill.service.customer.last_name}",
+            f"Address: {estimated_bill.service.property.street_number} {estimated_bill.service.property.street}, {estimated_bill.service.property.city}",
+            f"Date Created: {estimated_bill.created_at:%m/%d/%Y}",
+        ],
+        table_headers=['Service Type', 'Qty', 'Unit Price', 'Line Total'],
+        table_rows=[
+            [
+                item.service_type,
+                item.quantity,
+                f"₱ {item.unit_price}",
+                f"₱ {item.line_total}",
+            ]
+            for item in estimated_bill.items.all()
+        ],
+        total_line=f"Total: ₱ {estimated_bill.total_amount}",
+    )
+
+    response = HttpResponse(pdf_bytes, content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="estimated_bill_{estimated_bill.id:07d}.pdf"'
+    return response
+
+
+def om_edit_estimated_bill(request, estimated_bill_id):
+    if 'om_id' not in request.session:
+        return redirect('login')
+
+    estimated_bill = EstimatedBill.objects.select_related(
+        'service__customer', 'service__property'
+    ).prefetch_related('items').filter(id=estimated_bill_id).first()
+
+    if not estimated_bill:
+        messages.error(request, 'Estimated bill not found.')
+        return redirect('om_estimated_bills')
+
+    if request.method == 'POST':
+        if request.POST.get('action') == 'cancel':
+            return redirect('om_estimated_bills')
+
+        raw_items = _parse_estimated_items(request.POST.get('items_json'))
+        items, has_invalid_items = _clean_estimated_items(raw_items)
+        errors = {}
+
+        if not items or has_invalid_items:
+            errors['general'] = 'Required fields must be filled in.'
+
+        if errors:
+            return render(request, 'om_edit_estimated_bill.html', {
+                'estimated_bill': estimated_bill,
+                'errors': errors,
+                'items_json': json.dumps(raw_items if raw_items else [{'service_type': '', 'quantity': ''}]),
+                'service_type_choices_json': json.dumps([
+                    {'value': value, 'label': label}
+                    for value, label in Service.PREFERRED_SERVICE_CHOICES
+                ]),
+            })
+
+        price_map = {
+            'General Pest Control Treatment': Decimal('2500.00'),
+            'Termite Control': Decimal('3000.00'),
+            'Rodent Control': Decimal('2200.00'),
+            'Mosquito Control': Decimal('1800.00'),
+            'Bed Bug Treatment': Decimal('2800.00'),
+            'Cockroach Control': Decimal('2000.00'),
+            'Other': Decimal('1500.00'),
+        }
+
+        with transaction.atomic():
+            estimated_bill.items.all().delete()
+            EstimatedBillItem.objects.bulk_create([
+                EstimatedBillItem(
+                    estimated_bill=estimated_bill,
+                    service_type=item['service_type'],
+                    quantity=item['quantity'],
+                    unit_price=price_map.get(item['service_type'], Decimal('1500.00')),
+                )
+                for item in items
+            ])
+
+        messages.success(request, 'Estimated bill updated successfully.')
+        return redirect('om_estimated_bills')
+
+    return render(request, 'om_edit_estimated_bill.html', {
+        'estimated_bill': estimated_bill,
+        'errors': {},
+        'items_json': json.dumps([
+            {
+                'service_type': item.service_type,
+                'quantity': item.quantity,
+            }
+            for item in estimated_bill.items.all()
+        ]),
+        'service_type_choices_json': json.dumps([
+            {'value': value, 'label': label}
+            for value, label in Service.PREFERRED_SERVICE_CHOICES
+        ]),
+    })
+
+
+def om_delete_estimated_bill(request, estimated_bill_id):
+    if 'om_id' not in request.session:
+        return redirect('login')
+
+    if request.method != 'POST':
+        return redirect('om_estimated_bills')
+
+    estimated_bill = EstimatedBill.objects.select_related('service').filter(id=estimated_bill_id).first()
+    if not estimated_bill:
+        messages.error(request, 'Estimated bill not found.')
+        return redirect('om_estimated_bills')
+
+    service = estimated_bill.service
+    estimated_bill.delete()
+    service.status = 'Ongoing Inspection'
+    service.save(update_fields=['status'])
+
+    messages.success(request, 'Estimated bill deleted successfully.')
+    return redirect('om_estimated_bills')
 
 
 def om_invoices(request):
@@ -897,7 +1077,141 @@ def om_view_invoice(request, invoice_id):
 
     return render(request, 'om_invoice_view.html', {
         'invoice': invoice,
+        'back_url_name': 'om_invoices',
     })
+
+
+def om_download_invoice_pdf(request, invoice_id):
+    if 'om_id' not in request.session:
+        return redirect('login')
+
+    invoice = Invoice.objects.select_related(
+        'service__customer', 'service__property'
+    ).prefetch_related('items').filter(id=invoice_id).first()
+
+    if not invoice:
+        messages.error(request, 'Invoice not found.')
+        return redirect('om_invoices')
+
+    pdf_bytes = _render_simple_pdf(
+        title='Invoice',
+        header_lines=[
+            f"Invoice ID: INV{invoice.id:04d}",
+            f"Service ID: {invoice.service.id:07d}",
+            f"Customer: {invoice.service.customer.first_name} {invoice.service.customer.last_name}",
+            f"Address: {invoice.service.property.street_number} {invoice.service.property.street}, {invoice.service.property.city}",
+            f"Date Created: {invoice.created_at:%m/%d/%Y}",
+        ],
+        table_headers=['Item', 'Qty', 'Unit Price', 'Line Total'],
+        table_rows=[
+            [
+                item.item_type,
+                item.quantity,
+                f"₱ {item.unit_price}",
+                f"₱ {item.line_total}",
+            ]
+            for item in invoice.items.all()
+        ],
+        total_line=f"Total: ₱ {invoice.total_amount}",
+    )
+
+    response = HttpResponse(pdf_bytes, content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="invoice_INV{invoice.id:04d}.pdf"'
+    return response
+
+
+def om_edit_invoice(request, invoice_id):
+    if 'om_id' not in request.session:
+        return redirect('login')
+
+    invoice = Invoice.objects.select_related(
+        'service__customer', 'service__property'
+    ).prefetch_related('items', 'service__estimated_bill__items').filter(id=invoice_id).first()
+
+    if not invoice:
+        messages.error(request, 'Invoice not found.')
+        return redirect('om_invoices')
+
+    invoice_item_choices = [('Item1', 'Item1'), ('Item2', 'Item2'), ('Item3', 'Item3'), ('Item4', 'Item4')]
+
+    if request.method == 'POST':
+        if request.POST.get('action') == 'cancel':
+            return redirect('om_invoices')
+
+        raw_items = _parse_invoice_items(request.POST.get('items_json'))
+        items, has_invalid = _clean_invoice_items(raw_items)
+        errors = {}
+
+        if not items or has_invalid:
+            errors['general'] = 'Required fields must be filled in.'
+
+        if errors:
+            return render(request, 'om_edit_invoice.html', {
+                'invoice': invoice,
+                'errors': errors,
+                'items_json': json.dumps(raw_items if raw_items else [{'item_type': '', 'quantity': ''}]),
+                'invoice_item_choices_json': json.dumps([
+                    {'value': value, 'label': label}
+                    for value, label in invoice_item_choices
+                ]),
+            })
+
+        source_price_map = {item.item_type: item.unit_price for item in invoice.items.all()}
+        if invoice.service.estimated_bill:
+            for item in invoice.service.estimated_bill.items.all():
+                source_price_map.setdefault(item.service_type, item.unit_price)
+
+        with transaction.atomic():
+            invoice.items.all().delete()
+            InvoiceItem.objects.bulk_create([
+                InvoiceItem(
+                    invoice=invoice,
+                    item_type=item['item_type'],
+                    quantity=item['quantity'],
+                    unit_price=source_price_map.get(item['item_type'], Decimal('1500.00')),
+                )
+                for item in items
+            ])
+
+        messages.success(request, 'Invoice updated successfully.')
+        return redirect('om_invoices')
+
+    return render(request, 'om_edit_invoice.html', {
+        'invoice': invoice,
+        'errors': {},
+        'items_json': json.dumps([
+            {
+                'item_type': item.item_type,
+                'quantity': item.quantity,
+            }
+            for item in invoice.items.all()
+        ]),
+        'invoice_item_choices_json': json.dumps([
+            {'value': value, 'label': label}
+            for value, label in invoice_item_choices
+        ]),
+    })
+
+
+def om_delete_invoice(request, invoice_id):
+    if 'om_id' not in request.session:
+        return redirect('login')
+
+    if request.method != 'POST':
+        return redirect('om_invoices')
+
+    invoice = Invoice.objects.select_related('service').filter(id=invoice_id).first()
+    if not invoice:
+        messages.error(request, 'Invoice not found.')
+        return redirect('om_invoices')
+
+    service = invoice.service
+    invoice.delete()
+    service.status = 'Ongoing Treatment'
+    service.save(update_fields=['status'])
+
+    messages.success(request, 'Invoice deleted successfully.')
+    return redirect('om_invoices')
 
 
 def _parse_estimated_items(raw_payload):
@@ -988,6 +1302,55 @@ def _clean_invoice_items(raw_items):
         })
 
     return cleaned_items, has_invalid
+
+
+def _render_simple_pdf(title, header_lines, table_headers, table_rows, total_line=''):
+    buffer = BytesIO()
+    pdf = canvas.Canvas(buffer, pagesize=letter)
+    width, height = letter
+    y = height - 50
+
+    pdf.setFont('Helvetica-Bold', 16)
+    pdf.drawString(50, y, title)
+    y -= 24
+
+    pdf.setFont('Helvetica', 10)
+    for line in header_lines:
+        if y < 70:
+            pdf.showPage()
+            y = height - 50
+            pdf.setFont('Helvetica', 10)
+        pdf.drawString(50, y, str(line))
+        y -= 14
+
+    y -= 6
+    if table_headers:
+        pdf.setFont('Helvetica-Bold', 10)
+        x_positions = [50, 250, 340, 440]
+        for idx, header in enumerate(table_headers[:4]):
+            pdf.drawString(x_positions[idx], y, str(header))
+        y -= 14
+
+    pdf.setFont('Helvetica', 10)
+    for row in table_rows:
+        if y < 70:
+            pdf.showPage()
+            y = height - 50
+            pdf.setFont('Helvetica', 10)
+        x_positions = [50, 250, 340, 440]
+        for idx, value in enumerate(row[:4]):
+            pdf.drawString(x_positions[idx], y, str(value))
+        y -= 14
+
+    if total_line:
+        y -= 8
+        pdf.setFont('Helvetica-Bold', 11)
+        pdf.drawString(50, y, str(total_line))
+
+    pdf.showPage()
+    pdf.save()
+    buffer.seek(0)
+    return buffer.getvalue()
 
 
 def om_create_invoice(request):
@@ -1212,6 +1575,9 @@ def om_create_estimated_bill(request):
                 )
                 for item in items
             ])
+
+            selected_service.status = 'Estimated Bill Created'
+            selected_service.save(update_fields=['status'])
 
         email_subject = 'Your Estimated Bill from Supreme Biotech Solutions'
         email_body = (
@@ -1492,9 +1858,14 @@ def technician_update_service_status(request, service_id):
         return redirect('technician_service_status')
 
     status_choices = [
+        ('For Inspection', 'For Inspection'),
         ('Ongoing Inspection', 'Ongoing Inspection'),
+        ('Estimated Bill Created', 'Estimated Bill Created'),
+        ('Estimated Bill Confirmed', 'Estimated Bill Confirmed'),
+        ('For Treatment', 'For Treatment'),
         ('Ongoing Treatment', 'Ongoing Treatment'),
     ]
+    allowed_statuses = {value for value, _ in status_choices}
 
     if request.method == 'POST':
         if request.POST.get('action') == 'cancel':
@@ -1505,7 +1876,7 @@ def technician_update_service_status(request, service_id):
 
         if not new_status:
             errors['new_status'] = 'Required fields must be filled in.'
-        elif new_status not in {'Ongoing Inspection', 'Ongoing Treatment'}:
+        elif new_status not in allowed_statuses:
             errors['new_status'] = 'Invalid status selected.'
 
         if errors:
@@ -2017,6 +2388,175 @@ def technician_view_service_report(request, report_id):
     })
 
 
+def _service_report_redirect_name(request):
+    if request.session.get('technician_id'):
+        return 'technician_service_reports'
+    return 'om_service_reports'
+
+
+def download_service_report_pdf(request, report_id):
+    if 'technician_id' not in request.session and 'om_id' not in request.session:
+        return redirect('login')
+
+    report = ServiceReport.objects.select_related(
+        'service__customer', 'service__property'
+    ).prefetch_related('chemicals', 'treated_areas').filter(id=report_id).first()
+
+    if not report:
+        messages.error(request, 'Service report not found.')
+        return redirect(_service_report_redirect_name(request))
+
+    table_rows = [
+        [
+            area.area_name,
+            area.infestation_level,
+            'Yes' if area.spray else 'No',
+            area.remarks or '-',
+        ]
+        for area in report.treated_areas.all()
+    ]
+
+    pdf_bytes = _render_simple_pdf(
+        title='Service Report',
+        header_lines=[
+            f"Report ID: {report.id:07d}",
+            f"Service ID: {report.service.id:07d}",
+            f"Customer: {report.service.customer.first_name} {report.service.customer.last_name}",
+            f"Date: {report.created_at:%m/%d/%Y}",
+            f"Chemicals: {', '.join([f'{chemical.chemical_name} ({chemical.amount} {chemical.unit_measure})' for chemical in report.chemicals.all()]) or '-'}",
+        ],
+        table_headers=['Area', 'Infestation', 'Spray', 'Remarks'],
+        table_rows=table_rows,
+    )
+
+    response = HttpResponse(pdf_bytes, content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="service_report_{report.id:07d}.pdf"'
+    return response
+
+
+def edit_service_report(request, report_id):
+    if 'technician_id' not in request.session and 'om_id' not in request.session:
+        return redirect('login')
+
+    report = ServiceReport.objects.select_related(
+        'service__customer', 'service__property'
+    ).prefetch_related('chemicals', 'treated_areas').filter(id=report_id).first()
+
+    if not report:
+        messages.error(request, 'Service report not found.')
+        return redirect(_service_report_redirect_name(request))
+
+    if request.method == 'POST':
+        if request.POST.get('action') == 'cancel':
+            return redirect(_service_report_redirect_name(request))
+
+        raw_chemicals = _parse_report_json(request.POST.get('chemicals_json'))
+        raw_areas = _parse_report_json(request.POST.get('treated_areas_json'))
+
+        errors = {}
+        chemicals, chemical_has_invalid = _clean_chemical_rows(raw_chemicals)
+        treated_areas, area_has_invalid = _clean_area_rows(raw_areas)
+
+        if not chemicals:
+            errors['chemicals'] = 'At least one chemical used must be filled in.'
+        elif chemical_has_invalid:
+            errors['chemicals'] = 'Please complete each filled chemical row with valid values.'
+
+        if not treated_areas:
+            errors['treated_areas'] = 'At least one area must be filled in.'
+        elif area_has_invalid:
+            errors['treated_areas'] = 'Please complete each filled treated area row with valid values.'
+
+        if errors:
+            return render(request, 'edit_service_report.html', {
+                'report': report,
+                'errors': errors,
+                'chemicals_json': json.dumps(raw_chemicals),
+                'treated_areas_json': json.dumps(raw_areas),
+                'back_url_name': _service_report_redirect_name(request),
+            })
+
+        with transaction.atomic():
+            report.chemicals.all().delete()
+            report.treated_areas.all().delete()
+
+            ServiceReportChemical.objects.bulk_create([
+                ServiceReportChemical(
+                    report=report,
+                    chemical_name=row['chemical_name'],
+                    unit_measure=row['unit_measure'],
+                    amount=row['amount'],
+                )
+                for row in chemicals
+            ])
+
+            ServiceReportArea.objects.bulk_create([
+                ServiceReportArea(
+                    report=report,
+                    area_name=row['area_name'],
+                    infestation_level=row['infestation_level'],
+                    spray=row['spray'],
+                    mist=row['mist'],
+                    rat_bait=row['rat_bait'],
+                    powder=row['powder'],
+                    remarks=row['remarks'],
+                    recommendation=row['recommendation'],
+                )
+                for row in treated_areas
+            ])
+
+        messages.success(request, 'Service report updated successfully.')
+        return redirect(_service_report_redirect_name(request))
+
+    return render(request, 'edit_service_report.html', {
+        'report': report,
+        'errors': {},
+        'chemicals_json': json.dumps([
+            {
+                'chemical_name': chemical.chemical_name,
+                'unit_measure': chemical.unit_measure,
+                'amount': str(chemical.amount),
+            }
+            for chemical in report.chemicals.all()
+        ]),
+        'treated_areas_json': json.dumps([
+            {
+                'area_name': area.area_name,
+                'infestation_level': area.infestation_level,
+                'spray': area.spray,
+                'mist': area.mist,
+                'rat_bait': area.rat_bait,
+                'powder': area.powder,
+                'remarks': area.remarks,
+                'recommendation': area.recommendation,
+            }
+            for area in report.treated_areas.all()
+        ]),
+        'back_url_name': _service_report_redirect_name(request),
+    })
+
+
+def delete_service_report(request, report_id):
+    if 'technician_id' not in request.session and 'om_id' not in request.session:
+        return redirect('login')
+
+    if request.method != 'POST':
+        return redirect(_service_report_redirect_name(request))
+
+    report = ServiceReport.objects.select_related('service').filter(id=report_id).first()
+    if not report:
+        messages.error(request, 'Service report not found.')
+        return redirect(_service_report_redirect_name(request))
+
+    service = report.service
+    report.delete()
+    service.status = 'Ongoing Treatment'
+    service.save(update_fields=['status'])
+
+    messages.success(request, 'Service report deleted successfully.')
+    return redirect(_service_report_redirect_name(request))
+
+
 def om_view_service_report(request, report_id):
     if 'om_id' not in request.session:
         return redirect('login')
@@ -2075,9 +2615,14 @@ def om_update_service_status(request, service_id):
         return redirect('om_service_status')
 
     status_choices = [
+        ('For Inspection', 'For Inspection'),
         ('Ongoing Inspection', 'Ongoing Inspection'),
+        ('Estimated Bill Created', 'Estimated Bill Created'),
+        ('Estimated Bill Confirmed', 'Estimated Bill Confirmed'),
+        ('For Treatment', 'For Treatment'),
         ('Ongoing Treatment', 'Ongoing Treatment'),
     ]
+    allowed_statuses = {value for value, _ in status_choices}
 
     if request.method == 'POST':
         if request.POST.get('action') == 'cancel':
@@ -2088,7 +2633,7 @@ def om_update_service_status(request, service_id):
 
         if not new_status:
             errors['new_status'] = 'Required fields must be filled in.'
-        elif new_status not in {'Ongoing Inspection', 'Ongoing Treatment'}:
+        elif new_status not in allowed_statuses:
             errors['new_status'] = 'Invalid status selected.'
 
         if errors:
@@ -2294,8 +2839,8 @@ def om_book_treatment(request, service_id):
         messages.error(request, 'Service record not found.')
         return redirect('om_service_status')
 
-    if service.status != 'Ongoing Inspection':
-        messages.error(request, 'Book Treatment is only available for services with Ongoing Inspection status.')
+    if service.status != 'Estimated Bill Confirmed':
+        messages.error(request, 'Book Treatment is only available for services with Estimated Bill Confirmed status.')
         return redirect('om_service_status')
 
     treatment_service_choices = [
@@ -2306,12 +2851,16 @@ def om_book_treatment(request, service_id):
         if request.POST.get('action') == 'cancel':
             return redirect('om_service_status')
 
-        treatment_service = request.POST.get('treatment_service', '').strip()
+        selected_treatment_services = [
+            value.strip()
+            for value in request.POST.getlist('treatment_service')
+            if value.strip()
+        ]
         booking_date = request.POST.get('date', '').strip()
         time_slot = request.POST.get('time_slot', '').strip()
 
         errors = {}
-        if not treatment_service:
+        if not selected_treatment_services:
             errors['treatment_service'] = 'Required fields must be filled in.'
         if not booking_date:
             errors['date'] = 'Required fields must be filled in.'
@@ -2319,20 +2868,25 @@ def om_book_treatment(request, service_id):
             errors['time_slot'] = 'Required fields must be filled in.'
 
         if not errors:
-            TreatmentBooking.objects.create(
-                service=service,
-                treatment_service=treatment_service,
-                date=booking_date,
-                time_slot=time_slot,
-            )
+            TreatmentBooking.objects.bulk_create([
+                TreatmentBooking(
+                    service=service,
+                    treatment_service=treatment_service,
+                    date=booking_date,
+                    time_slot=time_slot,
+                )
+                for treatment_service in selected_treatment_services
+            ])
+            service.preferred_service = ', '.join(selected_treatment_services)
             service.status = 'For Treatment'
             service.confirmed_date = booking_date
-            service.save(update_fields=['status', 'confirmed_date'])
+            service.save(update_fields=['preferred_service', 'status', 'confirmed_date'])
 
             return render(request, 'om_book_treatment.html', {
                 'om': om,
                 'service': service,
                 'success': True,
+                'selected_treatments': selected_treatment_services,
                 'treatment_service_choices': treatment_service_choices,
                 'time_slot_choices': Service.TIME_SLOT_CHOICES,
                 'today': date_cls.today().isoformat(),
@@ -2343,6 +2897,7 @@ def om_book_treatment(request, service_id):
             'service': service,
             'errors': errors,
             'form_data': request.POST,
+            'selected_treatments': selected_treatment_services,
             'treatment_service_choices': treatment_service_choices,
             'time_slot_choices': Service.TIME_SLOT_CHOICES,
             'today': date_cls.today().isoformat(),
@@ -2351,7 +2906,10 @@ def om_book_treatment(request, service_id):
     return render(request, 'om_book_treatment.html', {
         'om': om,
         'service': service,
-        'form_data': {},
+        'form_data': {
+            'treatment_service': [],
+        },
+        'selected_treatments': [],
         'treatment_service_choices': treatment_service_choices,
         'time_slot_choices': Service.TIME_SLOT_CHOICES,
         'today': date_cls.today().isoformat(),

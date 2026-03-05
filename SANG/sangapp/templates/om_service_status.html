@@ -168,7 +168,11 @@
                                 <button type="button" class="action-btn delete" onclick="openDeleteModal('{{ service.id }}')">Delete Booking</button>
                             {% endif %}
 
-                            {% if service.status == 'Ongoing Inspection' %}
+                            {% if service.estimated_bill %}
+                                <a href="{% url 'om_view_estimated_bill' service.estimated_bill.id %}" class="action-btn update">View Estimated Bill</a>
+                            {% endif %}
+
+                            {% if service.status == 'Estimated Bill Confirmed' %}
                                 <a href="{% url 'om_book_treatment' service.id %}" class="action-btn book">Book Treatment</a>
                             {% endif %}
                         </div>

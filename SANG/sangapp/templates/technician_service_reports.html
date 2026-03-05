@@ -78,6 +78,22 @@
         font-weight: 600;
     }
 
+    .action-chip {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 32px;
+        padding: 0 10px;
+        border-radius: 8px;
+        color: #fff;
+        text-decoration: none;
+        font-size: 0.8em;
+        font-weight: 700;
+        border: none;
+        cursor: pointer;
+        background: #1a2a5e;
+    }
+
     .empty {
         text-align: center;
         color: #777;
@@ -105,7 +121,7 @@
                 <th>Property Address</th>
                 <th>Service Type</th>
                 <th>Service Date</th>
-                <th>Service Report</th>
+                <th>Action</th>
             </tr>
         </thead>
         <tbody>
@@ -116,7 +132,17 @@
                 <td>{{ report.service.property.street_number }} {{ report.service.property.street }}, {{ report.service.property.city }}</td>
                 <td>{{ report.service.preferred_service }}</td>
                 <td>{{ report.service.confirmed_date|default:report.service.date|date:'m/d/Y' }}</td>
-                <td><a href="{% url 'technician_view_service_report' report.id %}" class="report-link">File_Name.pdf</a></td>
+                <td>
+                    <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                        <a href="{% url 'technician_view_service_report' report.id %}" class="action-chip">View</a>
+                        <a href="{% url 'technician_edit_service_report' report.id %}" class="action-chip" style="background:#6c7293;">Edit</a>
+                        <a href="{% url 'technician_download_service_report_pdf' report.id %}" class="action-chip" style="background:#2b7a4b;">Download PDF</a>
+                        <form method="POST" action="{% url 'technician_delete_service_report' report.id %}" style="margin:0;" onsubmit="return confirm('Delete this service report?');">
+                            {% csrf_token %}
+                            <button type="submit" class="action-chip" style="background:#d9534f;">Delete</button>
+                        </form>
+                    </div>
+                </td>
             </tr>
             {% empty %}
             <tr><td colspan="6" class="empty">No service reports available.</td></tr>

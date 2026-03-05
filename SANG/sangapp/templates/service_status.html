@@ -90,6 +90,14 @@
             background-color: #e7e8ff;
             color: #4a4a8e;
         }
+        .status-estimatedbillcreated {
+            background-color: #fff4cc;
+            color: #8a6d00;
+        }
+        .status-estimatedbillconfirmed {
+            background-color: #d4edda;
+            color: #155724;
+        }
         .status-ongoing-treatment {
             background-color: #cfe2ff;
             color: #084298;
@@ -133,6 +141,20 @@
         .empty-state a:hover {
             background-color: #0d1535;
         }
+
+        .action-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 34px;
+            padding: 8px 14px;
+            border-radius: 8px;
+            background: #1a2a5e;
+            color: #fff;
+            font-size: 0.82em;
+            text-decoration: none;
+            font-weight: 700;
+        }
 {% endblock %}
 
 {% block content %}
@@ -158,6 +180,7 @@
                         <th>Preferred Date</th>
                         <th>Confirmed Date</th>
                         <th>Status</th>
+                        <th>Action</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -174,6 +197,15 @@
                             <span class="status-badge status-{{ service.status|lower|cut:' ' }}">
                                 {{ service.status }}
                             </span>
+                        </td>
+                        <td>
+                            {% if service.estimated_bill and service.status == 'Estimated Bill Created' %}
+                                <a href="{% url 'customer_view_estimated_bill' service.id %}" class="action-btn">View Estimated Bill</a>
+                            {% elif service.estimated_bill and service.status == 'Estimated Bill Confirmed' %}
+                                <a href="{% url 'customer_view_estimated_bill' service.id %}" class="action-btn">View Bill</a>
+                            {% else %}
+                                -
+                            {% endif %}
                         </td>
                     </tr>
                     {% endfor %}

@@ -65,7 +65,7 @@
 
 {% block content %}
 <div class="container">
-    <a href="{% url 'om_estimated_bills' %}" class="back-link">Back to Estimated Bills</a>
+    <a href="{% url back_url_name|default:'om_estimated_bills' %}" class="back-link">Back</a>
 
     <div class="sheet">
         <h1 class="title">Estimated Bill</h1>
@@ -101,6 +101,19 @@
         </table>
 
         <p class="total">Total Estimated Amount: ₱ {{ estimated_bill.total_amount }}</p>
+
+        <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:12px;">
+            {% if role == 'om' %}
+                <a href="{% url 'om_download_estimated_bill_pdf' estimated_bill.id %}" class="back-link" style="margin:0;background:#1a2a5e;color:#fff;padding:8px 12px;border-radius:8px;">Download PDF</a>
+            {% endif %}
+
+            {% if allow_confirm %}
+                <form method="POST" style="margin:0;">
+                    {% csrf_token %}
+                    <button type="submit" name="action" value="confirm" style="border:none;background:#1a2a5e;color:#fff;padding:8px 12px;border-radius:8px;font-weight:700;cursor:pointer;">Confirm Estimated Bill</button>
+                </form>
+            {% endif %}
+        </div>
     </div>
 </div>
 {% endblock %}

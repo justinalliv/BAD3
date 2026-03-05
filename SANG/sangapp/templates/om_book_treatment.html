@@ -180,12 +180,12 @@
 
         <div class="form-group">
             <label for="treatment_service">Treatment Service</label>
-            <select id="treatment_service" name="treatment_service" {% if errors.treatment_service %}class="error"{% endif %}>
-                <option value="">Select treatment service</option>
+            <select id="treatment_service" name="treatment_service" multiple {% if errors.treatment_service %}class="error"{% endif %}>
                 {% for value, label in treatment_service_choices %}
-                    <option value="{{ value }}" {% if form_data.treatment_service == value %}selected{% endif %}>{{ label }}</option>
+                    <option value="{{ value }}" {% if value in selected_treatments %}selected{% endif %}>{{ label }}</option>
                 {% endfor %}
             </select>
+            <small style="color:#666;display:block;margin-top:4px;">Hold Command (⌘) to select multiple treatments.</small>
             {% if errors.treatment_service %}<div class="error-message">{{ errors.treatment_service }}</div>{% endif %}
         </div>
 

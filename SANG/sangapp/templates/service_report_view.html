@@ -177,7 +177,14 @@
     <div class="preview-shell">
         <div class="preview-top">
             <p class="file-name">File_Name.pdf</p>
-            <a href="{% url back_url_name %}" class="close-link" aria-label="Close">X</a>
+            <div style="display:flex;align-items:center;gap:10px;">
+                {% if role == 'om' %}
+                    <a href="{% url 'om_download_service_report_pdf' report.id %}" style="display:inline-flex;align-items:center;justify-content:center;min-height:30px;padding:0 10px;border-radius:8px;background:#1a2a5e;color:#fff;text-decoration:none;font-weight:700;font-size:0.8em;">Download PDF</a>
+                {% else %}
+                    <a href="{% url 'technician_download_service_report_pdf' report.id %}" style="display:inline-flex;align-items:center;justify-content:center;min-height:30px;padding:0 10px;border-radius:8px;background:#1a2a5e;color:#fff;text-decoration:none;font-weight:700;font-size:0.8em;">Download PDF</a>
+                {% endif %}
+                <a href="{% url back_url_name %}" class="close-link" aria-label="Close">X</a>
+            </div>
         </div>
 
         <div class="report-paper">

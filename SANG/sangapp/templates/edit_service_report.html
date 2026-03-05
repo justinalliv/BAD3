@@ -1,0 +1,199 @@
+{% extends 'base.html' %}
+
+{% block title %}Edit Service Report - Supreme Biotech Solutions{% endblock %}
+
+{% block extra_css %}
+    .container { max-width: 1160px; margin: 0 auto; padding: 0 24px 24px; }
+    .title { text-align: center; color: #1a2a5e; margin: 8px 0 14px; font-size: 2.3em; }
+    .subtitle { color: #2d2d2d; font-weight: 700; margin-bottom: 8px; }
+    table { width: 100%; border-collapse: collapse; background: #fff; margin-bottom: 10px; }
+    th, td { border: 1px solid #d7d7d7; padding: 10px 8px; text-align: left; font-size: 0.9em; color: #333; vertical-align: middle; }
+    th { background: #1a2a5e; color: #fff; font-size: 0.95em; }
+    .row-input, .row-select, .row-number { width: 100%; min-height: 36px; border: 1px solid #cfcfcf; border-radius: 8px; padding: 6px 8px; font-size: 0.88em; background: #fff; color: #333; }
+    .checkbox-group { display: flex; justify-content: center; align-items: center; }
+    .small-btn { display: inline-flex; align-items: center; justify-content: center; min-height: 34px; padding: 0 12px; border-radius: 8px; border: none; font-size: 0.8em; font-weight: 700; cursor: pointer; }
+    .btn-add { background: #eef1fb; color: #1a2a5e; border: 1px solid #c5cce5; margin-bottom: 10px; }
+    .btn-edit { background: #6c7293; color: #fff; }
+    .btn-delete { background: #e74b4b; color: #fff; }
+    .error { color: #d32f2f; font-size: 0.86em; margin: 6px 0 10px; }
+    .actions { display: flex; justify-content: center; gap: 12px; margin-top: 18px; }
+    .main-btn { min-width: 170px; min-height: 46px; border: none; border-radius: 12px; font-size: 0.95em; font-weight: 700; cursor: pointer; }
+    .btn-cancel { background: #e2e2e2; color: #333; }
+    .btn-submit { background: #1a2a5e; color: #fff; }
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="title">Edit Service Report</h1>
+
+    <form method="POST" id="detailsForm">
+        {% csrf_token %}
+        <input type="hidden" name="action" id="detailsAction" value="submit">
+        <input type="hidden" name="chemicals_json" id="chemicalsJsonInput">
+        <input type="hidden" name="treated_areas_json" id="treatedAreasJsonInput">
+
+        <div class="subtitle">Add chemicals used</div>
+        <table>
+            <thead>
+                <tr>
+                    <th style="width:40%;">Name</th>
+                    <th style="width:22%;">Unit Measure</th>
+                    <th style="width:22%;">Amount</th>
+                    <th style="width:16%;">Delete</th>
+                </tr>
+            </thead>
+            <tbody id="chemicalsBody"></tbody>
+        </table>
+        <button type="button" class="small-btn btn-add" id="addChemicalBtn">+ Add a chemical</button>
+        {% if errors.chemicals %}<p class="error">{{ errors.chemicals }}</p>{% endif %}
+
+        <div class="subtitle">Treated areas</div>
+        <table>
+            <thead>
+                <tr>
+                    <th style="width:14%;">Areas</th>
+                    <th style="width:14%;">Levels of Infestation</th>
+                    <th style="width:6%;">Spray</th>
+                    <th style="width:6%;">Mist</th>
+                    <th style="width:8%;">Rat Bait</th>
+                    <th style="width:7%;">Powder</th>
+                    <th style="width:16%;">Remarks</th>
+                    <th style="width:16%;">Recommendation</th>
+                    <th style="width:7%;">Delete</th>
+                </tr>
+            </thead>
+            <tbody id="areasBody"></tbody>
+        </table>
+        <button type="button" class="small-btn btn-add" id="addAreaBtn">+ Add treated area</button>
+        {% if errors.treated_areas %}<p class="error">{{ errors.treated_areas }}</p>{% endif %}
+
+        <div class="actions">
+            <button type="submit" class="main-btn btn-cancel" onclick="document.getElementById('detailsAction').value='cancel'">Cancel</button>
+            <button type="submit" class="main-btn btn-submit" onclick="document.getElementById('detailsAction').value='submit'">Save Changes</button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const chemicalsBody = document.getElementById('chemicalsBody');
+    const areasBody = document.getElementById('areasBody');
+    const addChemicalBtn = document.getElementById('addChemicalBtn');
+    const addAreaBtn = document.getElementById('addAreaBtn');
+    const chemicalsJsonInput = document.getElementById('chemicalsJsonInput');
+    const treatedAreasJsonInput = document.getElementById('treatedAreasJsonInput');
+
+    let chemicals = [];
+    let treatedAreas = [];
+
+    try { chemicals = JSON.parse('{{ chemicals_json|default:"[]"|escapejs }}'); } catch (error) { chemicals = []; }
+    try { treatedAreas = JSON.parse('{{ treated_areas_json|default:"[]"|escapejs }}'); } catch (error) { treatedAreas = []; }
+
+    if (!Array.isArray(chemicals) || chemicals.length === 0) {
+        chemicals = [{ chemical_name: '', unit_measure: 'mL', amount: '' }];
+    }
+
+    if (!Array.isArray(treatedAreas) || treatedAreas.length === 0) {
+        treatedAreas = [{ area_name: '', infestation_level: 'Low', spray: false, mist: false, rat_bait: false, powder: false, remarks: '', recommendation: '' }];
+    }
+
+    function renderChemicals() {
+        chemicalsBody.innerHTML = '';
+        chemicals.forEach((chemical, index) => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td><input class="row-input" type="text" value="${(chemical.chemical_name || '').replace(/"/g, '&quot;')}" data-index="${index}" data-field="chemical_name"></td>
+                <td><input class="row-input" type="text" value="${(chemical.unit_measure || '').replace(/"/g, '&quot;')}" data-index="${index}" data-field="unit_measure"></td>
+                <td><input class="row-number" type="number" min="0" step="0.01" value="${chemical.amount || ''}" data-index="${index}" data-field="amount"></td>
+                <td><button type="button" class="small-btn btn-delete" data-delete-chemical="${index}">Delete</button></td>
+            `;
+            chemicalsBody.appendChild(row);
+        });
+
+        chemicalsBody.querySelectorAll('input').forEach((input) => {
+            input.addEventListener('input', function () {
+                const index = Number(this.dataset.index);
+                const field = this.dataset.field;
+                chemicals[index][field] = this.value;
+            });
+        });
+
+        chemicalsBody.querySelectorAll('[data-delete-chemical]').forEach((button) => {
+            button.addEventListener('click', function () {
+                chemicals.splice(Number(this.dataset.deleteChemical), 1);
+                if (!chemicals.length) chemicals.push({ chemical_name: '', unit_measure: 'mL', amount: '' });
+                renderChemicals();
+            });
+        });
+    }
+
+    function renderAreas() {
+        areasBody.innerHTML = '';
+        treatedAreas.forEach((area, index) => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td><input class="row-input" type="text" value="${(area.area_name || '').replace(/"/g, '&quot;')}" data-index="${index}" data-field="area_name"></td>
+                <td>
+                    <select class="row-select" data-index="${index}" data-field="infestation_level">
+                        <option value="Low" ${area.infestation_level === 'Low' ? 'selected' : ''}>Low</option>
+                        <option value="Medium" ${area.infestation_level === 'Medium' ? 'selected' : ''}>Medium</option>
+                        <option value="High" ${area.infestation_level === 'High' ? 'selected' : ''}>High</option>
+                    </select>
+                </td>
+                <td><div class="checkbox-group"><input type="checkbox" data-index="${index}" data-field="spray" ${area.spray ? 'checked' : ''}></div></td>
+                <td><div class="checkbox-group"><input type="checkbox" data-index="${index}" data-field="mist" ${area.mist ? 'checked' : ''}></div></td>
+                <td><div class="checkbox-group"><input type="checkbox" data-index="${index}" data-field="rat_bait" ${area.rat_bait ? 'checked' : ''}></div></td>
+                <td><div class="checkbox-group"><input type="checkbox" data-index="${index}" data-field="powder" ${area.powder ? 'checked' : ''}></div></td>
+                <td><input class="row-input" type="text" value="${(area.remarks || '').replace(/"/g, '&quot;')}" data-index="${index}" data-field="remarks"></td>
+                <td><input class="row-input" type="text" value="${(area.recommendation || '').replace(/"/g, '&quot;')}" data-index="${index}" data-field="recommendation"></td>
+                <td><button type="button" class="small-btn btn-delete" data-delete-area="${index}">Delete</button></td>
+            `;
+            areasBody.appendChild(row);
+        });
+
+        areasBody.querySelectorAll('input[data-field], select[data-field]').forEach((element) => {
+            const isCheckbox = element.type === 'checkbox';
+            element.addEventListener('change', function () {
+                const index = Number(this.dataset.index);
+                const field = this.dataset.field;
+                treatedAreas[index][field] = isCheckbox ? this.checked : this.value;
+            });
+            element.addEventListener('input', function () {
+                if (this.type === 'checkbox') return;
+                const index = Number(this.dataset.index);
+                const field = this.dataset.field;
+                treatedAreas[index][field] = this.value;
+            });
+        });
+
+        areasBody.querySelectorAll('[data-delete-area]').forEach((button) => {
+            button.addEventListener('click', function () {
+                treatedAreas.splice(Number(this.dataset.deleteArea), 1);
+                if (!treatedAreas.length) treatedAreas.push({ area_name: '', infestation_level: 'Low', spray: false, mist: false, rat_bait: false, powder: false, remarks: '', recommendation: '' });
+                renderAreas();
+            });
+        });
+    }
+
+    function serializeDraft() {
+        chemicalsJsonInput.value = JSON.stringify(chemicals);
+        treatedAreasJsonInput.value = JSON.stringify(treatedAreas);
+    }
+
+    addChemicalBtn.addEventListener('click', function () {
+        chemicals.push({ chemical_name: '', unit_measure: 'mL', amount: '' });
+        renderChemicals();
+    });
+
+    addAreaBtn.addEventListener('click', function () {
+        treatedAreas.push({ area_name: '', infestation_level: 'Low', spray: false, mist: false, rat_bait: false, powder: false, remarks: '', recommendation: '' });
+        renderAreas();
+    });
+
+    document.getElementById('detailsForm').addEventListener('submit', serializeDraft);
+
+    renderChemicals();
+    renderAreas();
+</script>
+{% endblock %}

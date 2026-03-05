@@ -62,6 +62,22 @@
         line-height: 1;
     }
 
+    .action-chip {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 32px;
+        padding: 0 10px;
+        border-radius: 8px;
+        color: #fff;
+        text-decoration: none;
+        font-size: 0.8em;
+        font-weight: 700;
+        border: none;
+        cursor: pointer;
+        background: #1a2a5e;
+    }
+
     .search-box {
         width: 280px;
         min-height: 38px;
@@ -169,7 +185,7 @@
                 <th>Address</th>
                 <th>Service Type</th>
                 <th>Invoice ID</th>
-                <th>Invoice</th>
+                <th>Action</th>
             </tr>
         </thead>
     </table>
@@ -183,7 +199,17 @@
                     <td>{{ invoice.service.property.street_number }} {{ invoice.service.property.street }}, {{ invoice.service.property.city }}</td>
                     <td>{{ invoice.service.preferred_service }}</td>
                     <td>INV{{ invoice.id|stringformat:'04d' }}</td>
-                    <td><a href="{% url 'om_view_invoice' invoice.id %}" class="file-link">File Name.pdf</a></td>
+                    <td>
+                        <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                            <a href="{% url 'om_view_invoice' invoice.id %}" class="action-chip">View</a>
+                            <a href="{% url 'om_edit_invoice' invoice.id %}" class="action-chip" style="background:#6c7293;">Edit</a>
+                            <a href="{% url 'om_download_invoice_pdf' invoice.id %}" class="action-chip" style="background:#2b7a4b;">Download PDF</a>
+                            <form method="POST" action="{% url 'om_delete_invoice' invoice.id %}" style="margin:0;" onsubmit="return confirm('Delete this invoice?');">
+                                {% csrf_token %}
+                                <button type="submit" class="action-chip" style="background:#d9534f;">Delete</button>
+                            </form>
+                        </div>
+                    </td>
                 </tr>
                 {% empty %}
                 <tr><td colspan="6" class="empty">No invoices available.</td></tr>

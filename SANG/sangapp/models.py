@@ -77,6 +77,8 @@ class Service(models.Model):
     STATUS_CHOICES = [
         ('For Inspection', 'For Inspection'),
         ('Ongoing Inspection', 'Ongoing Inspection'),
+        ('Estimated Bill Created', 'Estimated Bill Created'),
+        ('Estimated Bill Confirmed', 'Estimated Bill Confirmed'),
         ('For Treatment', 'For Treatment'),
         ('Ongoing Treatment', 'Ongoing Treatment'),
         ('Pending Payment', 'Pending Payment'),
