@@ -4,9 +4,9 @@
 
 {% block extra_css %}
     .container {
-        max-width: 1160px;
+        max-width: 1200px;
         margin: 0 auto;
-        padding: 0 24px 24px;
+        padding: 0 24px 28px;
     }
 
     .identified-top {
@@ -19,24 +19,49 @@
     .title {
         text-align: center;
         color: #1a2a5e;
-        margin: 2px 0 14px;
+        margin: 2px 0 16px;
         font-size: clamp(2rem, 4.8vh, 3rem);
     }
 
+    .form-shell {
+        background: #fff;
+        border: 1px solid #ddd;
+        border-radius: 12px;
+        padding: 16px;
+    }
+
     .subtitle {
-        color: #2d2d2d;
+        color: #1f1f1f;
         font-weight: 700;
-        margin-bottom: 8px;
+        margin: 8px 0 10px;
+        font-size: 1.2em;
+    }
+
+    .search-wrap {
+        display: flex;
+        justify-content: flex-end;
+        margin-bottom: 10px;
     }
 
     .search-box {
-        width: 260px;
+        width: 300px;
         min-height: 40px;
         border: 1px solid #ddd;
         border-radius: 12px;
-        padding: 0 12px;
+        padding: 0 38px 0 12px;
         font-size: 0.9em;
-        margin-bottom: 10px;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%23444' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cline x1='21' y1='21' x2='16.65' y2='16.65'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 12px center;
+        background-size: 18px;
+    }
+
+    .table-wrap {
+        border: 1px solid #d8d8d8;
+        border-top: none;
+        max-height: 230px;
+        overflow-y: auto;
+        background: #fff;
     }
 
     table {
@@ -84,11 +109,11 @@
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        min-height: 34px;
-        padding: 0 12px;
-        border-radius: 8px;
+        min-height: 38px;
+        padding: 0 14px;
+        border-radius: 10px;
         border: none;
-        font-size: 0.8em;
+        font-size: 0.88em;
         font-weight: 700;
         cursor: pointer;
     }
@@ -120,7 +145,7 @@
         display: flex;
         justify-content: center;
         gap: 12px;
-        margin-top: 18px;
+        margin-top: 22px;
     }
 
     .main-btn {
@@ -148,9 +173,6 @@
     .empty-box {
         text-align: center;
         color: #777;
-        border: 1px solid #ddd;
-        border-top: none;
-        background: #fff;
         padding: 22px;
     }
 
@@ -190,99 +212,109 @@
         </div>
     {% elif step == 'select' %}
         <h1 class="title">Service Report Submission</h1>
-        <div class="subtitle">Select service record</div>
+        <div class="form-shell">
+            <div class="subtitle">Select Service Record</div>
 
-        <input type="text" id="searchBox" class="search-box" placeholder="Search">
-
-        <form method="POST" id="selectForm">
-            {% csrf_token %}
-            <input type="hidden" name="step" value="select">
-            <input type="hidden" name="action" id="selectAction" value="continue">
-
-            <table id="selectTable">
-                <thead>
-                    <tr>
-                        <th>Select</th>
-                        <th>Service ID</th>
-                        <th>Customer Name</th>
-                        <th>Address</th>
-                        <th>Service Type</th>
-                        <th>Treatment Date</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for service in services %}
-                    <tr>
-                        <td><input type="radio" name="selected_service_id" value="{{ service.id }}" {% if selected_service_id == service.id|stringformat:'s' %}checked{% endif %}></td>
-                        <td>{{ service.id|stringformat:'07d' }}</td>
-                        <td>{{ service.customer.first_name }} {{ service.customer.last_name }}</td>
-                        <td>{{ service.property.street_number }} {{ service.property.street }}, {{ service.property.city }}</td>
-                        <td>{{ service.preferred_service }}</td>
-                        <td>{{ service.confirmed_date|default:service.date|date:'m/d/Y' }}</td>
-                    </tr>
-                    {% empty %}
-                    <tr><td colspan="6" class="empty-box">No Ongoing Treatment services available for report creation.</td></tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-
-            {% if errors.selected_service %}<p class="error">{{ errors.selected_service }}</p>{% endif %}
-
-            <div class="actions">
-                <button type="button" class="main-btn btn-cancel" id="openCancelSelect">Cancel</button>
-                <button type="submit" class="main-btn btn-continue">Continue</button>
+            <div class="search-wrap">
+                <input type="text" id="searchBox" class="search-box" placeholder="Search">
             </div>
-        </form>
+
+            <form method="POST" id="selectForm">
+                {% csrf_token %}
+                <input type="hidden" name="step" value="select">
+                <input type="hidden" name="action" id="selectAction" value="continue">
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Select</th>
+                            <th>Service ID</th>
+                            <th>Customer Name</th>
+                            <th>Address</th>
+                            <th>Service Type</th>
+                            <th>Treatment Date</th>
+                        </tr>
+                    </thead>
+                </table>
+                <div class="table-wrap">
+                    <table id="selectTable">
+                        <tbody>
+                            {% for service in services %}
+                            <tr>
+                                <td><input type="radio" name="selected_service_id" value="{{ service.id }}" {% if selected_service_id == service.id|stringformat:'s' %}checked{% endif %}></td>
+                                <td>{{ service.id|stringformat:'07d' }}</td>
+                                <td>{{ service.customer.first_name }} {{ service.customer.last_name }}</td>
+                                <td>{{ service.property.street_number }} {{ service.property.street }}, {{ service.property.city }}</td>
+                                <td>{{ service.preferred_service }}</td>
+                                <td>{{ service.confirmed_date|default:service.date|date:'m/d/Y' }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="6" class="empty-box">No Ongoing Treatment services available for report creation.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                {% if errors.selected_service %}<p class="error">{{ errors.selected_service }}</p>{% endif %}
+
+                <div class="actions">
+                    <button type="button" class="main-btn btn-cancel" id="openCancelSelect">Cancel</button>
+                    <button type="submit" class="main-btn btn-continue">Continue</button>
+                </div>
+            </form>
+        </div>
     {% else %}
         <h1 class="title">Create Service Report</h1>
 
-        <form method="POST" id="detailsForm">
-            {% csrf_token %}
-            <input type="hidden" name="step" value="details">
-            <input type="hidden" name="action" id="detailsAction" value="submit">
-            <input type="hidden" name="chemicals_json" id="chemicalsJsonInput">
-            <input type="hidden" name="treated_areas_json" id="treatedAreasJsonInput">
+        <div class="form-shell">
+            <form method="POST" id="detailsForm">
+                {% csrf_token %}
+                <input type="hidden" name="step" value="details">
+                <input type="hidden" name="action" id="detailsAction" value="submit">
+                <input type="hidden" name="chemicals_json" id="chemicalsJsonInput">
+                <input type="hidden" name="treated_areas_json" id="treatedAreasJsonInput">
 
-            <div class="subtitle">Add chemicals used</div>
-            <table>
-                <thead>
-                    <tr>
-                        <th style="width:40%;">Name</th>
-                        <th style="width:22%;">Unit Measure</th>
-                        <th style="width:22%;">Amount</th>
-                        <th style="width:16%;">Delete</th>
-                    </tr>
-                </thead>
-                <tbody id="chemicalsBody"></tbody>
-            </table>
-            <button type="button" class="small-btn btn-add" id="addChemicalBtn">+ Add a chemical</button>
-            {% if errors.chemicals %}<p class="error">{{ errors.chemicals }}</p>{% endif %}
+                <div class="subtitle">Add chemicals used</div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width:40%;">Name</th>
+                            <th style="width:22%;">Unit Measure</th>
+                            <th style="width:22%;">Amount</th>
+                            <th style="width:16%;">Delete</th>
+                        </tr>
+                    </thead>
+                    <tbody id="chemicalsBody"></tbody>
+                </table>
+                <button type="button" class="small-btn btn-add" id="addChemicalBtn">+ Add a chemical</button>
+                {% if errors.chemicals %}<p class="error">{{ errors.chemicals }}</p>{% endif %}
 
-            <div class="subtitle">Treated areas</div>
-            <table>
-                <thead>
-                    <tr>
-                        <th style="width:14%;">Areas</th>
-                        <th style="width:14%;">Levels of Infestation</th>
-                        <th style="width:6%;">Spray</th>
-                        <th style="width:6%;">Mist</th>
-                        <th style="width:8%;">Rat Bait</th>
-                        <th style="width:7%;">Powder</th>
-                        <th style="width:16%;">Remarks</th>
-                        <th style="width:16%;">Recommendation</th>
-                        <th style="width:7%;">Delete</th>
-                    </tr>
-                </thead>
-                <tbody id="areasBody"></tbody>
-            </table>
-            <button type="button" class="small-btn btn-add" id="addAreaBtn">+ Add treated area</button>
-            {% if errors.treated_areas %}<p class="error">{{ errors.treated_areas }}</p>{% endif %}
+                <div class="subtitle">Treated areas</div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width:14%;">Areas</th>
+                            <th style="width:14%;">Levels of Infestation</th>
+                            <th style="width:6%;">Spray</th>
+                            <th style="width:6%;">Mist</th>
+                            <th style="width:8%;">Rat Bait</th>
+                            <th style="width:7%;">Powder</th>
+                            <th style="width:16%;">Remarks</th>
+                            <th style="width:16%;">Recommendation</th>
+                            <th style="width:7%;">Delete</th>
+                        </tr>
+                    </thead>
+                    <tbody id="areasBody"></tbody>
+                </table>
+                <button type="button" class="small-btn btn-add" id="addAreaBtn">+ Add treated area</button>
+                {% if errors.treated_areas %}<p class="error">{{ errors.treated_areas }}</p>{% endif %}
 
-            <div class="actions">
-                <button type="button" class="main-btn btn-back" id="goBackBtn">Go Back</button>
-                <button type="button" class="main-btn btn-submit" id="openSubmitConfirm">Submit</button>
-            </div>
-        </form>
+                <div class="actions">
+                    <button type="button" class="main-btn btn-back" id="goBackBtn">Go Back</button>
+                    <button type="button" class="main-btn btn-submit" id="openSubmitConfirm">Submit</button>
+                </div>
+            </form>
+        </div>
     {% endif %}
 
     <div id="cancelModal" class="modal">

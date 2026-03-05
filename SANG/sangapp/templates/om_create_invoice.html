@@ -4,9 +4,9 @@
 
 {% block extra_css %}
     .container {
-        max-width: 1120px;
+        max-width: 1160px;
         margin: 0 auto;
-        padding: 0 24px 24px;
+        padding: 0 24px 28px;
     }
 
     .identified-top {
@@ -20,13 +20,22 @@
         text-align: center;
         color: #1a2a5e;
         font-size: clamp(2rem, 4.8vh, 3rem);
-        margin: 8px 0 14px;
+        margin: 8px 0 16px;
+    }
+
+    .form-shell {
+        background: #fff;
+        border: 1px solid #ddd;
+        border-radius: 12px;
+        padding: 16px;
     }
 
     .section-label {
-        color: #333;
-        font-size: 1.05em;
-        margin: 8px 0;
+        color: #1f1f1f;
+        font-size: 2.05rem;
+        margin: 8px 0 10px;
+        font-weight: 800;
+        line-height: 1.15;
     }
 
     .search-wrap {
@@ -36,12 +45,12 @@
     }
 
     .search-box {
-        width: 280px;
-        min-height: 38px;
+        width: 300px;
+        min-height: 40px;
         border: 1px solid #ddd;
         border-radius: 12px;
         padding: 0 38px 0 12px;
-        font-size: 0.88em;
+        font-size: 0.9em;
         background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%23444' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cline x1='21' y1='21' x2='16.65' y2='16.65'/%3E%3C/svg%3E");
         background-repeat: no-repeat;
         background-position: right 12px center;
@@ -51,7 +60,7 @@
     .table-wrap {
         border: 1px solid #d8d8d8;
         border-top: none;
-        max-height: 190px;
+        max-height: 220px;
         overflow-y: auto;
         background: #fff;
     }
@@ -82,32 +91,32 @@
 
     .invoice-row {
         display: grid;
-        grid-template-columns: 1fr 320px 88px;
+        grid-template-columns: 1fr 1fr 140px;
         gap: 12px;
         margin-bottom: 10px;
         align-items: center;
-        max-width: 860px;
+        max-width: 1040px;
     }
 
     .field {
         width: 100%;
-        min-height: 44px;
+        min-height: 46px;
         border: 1px solid #d7d7d7;
         border-radius: 12px;
         padding: 0 12px;
-        font-size: 0.95em;
+        font-size: 0.96em;
         color: #333;
         background: #fff;
     }
 
     .delete-btn {
-        min-height: 38px;
+        min-height: 46px;
         border: none;
-        border-radius: 10px;
+        border-radius: 12px;
         background: #e74b4b;
         color: #fff;
-        font-weight: 600;
-        font-size: 0.8em;
+        font-weight: 700;
+        font-size: 0.9em;
         cursor: pointer;
     }
 
@@ -116,13 +125,13 @@
         align-items: center;
         justify-content: center;
         gap: 6px;
-        min-height: 34px;
-        padding: 0 14px;
+        min-height: 38px;
+        padding: 0 16px;
         border-radius: 999px;
         border: 1px solid #c5cce5;
         background: #eef1fb;
         color: #1a2a5e;
-        font-size: 0.84em;
+        font-size: 0.9em;
         font-weight: 700;
         cursor: pointer;
     }
@@ -151,15 +160,15 @@
         display: flex;
         justify-content: center;
         gap: 14px;
-        margin-top: 16px;
+        margin-top: 22px;
     }
 
     .btn {
         min-width: 178px;
-        min-height: 50px;
+        min-height: 46px;
         border: none;
         border-radius: 12px;
-        font-size: 0.96em;
+        font-size: 0.98em;
         font-weight: 700;
         cursor: pointer;
     }
@@ -200,58 +209,60 @@
     <p class="identified-top">User Identified As: Operations Manager</p>
     <h1 class="title">Create Invoice</h1>
 
-    <form method="POST" id="createInvoiceForm">
-        {% csrf_token %}
-        <input type="hidden" name="items_json" id="itemsJsonInput">
-        <input type="hidden" name="action" id="formAction" value="submit">
+    <div class="form-shell">
+        <form method="POST" id="createInvoiceForm">
+            {% csrf_token %}
+            <input type="hidden" name="items_json" id="itemsJsonInput">
+            <input type="hidden" name="action" id="formAction" value="submit">
 
-        <div class="section-label">Select Service Record</div>
-        <div class="search-wrap">
-            <input type="text" id="searchBox" class="search-box" placeholder="Search">
-        </div>
+            <div class="section-label">Select Service Record</div>
+            <div class="search-wrap">
+                <input type="text" id="searchBox" class="search-box" placeholder="Search">
+            </div>
 
-        <table>
-            <thead>
-                <tr>
-                    <th class="center" style="width:12%;">Select</th>
-                    <th style="width:15%;">Service ID</th>
-                    <th style="width:18%;">Customer Name</th>
-                    <th style="width:23%;">Address</th>
-                    <th style="width:16%;">Service Type</th>
-                    <th style="width:16%;">Treatment Date</th>
-                </tr>
-            </thead>
-        </table>
-        <div class="table-wrap">
-            <table id="serviceTable">
-                <tbody>
-                    {% for service in services %}
+            <table>
+                <thead>
                     <tr>
-                        <td class="center"><input type="radio" name="selected_service_id" value="{{ service.id }}" {% if selected_service_id == service.id|stringformat:'s' %}checked{% endif %}></td>
-                        <td>{{ service.id|stringformat:'07d' }}</td>
-                        <td>{{ service.customer.first_name }} {{ service.customer.last_name }}</td>
-                        <td>{{ service.property.street_number }} {{ service.property.street }}, {{ service.property.city }}</td>
-                        <td>{{ service.preferred_service }}</td>
-                        <td>{{ service.confirmed_date|default:service.date|date:'m/d/Y' }}</td>
+                        <th class="center" style="width:12%;">Select</th>
+                        <th style="width:15%;">Service ID</th>
+                        <th style="width:18%;">Customer Name</th>
+                        <th style="width:23%;">Address</th>
+                        <th style="width:16%;">Service Type</th>
+                        <th style="width:16%;">Treatment Date</th>
                     </tr>
-                    {% empty %}
-                    <tr><td colspan="6" class="center">No services available for invoice generation.</td></tr>
-                    {% endfor %}
-                </tbody>
+                </thead>
             </table>
-        </div>
+            <div class="table-wrap">
+                <table id="serviceTable">
+                    <tbody>
+                        {% for service in services %}
+                        <tr>
+                            <td class="center"><input type="radio" name="selected_service_id" value="{{ service.id }}" {% if selected_service_id == service.id|stringformat:'s' %}checked{% endif %}></td>
+                            <td>{{ service.id|stringformat:'07d' }}</td>
+                            <td>{{ service.customer.first_name }} {{ service.customer.last_name }}</td>
+                            <td>{{ service.property.street_number }} {{ service.property.street }}, {{ service.property.city }}</td>
+                            <td>{{ service.preferred_service }}</td>
+                            <td>{{ service.confirmed_date|default:service.date|date:'m/d/Y' }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="6" class="center">No services available for invoice generation.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
 
-        <div class="section-label" style="margin-top:14px;">Invoice Items</div>
-        <div id="invoiceRows"></div>
-        <button type="button" class="add-btn" id="addItemBtn">Add an item</button>
+            <div class="section-label" style="margin-top:14px;">Invoice Items</div>
+            <div id="invoiceRows"></div>
+            <button type="button" class="add-btn" id="addItemBtn">+ Add an item</button>
 
-        {% if errors.general %}<p class="error">{{ errors.general }}</p>{% endif %}
+            {% if errors.general %}<p class="error">{{ errors.general }}</p>{% endif %}
 
-        <div class="actions">
-            <button type="submit" class="btn btn-cancel" onclick="document.getElementById('formAction').value='cancel'">Cancel</button>
-            <button type="button" class="btn btn-submit" id="openConfirmModal">Submit</button>
-        </div>
-    </form>
+            <div class="actions">
+                <button type="submit" class="btn btn-cancel" onclick="document.getElementById('formAction').value='cancel'">Cancel</button>
+                <button type="button" class="btn btn-submit" id="openConfirmModal">Submit</button>
+            </div>
+        </form>
+    </div>
 
     <div id="confirmModal" class="modal">
         <div class="modal-content">
