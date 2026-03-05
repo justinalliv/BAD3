@@ -3,6 +3,12 @@
 {% block title %}Manage Properties - Supreme Biotech Solutions{% endblock %}
 
 {% block extra_css %}
+    .container {
+        max-width: 1200px;
+        margin: 28px auto 48px;
+        padding: 0 24px;
+    }
+
     .header-section {
         display: flex;
         justify-content: space-between;
@@ -35,22 +41,70 @@
         background-color: #0d1535;
     }
 
-    .action-btn {
-        background-color: #1a2a5e;
-        color: white;
-        padding: 8px 16px;
-        border: none;
+    .search-box {
+        padding: 10px 15px;
+        border: 1px solid #ddd;
         border-radius: 5px;
-        font-size: 1em;
+        font-size: 0.95em;
+        transition: border-color 0.3s;
+    }
+
+    .search-box:focus {
+        outline: none;
+        border-color: #1a2a5e;
+        box-shadow: 0 0 0 2px rgba(26, 42, 94, 0.1);
+    }
+
+    .section {
+        background-color: white;
+        border-radius: 10px;
+        padding: 30px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    th {
+        padding: 15px;
+        text-align: left;
         font-weight: 600;
+        font-size: 0.95em;
+    }
+
+    td {
+        padding: 15px;
+        border-bottom: 1px solid #e0e0e0;
+        font-size: 0.95em;
+        color: #333;
+    }
+
+    tbody tr:hover {
+        background-color: #f5f5f5;
+    }
+
+    tbody tr:last-child td {
+        border-bottom: none;
+    }
+
+    .action-btn {
+        background-color: #6c7293;
+        color: white;
+        padding: 7px 12px;
+        border: none;
+        border-radius: 8px;
+        font-size: 0.84em;
+        font-weight: 700;
         cursor: pointer;
         transition: background-color 0.3s;
         text-decoration: none;
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        min-width: 110px;
-        min-height: 44px;
+        min-width: 128px;
+        min-height: 34px;
         line-height: 1.2;
         box-sizing: border-box;
         font-family: inherit;
@@ -59,20 +113,45 @@
 
     .action-cell {
         display: flex;
-        align-items: center;
+        flex-direction: column;
+        align-items: flex-start;
         gap: 8px;
     }
 
     .action-btn:hover {
-        background-color: #0d1535;
+        background-color: #585e7a;
+    }
+
+    .action-btn.update {
+        background-color: #6c7293;
+    }
+
+    .action-btn.update:hover {
+        background-color: #585e7a;
+    }
+
+    .action-btn.edit {
+        background-color: #3aa655;
+    }
+
+    .action-btn.edit:hover {
+        background-color: #308c48;
+    }
+
+    .action-btn.delete {
+        background-color: #d9534f;
+    }
+
+    .action-btn.delete:hover {
+        background-color: #c74743;
     }
 
     .delete-btn {
-        background-color: #e74c3c;
+        background-color: #d9534f;
     }
 
     .delete-btn:hover {
-        background-color: #c0392b;
+        background-color: #c74743;
     }
 
     .section-header {
@@ -137,8 +216,8 @@
                             <td>{{ property.property_type }}</td>
                             <td>{{ property.floor_area }} sqm</td>
                             <td class="action-cell">
-                                <a href="{% url 'edit_property' property.id %}" class="action-btn">Update Status</a>
-                                <button type="button" class="action-btn delete-btn delete-action" data-property-id="{{ property.id }}" data-property-name="{{ property.property_name|escapejs }}">Delete Booking</button>
+                                <a href="{% url 'edit_property' property.id %}" class="action-btn update">Update Status</a>
+                                <button type="button" class="action-btn delete delete-btn delete-action" data-property-id="{{ property.id }}" data-property-name="{{ property.property_name|escapejs }}">Delete Booking</button>
                             </td>
                         </tr>
                         {% endfor %}
