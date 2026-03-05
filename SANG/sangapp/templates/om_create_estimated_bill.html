@@ -23,25 +23,32 @@
         margin: 8px 0 16px;
     }
 
-    .form-shell {
-        background: #fff;
-        border: 1px solid #ddd;
-        border-radius: 12px;
-        padding: 16px;
+    .section-card {
+        background-color: white;
+        border-radius: 10px;
+        padding: 24px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        margin-bottom: 18px;
     }
 
     .section-label {
-        color: #1f1f1f;
-        font-size: 2.05rem;
-        margin: 8px 0 10px;
-        font-weight: 800;
-        line-height: 1.15;
+        color: #1a2a5e;
+        font-size: 1.55em;
+        margin: 0;
+        font-weight: 700;
+        line-height: 1.2;
+    }
+
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 14px;
     }
 
     .search-wrap {
-        display: flex;
-        justify-content: flex-end;
-        margin-bottom: 10px;
+        margin: 0;
     }
 
     .search-box {
@@ -58,7 +65,7 @@
     }
 
     .table-wrap {
-        border: 1px solid #d8d8d8;
+        border: 1px solid #e0e0e0;
         border-top: none;
         max-height: 220px;
         overflow-y: auto;
@@ -72,17 +79,28 @@
     }
 
     th, td {
-        border: 1px solid #d8d8d8;
-        padding: 9px 9px;
+        padding: 15px;
         text-align: left;
         color: #333;
-        font-size: 0.88em;
+        font-size: 0.95em;
     }
 
     th {
         background: #1a2a5e;
         color: #fff;
-        font-size: 1em;
+        font-size: 0.95em;
+        font-weight: 600;
+        border-right: none;
+    }
+
+    #serviceTable td {
+        border-bottom: 1px solid #e0e0e0;
+        border-right: none;
+        border-left: none;
+    }
+
+    #serviceTable tbody tr:last-child td {
+        border-bottom: none;
     }
 
     .center {
@@ -95,7 +113,11 @@
         gap: 12px;
         margin-bottom: 10px;
         align-items: center;
-        max-width: 1040px;
+        max-width: 100%;
+        background: #f9fafc;
+        border: 1px solid #dfe3ee;
+        border-radius: 10px;
+        padding: 10px;
     }
 
     .field {
@@ -109,15 +131,38 @@
         background: #fff;
     }
 
+    .field:focus {
+        outline: none;
+        border-color: #1a2a5e;
+        box-shadow: 0 0 0 3px rgba(26, 42, 94, 0.12);
+    }
+
+    .field-select {
+        appearance: none;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        padding-right: 42px;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='10' viewBox='0 0 14 10'%3E%3Cpath fill='none' stroke='%234a4a4a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M1 1l6 6 6-6'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 14px center;
+        background-size: 14px 10px;
+    }
+
     .delete-btn {
-        min-height: 46px;
+        min-width: 128px;
+        min-height: 34px;
+        padding: 7px 12px;
         border: none;
-        border-radius: 12px;
-        background: #e74b4b;
+        border-radius: 8px;
+        background: #d9534f;
         color: #fff;
         font-weight: 700;
-        font-size: 0.9em;
+        font-size: 0.84em;
         cursor: pointer;
+    }
+
+    .delete-btn:hover {
+        background: #c74743;
     }
 
     .add-btn {
@@ -125,13 +170,13 @@
         align-items: center;
         justify-content: center;
         gap: 6px;
-        min-height: 38px;
-        padding: 0 16px;
+        min-height: 36px;
+        padding: 0 14px;
         border-radius: 999px;
         border: 1px solid #c5cce5;
         background: #eef1fb;
         color: #1a2a5e;
-        font-size: 0.9em;
+        font-size: 0.84em;
         font-weight: 700;
         cursor: pointer;
     }
@@ -212,15 +257,17 @@
     <p class="identified-top">User Identified As: Operations Manager</p>
     <h1 class="title">Create Estimated Bill</h1>
 
-    <div class="form-shell">
-        <form method="POST" id="createEstimatedBillForm">
-            {% csrf_token %}
-            <input type="hidden" name="items_json" id="itemsJsonInput">
-            <input type="hidden" name="action" id="formAction" value="submit">
+    <form method="POST" id="createEstimatedBillForm">
+        {% csrf_token %}
+        <input type="hidden" name="items_json" id="itemsJsonInput">
+        <input type="hidden" name="action" id="formAction" value="submit">
 
-            <div class="section-label">Select Service Record</div>
-            <div class="search-wrap">
-                <input type="text" id="searchBox" class="search-box" placeholder="Search">
+        <div class="section-card">
+            <div class="section-header">
+                <h2 class="section-label">Select Service Record</h2>
+                <div class="search-wrap">
+                    <input type="text" id="searchBox" class="search-box" placeholder="Search">
+                </div>
             </div>
 
             <table>
@@ -251,19 +298,23 @@
                     </tbody>
                 </table>
             </div>
+        </div>
 
-            <div class="section-label" style="margin-top:14px;">Select Treatment</div>
+        <div class="section-card">
+            <div class="section-header" style="margin-bottom:12px;">
+                <h2 class="section-label">Select Treatment</h2>
+            </div>
             <div id="treatmentRows"></div>
             <button type="button" class="add-btn" id="addTreatmentBtn">+ Add a treatment</button>
 
             {% if errors.general %}<p class="error">{{ errors.general }}</p>{% endif %}
+        </div>
 
-            <div class="actions">
-                <button type="submit" class="btn btn-cancel" onclick="document.getElementById('formAction').value='cancel'">Cancel</button>
-                <button type="button" class="btn btn-submit" id="openConfirmModal">Submit</button>
-            </div>
-        </form>
-    </div>
+        <div class="actions">
+            <button type="submit" class="btn btn-cancel" onclick="document.getElementById('formAction').value='cancel'">Cancel</button>
+            <button type="button" class="btn btn-submit" id="openConfirmModal">Submit</button>
+        </div>
+    </form>
 
     <div id="confirmModal" class="modal">
         <div class="modal-content">
@@ -314,7 +365,7 @@
                 .join('');
 
             row.innerHTML = `
-                <select class="field" data-index="${index}" data-field="service_type">${options}</select>
+                <select class="field field-select" data-index="${index}" data-field="service_type">${options}</select>
                 <input type="number" min="1" class="field" data-index="${index}" data-field="quantity" placeholder="Enter the quantity" value="${item.quantity || ''}">
                 <button type="button" class="delete-btn" data-delete-index="${index}">Delete</button>
             `;

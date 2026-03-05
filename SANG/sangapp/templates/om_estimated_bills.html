@@ -4,9 +4,9 @@
 
 {% block extra_css %}
     .container {
-        max-width: 1120px;
-        margin: 0 auto;
-        padding: 0 24px 24px;
+        max-width: 1200px;
+        margin: 28px auto 48px;
+        padding: 0 24px;
     }
 
     .identified-top {
@@ -17,18 +17,33 @@
     }
 
     .title {
-        text-align: center;
+        text-align: left;
         color: #1a2a5e;
-        font-size: clamp(2rem, 4.8vh, 3rem);
-        margin: 8px 0 14px;
+        font-size: 2.5em;
+        margin: 0;
+    }
+
+    .header-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 16px;
+        margin-bottom: 20px;
+    }
+
+    .list-shell {
+        background-color: white;
+        border-radius: 10px;
+        padding: 30px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     }
 
     .toolbar {
         display: flex;
-        justify-content: space-between;
+        justify-content: flex-end;
         align-items: center;
         gap: 12px;
-        margin-bottom: 12px;
+        margin-bottom: 20px;
     }
 
     .create-btn {
@@ -36,30 +51,20 @@
         align-items: center;
         justify-content: center;
         gap: 8px;
-        min-height: 38px;
-        padding: 0 16px;
-        border-radius: 999px;
+        min-height: 44px;
+        padding: 12px 30px;
+        border-radius: 8px;
         border: none;
         background: #1a2a5e;
         color: #fff;
-        font-size: 0.88em;
-        font-weight: 700;
+        font-size: 1em;
+        font-weight: 600;
         text-decoration: none;
+        transition: background-color 0.3s;
     }
 
-    .create-btn::before {
-        content: '+';
-        width: 16px;
-        height: 16px;
-        border-radius: 50%;
-        background: #fff;
-        color: #1a2a5e;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 0.9em;
-        font-weight: 800;
-        line-height: 1;
+    .create-btn:hover {
+        background: #0d1535;
     }
 
     .action-chip {
@@ -92,11 +97,9 @@
     }
 
     .table-wrap {
-        border: 1px solid #d8d8d8;
-        border-top: none;
         max-height: 430px;
         overflow-y: auto;
-        background: #fff;
+        background: white;
     }
 
     table {
@@ -105,17 +108,22 @@
     }
 
     th, td {
-        border: 1px solid #d8d8d8;
-        padding: 9px 10px;
+        padding: 15px;
         text-align: left;
         color: #333;
-        font-size: 0.9em;
+        font-size: 0.95em;
+        border-bottom: 1px solid #e0e0e0;
     }
 
     th {
         background: #1a2a5e;
         color: #fff;
-        font-size: 1em;
+        font-size: 0.95em;
+        font-weight: 600;
+    }
+
+    tbody tr:last-child td {
+        border-bottom: none;
     }
 
     .file-link {
@@ -162,7 +170,15 @@
 {% block content %}
 <div class="container">
     <p class="identified-top">User Identified As: Operations Manager</p>
-    <h1 class="title">Estimated Bill</h1>
+    <div class="header-row">
+        <h1 class="title">Estimated Bill</h1>
+        <a href="{% url 'om_create_estimated_bill' %}" class="create-btn">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style="margin-right: 5px;">
+                <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14h-2v-4h-4v-2h4V7h2v4h4v2h-4z"/>
+            </svg>
+            Create Estimated Bill
+        </a>
+    </div>
 
     {% if messages %}
         {% for message in messages %}
@@ -172,50 +188,51 @@
         {% endfor %}
     {% endif %}
 
-    <div class="toolbar">
-        <a href="{% url 'om_create_estimated_bill' %}" class="create-btn">+ Create Estimated Bill</a>
-        <input type="text" id="searchBox" class="search-box" placeholder="Search">
-    </div>
+    <div class="list-shell">
+        <div class="toolbar">
+            <input type="text" id="searchBox" class="search-box" placeholder="Search">
+        </div>
 
-    <table>
-        <thead>
-            <tr>
-                <th>Service ID</th>
-                <th>Customer Name</th>
-                <th>Address</th>
-                <th>Service Type</th>
-                <th>Estimated Bill ID</th>
-                <th>Action</th>
-            </tr>
-        </thead>
-    </table>
-    <div class="table-wrap">
-        <table id="billTable">
-            <tbody>
-                {% for bill in estimated_bills %}
+        <table>
+            <thead>
                 <tr>
-                    <td>{{ bill.service.id|stringformat:'07d' }}</td>
-                    <td>{{ bill.service.customer.first_name }} {{ bill.service.customer.last_name }}</td>
-                    <td>{{ bill.service.property.street_number }} {{ bill.service.property.street }}, {{ bill.service.property.city }}</td>
-                    <td>{{ bill.service.preferred_service }}</td>
-                    <td>{{ bill.id|stringformat:'07d' }}</td>
-                    <td>
-                        <div style="display:flex;gap:6px;flex-wrap:wrap;">
-                            <a href="{% url 'om_view_estimated_bill' bill.id %}" class="action-chip">View</a>
-                            <a href="{% url 'om_edit_estimated_bill' bill.id %}" class="action-chip" style="background:#6c7293;">Edit</a>
-                            <a href="{% url 'om_download_estimated_bill_pdf' bill.id %}" class="action-chip" style="background:#2b7a4b;">Download PDF</a>
-                            <form method="POST" action="{% url 'om_delete_estimated_bill' bill.id %}" style="margin:0;" onsubmit="return confirm('Delete this estimated bill?');">
-                                {% csrf_token %}
-                                <button type="submit" class="action-chip" style="background:#d9534f;">Delete</button>
-                            </form>
-                        </div>
-                    </td>
+                    <th>Service ID</th>
+                    <th>Customer Name</th>
+                    <th>Address</th>
+                    <th>Service Type</th>
+                    <th>Estimated Bill ID</th>
+                    <th>Action</th>
                 </tr>
-                {% empty %}
-                <tr><td colspan="6" class="empty">No estimated bills available.</td></tr>
-                {% endfor %}
-            </tbody>
+            </thead>
         </table>
+        <div class="table-wrap">
+            <table id="billTable">
+                <tbody>
+                    {% for bill in estimated_bills %}
+                    <tr>
+                        <td>{{ bill.service.id|stringformat:'07d' }}</td>
+                        <td>{{ bill.service.customer.first_name }} {{ bill.service.customer.last_name }}</td>
+                        <td>{{ bill.service.property.street_number }} {{ bill.service.property.street }}, {{ bill.service.property.city }}</td>
+                        <td>{{ bill.service.preferred_service }}</td>
+                        <td>{{ bill.id|stringformat:'07d' }}</td>
+                        <td>
+                            <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                                <a href="{% url 'om_view_estimated_bill' bill.id %}" class="action-chip">View</a>
+                                <a href="{% url 'om_edit_estimated_bill' bill.id %}" class="action-chip" style="background:#6c7293;">Edit</a>
+                                <a href="{% url 'om_download_estimated_bill_pdf' bill.id %}" class="action-chip" style="background:#2b7a4b;">Download PDF</a>
+                                <form method="POST" action="{% url 'om_delete_estimated_bill' bill.id %}" style="margin:0;" onsubmit="return confirm('Delete this estimated bill?');">
+                                    {% csrf_token %}
+                                    <button type="submit" class="action-chip" style="background:#d9534f;">Delete</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="6" class="empty">No estimated bills available.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
 {% endblock %}
