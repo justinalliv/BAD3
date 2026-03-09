@@ -4,6 +4,7 @@ from django.db import transaction
 from django.core.mail import send_mail
 from django.conf import settings
 from django.http import HttpResponse
+from django.utils import timezone
 from decimal import Decimal, InvalidOperation
 from io import BytesIO
 import json
@@ -660,7 +661,7 @@ def book_inspection(request):
                 pest_problem_other=pest_problem_other if pest_problem == 'Other' else None,
                 date=date,
                 time_slot=time_slot,
-                status='For Inspection'
+                status='For Confirmation'
             )
             
             # Show success state
@@ -719,6 +720,33 @@ def service_status(request):
     })
 
 
+def customer_delete_booking(request, service_id):
+    if 'customer_id' not in request.session:
+        return redirect('login')
+
+    if request.method != 'POST':
+        return redirect('service_status')
+
+    try:
+        customer = Customer.objects.get(id=request.session['customer_id'])
+    except Customer.DoesNotExist:
+        request.session.flush()
+        return redirect('login')
+
+    service = Service.objects.filter(id=service_id, customer=customer).first()
+    if not service:
+        messages.error(request, 'Service record not found.')
+        return redirect('service_status')
+
+    if service.status not in {'For Confirmation', 'For Inspection', 'For Treatment'}:
+        messages.error(request, 'Only services with For Confirmation, For Inspection, or For Treatment status can be deleted.')
+        return redirect('service_status')
+
+    service.delete()
+    messages.success(request, 'Service deleted successfully.')
+    return redirect('service_status')
+
+
 def customer_view_estimated_bill(request, service_id):
     if 'customer_id' not in request.session:
         return redirect('login')
@@ -740,19 +768,11 @@ def customer_view_estimated_bill(request, service_id):
         messages.error(request, 'Estimated bill not found.')
         return redirect('service_status')
 
-    if request.method == 'POST':
-        if request.POST.get('action') == 'confirm':
-            service = estimated_bill.service
-            service.status = 'Estimated Bill Confirmed'
-            service.save(update_fields=['status'])
-            messages.success(request, 'Estimated bill confirmed successfully.')
-            return redirect('service_status')
-
     return render(request, 'om_estimated_bill_view.html', {
         'estimated_bill': estimated_bill,
         'role': 'customer',
         'back_url_name': 'service_status',
-        'allow_confirm': estimated_bill.service.status == 'Estimated Bill Created',
+        'allow_confirm': False,
     })
 
 
@@ -1831,13 +1851,17 @@ def technician_service_status(request):
         request.session.flush()
         return redirect('login')
 
+    created_order = request.GET.get('created_order', 'newest').strip().lower()
+    order_by = 'created_at' if created_order == 'oldest' else '-created_at'
+
     services = Service.objects.exclude(
         status__in=['Completed', 'Cancelled']
-    ).select_related('customer', 'property').order_by('-created_at')
+    ).select_related('customer', 'property').order_by(order_by)
 
     return render(request, 'technician_service_status.html', {
         'technician': technician,
         'services': services,
+        'created_order': created_order,
     })
 
 
@@ -1861,7 +1885,6 @@ def technician_update_service_status(request, service_id):
         ('For Inspection', 'For Inspection'),
         ('Ongoing Inspection', 'Ongoing Inspection'),
         ('Estimated Bill Created', 'Estimated Bill Created'),
-        ('Estimated Bill Confirmed', 'Estimated Bill Confirmed'),
         ('For Treatment', 'For Treatment'),
         ('Ongoing Treatment', 'Ongoing Treatment'),
     ]
@@ -1919,8 +1942,8 @@ def technician_edit_booking(request, service_id):
         messages.error(request, 'Service record not found.')
         return redirect('technician_service_status')
 
-    if service.status not in {'For Inspection', 'For Treatment'}:
-        messages.error(request, 'Edit booking is only available for For Inspection or For Treatment statuses.')
+    if service.status not in {'For Confirmation', 'For Inspection', 'For Treatment'}:
+        messages.error(request, 'Edit booking is only available for For Confirmation, For Inspection, or For Treatment statuses.')
         return redirect('technician_service_status')
 
     customer_properties = Property.objects.filter(customer=service.customer)
@@ -1995,15 +2018,17 @@ def technician_edit_booking(request, service_id):
             service.preferred_service = treatment_service
             service.date = booking_date
             service.confirmed_date = booking_date
+            service.treatment_confirmed_date = booking_date
             service.time_slot = time_slot
-            service.save(update_fields=['preferred_service', 'date', 'confirmed_date', 'time_slot'])
+            service.save(update_fields=['preferred_service', 'date', 'confirmed_date', 'treatment_confirmed_date', 'time_slot'])
         else:
             service.property = property_obj
             service.preferred_service = preferred_service
             service.pest_problem = pest_problem
             service.date = booking_date
+            service.inspection_confirmed_date = booking_date
             service.time_slot = time_slot
-            service.save(update_fields=['property', 'preferred_service', 'pest_problem', 'date', 'time_slot'])
+            service.save(update_fields=['property', 'preferred_service', 'pest_problem', 'date', 'inspection_confirmed_date', 'time_slot'])
 
         messages.success(request, 'Booking updated successfully.')
         return redirect('technician_service_status')
@@ -2052,12 +2077,12 @@ def technician_delete_booking(request, service_id):
         messages.error(request, 'Service record not found.')
         return redirect('technician_service_status')
 
-    if service.status not in {'For Inspection', 'For Treatment'}:
-        messages.error(request, 'Only bookings with For Inspection or For Treatment status can be deleted.')
+    if service.status not in {'For Confirmation', 'For Inspection', 'For Treatment'}:
+        messages.error(request, 'Only services with For Confirmation, For Inspection, or For Treatment status can be deleted.')
         return redirect('technician_service_status')
 
     service.delete()
-    messages.success(request, 'Booking deleted successfully.')
+    messages.success(request, 'Service deleted successfully.')
     return redirect('technician_service_status')
 
 
@@ -2587,13 +2612,25 @@ def om_service_status(request):
         request.session.flush()
         return redirect('login')
 
-    services = Service.objects.exclude(
+    created_order = request.GET.get('created_order', 'newest').strip().lower()
+    order_by = 'created_at' if created_order == 'oldest' else '-created_at'
+
+    services_qs = Service.objects.exclude(
         status__in=['Completed', 'Cancelled']
-    ).select_related('customer', 'property').order_by('-created_at')
+    ).select_related('customer', 'property').order_by(order_by)
+
+    unseen_confirmation_ids = list(
+        services_qs.filter(status='For Confirmation', om_seen_at__isnull=True).values_list('id', flat=True)
+    )
+    if unseen_confirmation_ids:
+        Service.objects.filter(id__in=unseen_confirmation_ids).update(om_seen_at=timezone.now())
+
+    services = list(services_qs)
 
     return render(request, 'om_service_status.html', {
         'om': om,
         'services': services,
+        'created_order': created_order,
     })
 
 
@@ -2615,10 +2652,10 @@ def om_update_service_status(request, service_id):
         return redirect('om_service_status')
 
     status_choices = [
+        ('For Confirmation', 'For Confirmation'),
         ('For Inspection', 'For Inspection'),
         ('Ongoing Inspection', 'Ongoing Inspection'),
         ('Estimated Bill Created', 'Estimated Bill Created'),
-        ('Estimated Bill Confirmed', 'Estimated Bill Confirmed'),
         ('For Treatment', 'For Treatment'),
         ('Ongoing Treatment', 'Ongoing Treatment'),
     ]
@@ -2629,12 +2666,20 @@ def om_update_service_status(request, service_id):
             return redirect('om_service_status')
 
         new_status = request.POST.get('new_status', '').strip()
+        inspection_confirmed_date = request.POST.get('inspection_confirmed_date', '').strip()
+        treatment_confirmed_date = request.POST.get('treatment_confirmed_date', '').strip()
         errors = {}
 
         if not new_status:
             errors['new_status'] = 'Required fields must be filled in.'
         elif new_status not in allowed_statuses:
             errors['new_status'] = 'Invalid status selected.'
+
+        if new_status == 'For Inspection' and not inspection_confirmed_date:
+            errors['inspection_confirmed_date'] = 'Required fields must be filled in.'
+
+        if new_status == 'For Treatment' and not treatment_confirmed_date:
+            errors['treatment_confirmed_date'] = 'Required fields must be filled in.'
 
         if errors:
             return render(request, 'om_update_service_status.html', {
@@ -2645,8 +2690,20 @@ def om_update_service_status(request, service_id):
                 'status_choices': status_choices,
             })
 
+        update_fields = ['status']
         service.status = new_status
-        service.save(update_fields=['status'])
+
+        if new_status == 'For Inspection':
+            service.inspection_confirmed_date = inspection_confirmed_date
+            service.confirmed_date = inspection_confirmed_date
+            update_fields.extend(['inspection_confirmed_date', 'confirmed_date'])
+
+        if new_status == 'For Treatment':
+            service.treatment_confirmed_date = treatment_confirmed_date
+            service.confirmed_date = treatment_confirmed_date
+            update_fields.extend(['treatment_confirmed_date', 'confirmed_date'])
+
+        service.save(update_fields=update_fields)
         messages.success(request, 'Service status updated successfully.')
         return redirect('om_service_status')
 
@@ -2677,8 +2734,8 @@ def om_edit_booking(request, service_id):
         messages.error(request, 'Service record not found.')
         return redirect('om_service_status')
 
-    if service.status not in {'For Inspection', 'For Treatment'}:
-        messages.error(request, 'Edit booking is only available for For Inspection or For Treatment statuses.')
+    if service.status not in {'For Confirmation', 'For Inspection', 'For Treatment'}:
+        messages.error(request, 'Edit booking is only available for For Confirmation, For Inspection, or For Treatment statuses.')
         return redirect('om_service_status')
 
     customer_properties = Property.objects.filter(customer=service.customer)
@@ -2753,15 +2810,22 @@ def om_edit_booking(request, service_id):
             service.preferred_service = treatment_service
             service.date = booking_date
             service.confirmed_date = booking_date
+            service.treatment_confirmed_date = booking_date
             service.time_slot = time_slot
-            service.save(update_fields=['preferred_service', 'date', 'confirmed_date', 'time_slot'])
+            service.save(update_fields=['preferred_service', 'date', 'confirmed_date', 'treatment_confirmed_date', 'time_slot'])
         else:
             service.property = property_obj
             service.preferred_service = preferred_service
             service.pest_problem = pest_problem
             service.date = booking_date
+            service.confirmed_date = booking_date
+            service.inspection_confirmed_date = booking_date
             service.time_slot = time_slot
-            service.save(update_fields=['property', 'preferred_service', 'pest_problem', 'date', 'time_slot'])
+            update_fields = ['property', 'preferred_service', 'pest_problem', 'date', 'confirmed_date', 'inspection_confirmed_date', 'time_slot']
+            if service.status == 'For Confirmation':
+                service.status = 'For Inspection'
+                update_fields.append('status')
+            service.save(update_fields=update_fields)
 
         messages.success(request, 'Booking updated successfully.')
         return redirect('om_service_status')
@@ -2811,12 +2875,12 @@ def om_delete_booking(request, service_id):
         messages.error(request, 'Service record not found.')
         return redirect('om_service_status')
 
-    if service.status not in {'For Inspection', 'For Treatment'}:
-        messages.error(request, 'Only bookings with For Inspection or For Treatment status can be deleted.')
+    if service.status not in {'For Confirmation', 'For Inspection', 'For Treatment'}:
+        messages.error(request, 'Only services with For Confirmation, For Inspection, or For Treatment status can be deleted.')
         return redirect('om_service_status')
 
     service.delete()
-    messages.success(request, 'Booking deleted successfully.')
+    messages.success(request, 'Service deleted successfully.')
     return redirect('om_service_status')
 
 
@@ -2839,8 +2903,8 @@ def om_book_treatment(request, service_id):
         messages.error(request, 'Service record not found.')
         return redirect('om_service_status')
 
-    if service.status != 'Estimated Bill Confirmed':
-        messages.error(request, 'Book Treatment is only available for services with Estimated Bill Confirmed status.')
+    if service.status != 'Estimated Bill Created':
+        messages.error(request, 'Book Treatment is only available for services with Estimated Bill Created status.')
         return redirect('om_service_status')
 
     treatment_service_choices = [
@@ -2880,7 +2944,8 @@ def om_book_treatment(request, service_id):
             service.preferred_service = ', '.join(selected_treatment_services)
             service.status = 'For Treatment'
             service.confirmed_date = booking_date
-            service.save(update_fields=['preferred_service', 'status', 'confirmed_date'])
+            service.treatment_confirmed_date = booking_date
+            service.save(update_fields=['preferred_service', 'status', 'confirmed_date', 'treatment_confirmed_date'])
 
             return render(request, 'om_book_treatment.html', {
                 'om': om,

@@ -140,6 +140,16 @@
         </div>
 
         <div class="form-group">
+            <label for="preferred_date">Preferred Date</label>
+            <input id="preferred_date" type="text" value="{{ service.date|date:'M d, Y' }}" readonly>
+        </div>
+
+        <div class="form-group">
+            <label for="preferred_time">Preferred Time</label>
+            <input id="preferred_time" type="text" value="{{ service.time_slot }}" readonly>
+        </div>
+
+        <div class="form-group">
             <label for="new_status">New Status</label>
             <select id="new_status" name="new_status" {% if errors.new_status %}class="error"{% endif %}>
                 <option value="">Select an option</option>
@@ -148,6 +158,26 @@
                 {% endfor %}
             </select>
             {% if errors.new_status %}<div class="error-message">{{ errors.new_status }}</div>{% endif %}
+        </div>
+
+        <div class="form-group">
+            <label for="inspection_confirmed_date">Confirmed Inspection Date</label>
+            <input
+                id="inspection_confirmed_date"
+                name="inspection_confirmed_date"
+                type="date"
+                value="{% if form_data.inspection_confirmed_date %}{{ form_data.inspection_confirmed_date }}{% elif service.inspection_confirmed_date %}{{ service.inspection_confirmed_date|date:'Y-m-d' }}{% endif %}">
+            {% if errors.inspection_confirmed_date %}<div class="error-message">{{ errors.inspection_confirmed_date }}</div>{% endif %}
+        </div>
+
+        <div class="form-group">
+            <label for="treatment_confirmed_date">Confirmed Treatment Date</label>
+            <input
+                id="treatment_confirmed_date"
+                name="treatment_confirmed_date"
+                type="date"
+                value="{% if form_data.treatment_confirmed_date %}{{ form_data.treatment_confirmed_date }}{% elif service.treatment_confirmed_date %}{{ service.treatment_confirmed_date|date:'Y-m-d' }}{% endif %}">
+            {% if errors.treatment_confirmed_date %}<div class="error-message">{{ errors.treatment_confirmed_date }}</div>{% endif %}
         </div>
 
         <div class="button-row">

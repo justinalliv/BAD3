@@ -75,10 +75,10 @@ class Property(models.Model):
 
 class Service(models.Model):
     STATUS_CHOICES = [
+        ('For Confirmation', 'For Confirmation'),
         ('For Inspection', 'For Inspection'),
         ('Ongoing Inspection', 'Ongoing Inspection'),
         ('Estimated Bill Created', 'Estimated Bill Created'),
-        ('Estimated Bill Confirmed', 'Estimated Bill Confirmed'),
         ('For Treatment', 'For Treatment'),
         ('Ongoing Treatment', 'Ongoing Treatment'),
         ('Pending Payment', 'Pending Payment'),
@@ -128,8 +128,11 @@ class Service(models.Model):
     pest_problem_other = models.CharField(max_length=255, blank=True, null=True)
     date = models.DateField()
     confirmed_date = models.DateField(blank=True, null=True)
+    inspection_confirmed_date = models.DateField(blank=True, null=True)
+    treatment_confirmed_date = models.DateField(blank=True, null=True)
     time_slot = models.CharField(max_length=50)
-    status = models.CharField(max_length=50, choices=STATUS_CHOICES, default='For Inspection')
+    status = models.CharField(max_length=50, choices=STATUS_CHOICES, default='For Confirmation')
+    om_seen_at = models.DateTimeField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

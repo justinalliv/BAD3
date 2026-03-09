@@ -82,6 +82,10 @@
             background-color: #fff3cd;
             color: #856404;
         }
+        .status-forconfirmation {
+            background-color: #fde2e4;
+            color: #7a1f2b;
+        }
         .status-ongoing-inspection {
             background-color: #d1ecf1;
             color: #0c5460;
@@ -93,10 +97,6 @@
         .status-estimatedbillcreated {
             background-color: #fff4cc;
             color: #8a6d00;
-        }
-        .status-estimatedbillconfirmed {
-            background-color: #d4edda;
-            color: #155724;
         }
         .status-ongoing-treatment {
             background-color: #cfe2ff;
@@ -146,14 +146,27 @@
             display: inline-flex;
             align-items: center;
             justify-content: center;
+            min-width: 150px;
             min-height: 34px;
-            padding: 8px 14px;
+            padding: 7px 12px;
             border-radius: 8px;
             background: #1a2a5e;
             color: #fff;
-            font-size: 0.82em;
+            font-size: 0.84em;
             text-decoration: none;
             font-weight: 700;
+            white-space: nowrap;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .action-btn.delete {
+            background: #d9534f;
+        }
+
+        .action-btn.delete:hover {
+            background: #c74743;
         }
 {% endblock %}
 
@@ -179,6 +192,7 @@
                         <th>Service Type</th>
                         <th>Preferred Date</th>
                         <th>Confirmed Date</th>
+                        <th>OM Acknowledged</th>
                         <th>Status</th>
                         <th>Action</th>
                     </tr>
@@ -192,20 +206,43 @@
                             {{ service.preferred_service|default:'-' }}
                         </td>
                         <td>{{ service.date|date:'M d, Y' }}</td>
-                        <td>{% if service.confirmed_date %}{{ service.confirmed_date|date:'M d, Y' }}{% else %}-{% endif %}</td>
+                        <td>
+                            {% if service.confirmed_date %}
+                                {{ service.confirmed_date|date:'M d, Y' }}
+                            {% elif service.status == 'For Confirmation' %}
+                                Waiting for OM confirmation
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if service.om_seen_at %}
+                                {{ service.om_seen_at|date:'M d, Y h:i A' }}
+                            {% else %}
+                                Pending
+                            {% endif %}
+                        </td>
                         <td>
                             <span class="status-badge status-{{ service.status|lower|cut:' ' }}">
                                 {{ service.status }}
                             </span>
                         </td>
                         <td>
-                            {% if service.estimated_bill and service.status == 'Estimated Bill Created' %}
-                                <a href="{% url 'customer_view_estimated_bill' service.id %}" class="action-btn">View Estimated Bill</a>
-                            {% elif service.estimated_bill and service.status == 'Estimated Bill Confirmed' %}
-                                <a href="{% url 'customer_view_estimated_bill' service.id %}" class="action-btn">View Bill</a>
-                            {% else %}
-                                -
-                            {% endif %}
+                            <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                                {% if service.status == 'For Confirmation' %}
+                                    <span style="font-size:0.86em;color:#666;">Submitted {{ service.created_at|date:'M d, Y h:i A' }}. Please wait for OM call.</span>
+                                {% elif service.estimated_bill %}
+                                    <a href="{% url 'customer_view_estimated_bill' service.id %}" class="action-btn">View Estimated Bill</a>
+                                {% endif %}
+
+                                {% if service.status == 'For Confirmation' or service.status == 'For Inspection' or service.status == 'For Treatment' %}
+                                    <button type="button" class="action-btn delete" onclick="openDeleteModal('{{ service.id }}')">Delete Service</button>
+                                {% endif %}
+
+                                {% if service.status != 'For Confirmation' and service.status != 'For Inspection' and service.status != 'For Treatment' and not service.estimated_bill %}
+                                    -
+                                {% endif %}
+                            </div>
                         </td>
                     </tr>
                     {% endfor %}
@@ -220,6 +257,20 @@
                 <a href="{% url 'book_inspection' %}">Book an Inspection</a>
             </div>
             {% endif %}
+        </div>
+
+        <div id="deleteModal" class="modal">
+            <div class="modal-content">
+                <h2>Delete service</h2>
+                <p>Are you sure you want to delete this service?</p>
+                <div class="modal-buttons">
+                    <button type="button" class="modal-btn modal-btn-cancel" onclick="closeDeleteModal()">Cancel</button>
+                    <form id="deleteForm" method="POST" style="margin:0;">
+                        {% csrf_token %}
+                        <button type="submit" class="modal-btn modal-btn-confirm">Confirm</button>
+                    </form>
+                </div>
+            </div>
         </div>
     </div>
 {% endblock %}
@@ -253,5 +304,16 @@
                 row.style.display = found ? '' : 'none';
             }
         });
+
+        function openDeleteModal(serviceId) {
+            const modal = document.getElementById('deleteModal');
+            const form = document.getElementById('deleteForm');
+            form.action = `/service-status/${serviceId}/delete/`;
+            modal.classList.add('show');
+        }
+
+        function closeDeleteModal() {
+            document.getElementById('deleteModal').classList.remove('show');
+        }
     </script>
 {% endblock %}

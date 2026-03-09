@@ -23,7 +23,7 @@ class PropertyAdmin(admin.ModelAdmin):
 
 @admin.register(Service)
 class ServiceAdmin(admin.ModelAdmin):
-    list_display = ('id', 'customer', 'property', 'preferred_service', 'pest_problem', 'date', 'time_slot', 'status', 'created_at')
+    list_display = ('id', 'customer', 'property', 'preferred_service', 'pest_problem', 'date', 'time_slot', 'status', 'om_seen_at', 'created_at')
     list_filter = ('created_at', 'status', 'date')
     search_fields = ('customer__first_name', 'customer__last_name', 'property__property_name', 'preferred_service', 'pest_problem')
     readonly_fields = ('created_at',)
