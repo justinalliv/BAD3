@@ -4,7 +4,7 @@
 
 {% block extra_css %}
     .container {
-        max-width: 1200px;
+        max-width: 1160px;
         margin: 0 auto;
         padding: 0 24px 28px;
     }
@@ -24,23 +24,31 @@
     }
 
     .form-shell {
-        background: #fff;
-        border: 1px solid #ddd;
-        border-radius: 12px;
-        padding: 16px;
+        background-color: white;
+        border-radius: 10px;
+        padding: 24px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        margin-bottom: 18px;
     }
 
     .subtitle {
-        color: #1f1f1f;
+        color: #1a2a5e;
         font-weight: 700;
-        margin: 8px 0 10px;
-        font-size: 1.2em;
+        margin: 0;
+        font-size: 1.55em;
+        line-height: 1.2;
+    }
+
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 14px;
     }
 
     .search-wrap {
-        display: flex;
-        justify-content: flex-end;
-        margin-bottom: 10px;
+        margin: 0;
     }
 
     .search-box {
@@ -57,7 +65,7 @@
     }
 
     .table-wrap {
-        border: 1px solid #d8d8d8;
+        border: 1px solid #e0e0e0;
         border-top: none;
         max-height: 230px;
         overflow-y: auto;
@@ -68,35 +76,48 @@
         width: 100%;
         border-collapse: collapse;
         background: #fff;
-        margin-bottom: 10px;
     }
 
     th, td {
-        border: 1px solid #d7d7d7;
-        padding: 10px 8px;
+        padding: 12px 10px;
         text-align: left;
-        font-size: 0.9em;
+        font-size: 0.92em;
         color: #333;
         vertical-align: middle;
+        border-bottom: 1px solid #e0e0e0;
     }
 
     th {
         background: #1a2a5e;
         color: #fff;
         font-size: 0.95em;
+        font-weight: 600;
+        border-bottom: none;
+    }
+
+    tbody tr:last-child td {
+        border-bottom: none;
     }
 
     .row-input,
     .row-select,
     .row-number {
         width: 100%;
-        min-height: 36px;
-        border: 1px solid #cfcfcf;
-        border-radius: 8px;
-        padding: 6px 8px;
-        font-size: 0.88em;
+        min-height: 42px;
+        border: 1px solid #d7d7d7;
+        border-radius: 10px;
+        padding: 0 10px;
+        font-size: 0.9em;
         background: #fff;
         color: #333;
+    }
+
+    .row-input:focus,
+    .row-select:focus,
+    .row-number:focus {
+        outline: none;
+        border-color: #1a2a5e;
+        box-shadow: 0 0 0 3px rgba(26, 42, 94, 0.12);
     }
 
     .checkbox-group {
@@ -109,11 +130,11 @@
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        min-height: 38px;
-        padding: 0 14px;
-        border-radius: 10px;
+        min-height: 34px;
+        padding: 0 12px;
+        border-radius: 8px;
         border: none;
-        font-size: 0.88em;
+        font-size: 0.82em;
         font-weight: 700;
         cursor: pointer;
     }
@@ -122,7 +143,7 @@
         background: #eef1fb;
         color: #1a2a5e;
         border: 1px solid #c5cce5;
-        margin-bottom: 10px;
+        margin-top: 10px;
     }
 
     .btn-edit {
@@ -131,7 +152,7 @@
     }
 
     .btn-delete {
-        background: #e74b4b;
+        background: #d9534f;
         color: #fff;
     }
 
@@ -144,16 +165,16 @@
     .actions {
         display: flex;
         justify-content: center;
-        gap: 12px;
+        gap: 14px;
         margin-top: 22px;
     }
 
     .main-btn {
-        min-width: 170px;
+        min-width: 178px;
         min-height: 46px;
         border: none;
         border-radius: 12px;
-        font-size: 0.95em;
+        font-size: 0.98em;
         font-weight: 700;
         cursor: pointer;
     }
@@ -173,7 +194,7 @@
     .empty-box {
         text-align: center;
         color: #777;
-        padding: 22px;
+        padding: 28px 0;
     }
 
     .modal textarea {
@@ -213,10 +234,11 @@
     {% elif step == 'select' %}
         <h1 class="title">Service Report Submission</h1>
         <div class="form-shell">
-            <div class="subtitle">Select Service Record</div>
-
-            <div class="search-wrap">
-                <input type="text" id="searchBox" class="search-box" placeholder="Search">
+            <div class="section-header">
+                <h2 class="subtitle">Select Service Record</h2>
+                <div class="search-wrap">
+                    <input type="text" id="searchBox" class="search-box" placeholder="Search">
+                </div>
             </div>
 
             <form method="POST" id="selectForm">
@@ -289,7 +311,9 @@
                 <button type="button" class="small-btn btn-add" id="addChemicalBtn">+ Add a chemical</button>
                 {% if errors.chemicals %}<p class="error">{{ errors.chemicals }}</p>{% endif %}
 
-                <div class="subtitle">Treated areas</div>
+                <div class="section-header" style="margin-top:14px; margin-bottom:10px;">
+                    <h2 class="subtitle">Treated Areas</h2>
+                </div>
                 <table>
                     <thead>
                         <tr>

@@ -4,100 +4,41 @@
 
 {% block extra_css %}
     .container {
-        max-width: 1220px;
+        max-width: 980px;
         margin: 0 auto;
         padding: 14px 24px 24px;
     }
 
-    .preview-shell {
-        background: #efefef;
-        border: 1px solid #d4d4d4;
-    }
-
-    .preview-top {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 8px 12px;
-        border-bottom: 1px solid #d4d4d4;
-        background: #f6f6f6;
-    }
-
-    .file-name {
-        font-size: 1.05em;
-        color: #222;
-        font-weight: 500;
-        margin: 0;
-    }
-
-    .close-link {
-        color: #222;
-        font-weight: 600;
-        text-decoration: none;
-        font-size: 1.35em;
-        line-height: 1;
-    }
-
-    .invoice-paper {
-        max-width: 860px;
-        margin: 14px auto;
+    .sheet {
         background: #fff;
         border: 1px solid #ddd;
         padding: 20px;
     }
 
-    .header {
-        display: flex;
-        justify-content: space-between;
-        gap: 20px;
-        margin-bottom: 16px;
+    .title {
+        color: #1a2a5e;
+        text-align: center;
+        margin: 0 0 14px;
+        font-size: 2.2em;
     }
 
-    .company-title {
-        color: #222;
-        font-weight: 800;
-        font-size: 1.4em;
-        margin-bottom: 6px;
-    }
-
-    .company-meta {
-        font-size: 0.82em;
-        color: #333;
-        line-height: 1.5;
-    }
-
-    .doc-meta {
-        font-size: 0.82em;
-        color: #222;
-        min-width: 180px;
-    }
-
-    .doc-meta .row {
-        display: flex;
-        justify-content: space-between;
-        margin-bottom: 6px;
-    }
-
-    .bill-to {
-        border-top: 1px solid #d9d9d9;
-        border-bottom: 1px solid #d9d9d9;
-        padding: 10px 0;
-        margin-bottom: 12px;
-        font-size: 0.86em;
-        color: #333;
+    .meta {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px 12px;
+        margin-bottom: 14px;
+        font-size: 0.95em;
     }
 
     table {
         width: 100%;
         border-collapse: collapse;
-        margin-bottom: 12px;
     }
 
     th, td {
         border: 1px solid #d8d8d8;
-        padding: 8px 7px;
-        font-size: 0.84em;
-        color: #333;
+        padding: 10px 8px;
+        font-size: 0.9em;
         text-align: left;
     }
 
@@ -107,75 +48,62 @@
     }
 
     .total {
+        margin-top: 12px;
         text-align: right;
-        font-weight: 800;
+        font-weight: 700;
         color: #222;
-        margin-top: 8px;
+    }
+
+    .back-link {
+        display: inline-block;
+        margin-bottom: 10px;
+        color: #1a2a5e;
+        font-weight: 700;
+        text-decoration: none;
     }
 {% endblock %}
 
 {% block content %}
 <div class="container">
-    <div class="preview-shell">
-        <div class="preview-top">
-            <p class="file-name">File_Name.pdf</p>
-            <a href="{% url back_url_name|default:'om_invoices' %}" class="close-link" aria-label="Close">X</a>
+    <a href="{% url back_url_name|default:'om_invoices' %}" class="back-link">Back</a>
+
+    <div class="sheet">
+        <h1 class="title">Invoice</h1>
+
+        <div class="meta">
+            <div><strong>Invoice ID:</strong> INV{{ invoice.id|stringformat:'04d' }}</div>
+            <div><strong>Service ID:</strong> {{ invoice.service.id|stringformat:'07d' }}</div>
+            <div><strong>Customer Name:</strong> {{ invoice.service.customer.first_name }} {{ invoice.service.customer.last_name }}</div>
+            <div><strong>Address:</strong> {{ invoice.service.property.street_number }} {{ invoice.service.property.street }}, {{ invoice.service.property.city }}</div>
+            <div><strong>Date Created:</strong> {{ invoice.created_at|date:'m/d/Y' }}</div>
+            <div><strong>Service Date:</strong> {{ invoice.service.date|date:'m/d/Y' }}</div>
         </div>
 
-        <div class="invoice-paper">
-            <div class="header">
-                <div>
-                    <div class="company-title">Supreme Biotech Solutions</div>
-                    <div class="company-meta">
-                        Supreme Biotech Solutions<br>
-                        Business Number: +639491541111<br>
-                        Unit 20 Ground Floor Makati Central Square<br>
-                        Don Chino Roces Aveue, Brgy. Pio Del Pilar<br>
-                        Makati City 1204<br>
-                        +632 8255 2241<br>
-                        +639175187263
-                    </div>
-                </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Description</th>
+                    <th>Quantity</th>
+                    <th>Unit Price</th>
+                    <th>Line Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in invoice.items.all %}
+                <tr>
+                    <td>{{ item.item_type }}</td>
+                    <td>{{ item.quantity }}</td>
+                    <td>₱ {{ item.unit_price }}</td>
+                    <td>₱ {{ item.line_total }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
 
-                <div class="doc-meta">
-                    <div class="row"><span><strong>INVOICE</strong></span><span>INV{{ invoice.id|stringformat:'04d' }}</span></div>
-                    <div class="row"><span><strong>DATE</strong></span><span>{{ invoice.created_at|date:'m/d/Y' }}</span></div>
-                    <div class="row"><span><strong>DUE</strong></span><span>On Receipt</span></div>
-                    <div class="row"><span><strong>BALANCE DUE</strong></span><span>₱ {{ invoice.total_amount }}</span></div>
-                </div>
-            </div>
+        <p class="total">Total Amount: ₱ {{ invoice.total_amount }}</p>
 
-            <div class="bill-to">
-                <strong>BILL TO</strong><br>
-                {{ invoice.service.customer.first_name }} {{ invoice.service.customer.last_name }}<br>
-                {{ invoice.service.property.street_number }} {{ invoice.service.property.street }}, {{ invoice.service.property.city }}
-            </div>
-
-            <table>
-                <thead>
-                    <tr>
-                        <th style="width:52%;">DESCRIPTION</th>
-                        <th style="width:16%;">RATE</th>
-                        <th style="width:12%;">QTY</th>
-                        <th style="width:20%;">AMOUNT</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for item in invoice.items.all %}
-                    <tr>
-                        <td>{{ item.item_type }}</td>
-                        <td>₱ {{ item.unit_price }}</td>
-                        <td>{{ item.quantity }}</td>
-                        <td>₱ {{ item.line_total }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-
-            <div class="total">TOTAL: ₱ {{ invoice.total_amount }}</div>
-            <div style="margin-top:12px;text-align:right;">
-                <a href="{% url 'om_download_invoice_pdf' invoice.id %}" style="display:inline-flex;align-items:center;justify-content:center;min-height:34px;padding:0 12px;border-radius:8px;background:#1a2a5e;color:#fff;text-decoration:none;font-weight:700;font-size:0.85em;">Download PDF</a>
-            </div>
+        <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:12px;">
+            <a href="{% url 'om_download_invoice_pdf' invoice.id %}" class="back-link" style="margin:0;background:#1a2a5e;color:#fff;padding:8px 12px;border-radius:8px;">Download PDF</a>
         </div>
     </div>
 </div>

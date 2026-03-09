@@ -32,7 +32,7 @@
         <input type="hidden" name="action" id="formAction" value="submit">
 
         <div id="rows"></div>
-        <button type="button" class="btn btn-add" id="addBtn">+ Add item</button>
+        <button type="button" class="btn btn-add" id="addBtn">+ Add an item</button>
 
         {% if errors.general %}<div class="error">{{ errors.general }}</div>{% endif %}
 
@@ -58,7 +58,7 @@
     function renderRows() {
         rows.innerHTML = '';
         items.forEach((item, index) => {
-            const options = ['<option value="">Select item</option>'].concat(
+            const options = ['<option value="">Select an item</option>'].concat(
                 choices.map(choice => `<option value="${choice.value}" ${item.item_type === choice.value ? 'selected' : ''}>${choice.label}</option>`)
             ).join('');
 

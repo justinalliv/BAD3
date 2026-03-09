@@ -3,21 +3,24 @@
 {% block title %}Edit Service Report - Supreme Biotech Solutions{% endblock %}
 
 {% block extra_css %}
-    .container { max-width: 1160px; margin: 0 auto; padding: 0 24px 24px; }
-    .title { text-align: center; color: #1a2a5e; margin: 8px 0 14px; font-size: 2.3em; }
-    .subtitle { color: #2d2d2d; font-weight: 700; margin-bottom: 8px; }
-    table { width: 100%; border-collapse: collapse; background: #fff; margin-bottom: 10px; }
-    th, td { border: 1px solid #d7d7d7; padding: 10px 8px; text-align: left; font-size: 0.9em; color: #333; vertical-align: middle; }
-    th { background: #1a2a5e; color: #fff; font-size: 0.95em; }
-    .row-input, .row-select, .row-number { width: 100%; min-height: 36px; border: 1px solid #cfcfcf; border-radius: 8px; padding: 6px 8px; font-size: 0.88em; background: #fff; color: #333; }
+    .container { max-width: 1160px; margin: 0 auto; padding: 0 24px 28px; }
+    .title { text-align: center; color: #1a2a5e; margin: 8px 0 16px; font-size: clamp(2rem, 4.8vh, 3rem); }
+    .section-card { background:#fff; border-radius:10px; padding:24px; box-shadow:0 2px 4px rgba(0,0,0,0.1); margin-bottom:18px; }
+    .section-label { color:#1a2a5e; font-size:1.55em; margin:0 0 12px; font-weight:700; line-height:1.2; }
+    table { width: 100%; border-collapse: collapse; background: #fff; }
+    th, td { padding: 12px 10px; text-align: left; font-size: 0.92em; color: #333; vertical-align: middle; border-bottom: 1px solid #e0e0e0; }
+    th { background: #1a2a5e; color: #fff; font-size: 0.95em; font-weight: 600; border-bottom: none; }
+    tbody tr:last-child td { border-bottom: none; }
+    .row-input, .row-select, .row-number { width: 100%; min-height: 42px; border: 1px solid #d7d7d7; border-radius: 10px; padding: 0 10px; font-size: 0.9em; background: #fff; color: #333; }
+    .row-input:focus, .row-select:focus, .row-number:focus { outline:none; border-color:#1a2a5e; box-shadow:0 0 0 3px rgba(26,42,94,0.12); }
     .checkbox-group { display: flex; justify-content: center; align-items: center; }
-    .small-btn { display: inline-flex; align-items: center; justify-content: center; min-height: 34px; padding: 0 12px; border-radius: 8px; border: none; font-size: 0.8em; font-weight: 700; cursor: pointer; }
-    .btn-add { background: #eef1fb; color: #1a2a5e; border: 1px solid #c5cce5; margin-bottom: 10px; }
+    .small-btn { display: inline-flex; align-items: center; justify-content: center; min-height: 34px; padding: 0 12px; border-radius: 8px; border: none; font-size: 0.82em; font-weight: 700; cursor: pointer; }
+    .btn-add { background: #eef1fb; color: #1a2a5e; border: 1px solid #c5cce5; margin-top: 10px; }
     .btn-edit { background: #6c7293; color: #fff; }
-    .btn-delete { background: #e74b4b; color: #fff; }
+    .btn-delete { background: #d9534f; color: #fff; }
     .error { color: #d32f2f; font-size: 0.86em; margin: 6px 0 10px; }
-    .actions { display: flex; justify-content: center; gap: 12px; margin-top: 18px; }
-    .main-btn { min-width: 170px; min-height: 46px; border: none; border-radius: 12px; font-size: 0.95em; font-weight: 700; cursor: pointer; }
+    .actions { display: flex; justify-content: center; gap: 14px; margin-top: 22px; }
+    .main-btn { min-width: 178px; min-height: 46px; border: none; border-radius: 12px; font-size: 0.98em; font-weight: 700; cursor: pointer; }
     .btn-cancel { background: #e2e2e2; color: #333; }
     .btn-submit { background: #1a2a5e; color: #fff; }
 {% endblock %}
@@ -32,40 +35,44 @@
         <input type="hidden" name="chemicals_json" id="chemicalsJsonInput">
         <input type="hidden" name="treated_areas_json" id="treatedAreasJsonInput">
 
-        <div class="subtitle">Add chemicals used</div>
-        <table>
-            <thead>
-                <tr>
-                    <th style="width:40%;">Name</th>
-                    <th style="width:22%;">Unit Measure</th>
-                    <th style="width:22%;">Amount</th>
-                    <th style="width:16%;">Delete</th>
-                </tr>
-            </thead>
-            <tbody id="chemicalsBody"></tbody>
-        </table>
-        <button type="button" class="small-btn btn-add" id="addChemicalBtn">+ Add a chemical</button>
-        {% if errors.chemicals %}<p class="error">{{ errors.chemicals }}</p>{% endif %}
+        <div class="section-card">
+            <h2 class="section-label">Add Chemicals Used</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width:40%;">Name</th>
+                        <th style="width:22%;">Unit Measure</th>
+                        <th style="width:22%;">Amount</th>
+                        <th style="width:16%;">Delete</th>
+                    </tr>
+                </thead>
+                <tbody id="chemicalsBody"></tbody>
+            </table>
+            <button type="button" class="small-btn btn-add" id="addChemicalBtn">+ Add a chemical</button>
+            {% if errors.chemicals %}<p class="error">{{ errors.chemicals }}</p>{% endif %}
+        </div>
 
-        <div class="subtitle">Treated areas</div>
-        <table>
-            <thead>
-                <tr>
-                    <th style="width:14%;">Areas</th>
-                    <th style="width:14%;">Levels of Infestation</th>
-                    <th style="width:6%;">Spray</th>
-                    <th style="width:6%;">Mist</th>
-                    <th style="width:8%;">Rat Bait</th>
-                    <th style="width:7%;">Powder</th>
-                    <th style="width:16%;">Remarks</th>
-                    <th style="width:16%;">Recommendation</th>
-                    <th style="width:7%;">Delete</th>
-                </tr>
-            </thead>
-            <tbody id="areasBody"></tbody>
-        </table>
-        <button type="button" class="small-btn btn-add" id="addAreaBtn">+ Add treated area</button>
-        {% if errors.treated_areas %}<p class="error">{{ errors.treated_areas }}</p>{% endif %}
+        <div class="section-card">
+            <h2 class="section-label">Treated Areas</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width:14%;">Areas</th>
+                        <th style="width:14%;">Levels of Infestation</th>
+                        <th style="width:6%;">Spray</th>
+                        <th style="width:6%;">Mist</th>
+                        <th style="width:8%;">Rat Bait</th>
+                        <th style="width:7%;">Powder</th>
+                        <th style="width:16%;">Remarks</th>
+                        <th style="width:16%;">Recommendation</th>
+                        <th style="width:7%;">Delete</th>
+                    </tr>
+                </thead>
+                <tbody id="areasBody"></tbody>
+            </table>
+            <button type="button" class="small-btn btn-add" id="addAreaBtn">+ Add treated area</button>
+            {% if errors.treated_areas %}<p class="error">{{ errors.treated_areas }}</p>{% endif %}
+        </div>
 
         <div class="actions">
             <button type="submit" class="main-btn btn-cancel" onclick="document.getElementById('detailsAction').value='cancel'">Cancel</button>

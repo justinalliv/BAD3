@@ -4,95 +4,41 @@
 
 {% block extra_css %}
     .container {
-        max-width: 1220px;
+        max-width: 980px;
         margin: 0 auto;
         padding: 14px 24px 24px;
     }
 
-    .preview-shell {
-        background: #efefef;
-        border: 1px solid #d4d4d4;
-    }
-
-    .preview-top {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 8px 12px;
-        border-bottom: 1px solid #d4d4d4;
-        background: #f6f6f6;
-    }
-
-    .file-name {
-        font-size: 1.05em;
-        color: #222;
-        font-weight: 500;
-        margin: 0;
-    }
-
-    .close-link {
-        color: #222;
-        font-weight: 600;
-        text-decoration: none;
-        font-size: 1.35em;
-        line-height: 1;
-    }
-
-    .report-paper {
-        max-width: 980px;
-        margin: 14px auto;
+    .sheet {
         background: #fff;
         border: 1px solid #ddd;
-        padding: 22px 24px 30px;
+        padding: 20px;
     }
 
-    .paper-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-start;
-        margin-bottom: 26px;
+    .title {
+        color: #1a2a5e;
+        text-align: center;
+        margin: 0 0 14px;
+        font-size: 2.2em;
     }
 
-    .paper-meta {
-        font-size: 0.92em;
-        color: #222;
-        font-weight: 600;
-    }
-
-    .paper-title {
-        font-size: 2.7em;
-        font-weight: 800;
-        color: #161616;
-        line-height: 1;
-        margin-top: 6px;
-    }
-
-    .client-block {
-        font-size: 0.92em;
-        margin-bottom: 16px;
-        color: #222;
-    }
-
-    .client-row {
-        display: flex;
-        gap: 6px;
-        margin-bottom: 2px;
-    }
-
-    .client-row .label {
-        min-width: 96px;
-        color: #333;
+    .meta {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px 12px;
+        margin-bottom: 14px;
+        font-size: 0.95em;
     }
 
     .intro {
         margin: 10px 0 14px;
-        font-size: 0.88em;
+        font-size: 0.9em;
         color: #2a2a2a;
     }
 
     .chem-label {
         font-weight: 700;
-        font-size: 0.9em;
+        font-size: 0.95em;
         color: #222;
         margin-bottom: 4px;
     }
@@ -105,22 +51,21 @@
 
     .chem-summary th,
     .chem-summary td {
-        border: 1px solid #d9d9d9;
-        padding: 5px 6px;
+        border: 1px solid #d8d8d8;
+        padding: 10px 8px;
         text-align: center;
-        font-size: 0.78em;
+        font-size: 0.9em;
     }
 
     .chem-summary th {
         background: #1a2a5e;
         color: #fff;
-        font-weight: 700;
+        font-weight: 600;
     }
 
     .chem-summary td {
         background: #fff;
         color: #1f1f1f;
-        font-weight: 600;
     }
 
     .area-table {
@@ -130,9 +75,9 @@
 
     .area-table th,
     .area-table td {
-        border: 1px solid #d9d9d9;
-        padding: 7px 6px;
-        font-size: 0.82em;
+        border: 1px solid #d8d8d8;
+        padding: 10px 8px;
+        font-size: 0.9em;
         color: #222;
         text-align: left;
         vertical-align: top;
@@ -141,19 +86,18 @@
     .area-table th {
         background: #1a2a5e;
         color: #fff;
-        font-size: 0.76em;
-        font-weight: 700;
+        font-size: 0.9em;
+        font-weight: 600;
         text-align: center;
     }
 
     .area-table td.center {
         text-align: center;
         vertical-align: middle;
-        font-weight: 700;
     }
 
     .signature-row {
-        margin-top: 30px;
+        margin-top: 16px;
         display: flex;
         justify-content: space-between;
         align-items: flex-end;
@@ -166,110 +110,111 @@
     }
 
     .sig-name {
-        font-size: 0.72em;
+        font-size: 0.8em;
         color: #333;
         text-align: center;
+    }
+
+    .back-link {
+        display: inline-block;
+        margin-bottom: 10px;
+        color: #1a2a5e;
+        font-weight: 700;
+        text-decoration: none;
     }
 {% endblock %}
 
 {% block content %}
 <div class="container">
-    <div class="preview-shell">
-        <div class="preview-top">
-            <p class="file-name">File_Name.pdf</p>
-            <div style="display:flex;align-items:center;gap:10px;">
-                {% if role == 'om' %}
-                    <a href="{% url 'om_download_service_report_pdf' report.id %}" style="display:inline-flex;align-items:center;justify-content:center;min-height:30px;padding:0 10px;border-radius:8px;background:#1a2a5e;color:#fff;text-decoration:none;font-weight:700;font-size:0.8em;">Download PDF</a>
-                {% else %}
-                    <a href="{% url 'technician_download_service_report_pdf' report.id %}" style="display:inline-flex;align-items:center;justify-content:center;min-height:30px;padding:0 10px;border-radius:8px;background:#1a2a5e;color:#fff;text-decoration:none;font-weight:700;font-size:0.8em;">Download PDF</a>
-                {% endif %}
-                <a href="{% url back_url_name %}" class="close-link" aria-label="Close">X</a>
+    <a href="{% url back_url_name|default:'om_service_reports' %}" class="back-link">Back</a>
+
+    <div class="sheet">
+        <h1 class="title">Service Report</h1>
+
+        <div class="meta">
+            <div><strong>Service ID:</strong> {{ report.service.id|stringformat:'07d' }}</div>
+            <div><strong>Date:</strong> {{ report.created_at|date:'m/d/Y' }}</div>
+            <div><strong>Client Name:</strong> {{ report.service.customer.first_name }} {{ report.service.customer.last_name }}</div>
+            <div><strong>Address:</strong> {{ report.service.property.street_number }} {{ report.service.property.street }}, {{ report.service.property.city }}, {{ report.service.property.province }}</div>
+            <div><strong>Service Type:</strong> {{ report.service.preferred_service }}</div>
+            <div><strong>Service Date:</strong> {{ report.service.confirmed_date|default:report.service.date|date:'m/d/Y' }}</div>
+        </div>
+
+        <p class="intro">Please find below the report for the service conducted on {{ report.service.confirmed_date|default:report.service.date|date:'F d, Y' }}.</p>
+
+        <div class="chem-label">Chemicals Used</div>
+        <table class="chem-summary">
+            <thead>
+                <tr>
+                    {% for chemical in report.chemicals.all %}
+                    <th>{{ chemical.chemical_name|upper }}</th>
+                    {% empty %}
+                    <th>No Chemicals Recorded</th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    {% for chemical in report.chemicals.all %}
+                    <td>{{ chemical.amount }} {{ chemical.unit_measure }}</td>
+                    {% empty %}
+                    <td>-</td>
+                    {% endfor %}
+                </tr>
+            </tbody>
+        </table>
+
+        <table class="area-table">
+            <thead>
+                <tr>
+                    <th style="width:14%;">Areas</th>
+                    <th style="width:9%;">Date</th>
+                    <th style="width:10%;">Infestation Level</th>
+                    <th style="width:5%;">Spray</th>
+                    <th style="width:5%;">Mist</th>
+                    <th style="width:7%;">Rat Bait</th>
+                    <th style="width:7%;">Powder (GL)</th>
+                    <th style="width:21%;">Remarks</th>
+                    <th style="width:22%;">Recommendation</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for area in report.treated_areas.all %}
+                <tr>
+                    <td>{{ area.area_name }}</td>
+                    <td class="center">{{ report.service.confirmed_date|default:report.service.date|date:'m/d/Y' }}</td>
+                    <td class="center">{{ area.infestation_level|upper }}</td>
+                    <td class="center">{% if area.spray %}OK{% endif %}</td>
+                    <td class="center">{% if area.mist %}OK{% endif %}</td>
+                    <td class="center">{% if area.rat_bait %}OK{% endif %}</td>
+                    <td class="center">{% if area.powder %}OK{% endif %}</td>
+                    <td>{{ area.remarks|default:'-' }}</td>
+                    <td>{{ area.recommendation|default:'-' }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="9" class="center">No treated areas recorded.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <div class="signature-row">
+            <div>
+                <div class="sig-line"></div>
+            </div>
+            <div>
+                <div class="sig-line"></div>
+                <div class="sig-name">Operation Supervisor</div>
             </div>
         </div>
 
-        <div class="report-paper">
-            <div class="paper-header">
-                <div class="paper-meta">Service Report for {{ report.created_at|date:'Y' }}-{{ report.created_at|date:'Y'|add:'1' }}</div>
-                <div class="paper-title">SERVICE REPORT</div>
-            </div>
-
-            <div class="client-block">
-                <div class="client-row"><span class="label">Service ID</span><span>: {{ report.service.id|stringformat:'07d' }}</span></div>
-                <div class="client-row"><span class="label">Date</span><span>: {{ report.created_at|date:'m/d/Y' }}</span></div>
-                <div class="client-row"><span class="label">Client Name</span><span>: {{ report.service.customer.first_name }} {{ report.service.customer.last_name }}</span></div>
-                <div class="client-row"><span class="label">Company</span><span>: -</span></div>
-                <div class="client-row"><span class="label">Designation</span><span>: -</span></div>
-                <div class="client-row"><span class="label">Address</span><span>: {{ report.service.property.street_number }} {{ report.service.property.street }}, {{ report.service.property.city }}, {{ report.service.property.province }}</span></div>
-            </div>
-
-            <p class="intro">Please find below the report for the service conducted on {{ report.service.confirmed_date|default:report.service.date|date:'F d, Y' }}.</p>
-
-            <div class="chem-label">Chemicals Used</div>
-            <table class="chem-summary">
-                <thead>
-                    <tr>
-                        {% for chemical in report.chemicals.all %}
-                        <th>{{ chemical.chemical_name|upper }}</th>
-                        {% empty %}
-                        <th>NO CHEMICALS RECORDED</th>
-                        {% endfor %}
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        {% for chemical in report.chemicals.all %}
-                        <td>{{ chemical.amount }} {{ chemical.unit_measure }}</td>
-                        {% empty %}
-                        <td>-</td>
-                        {% endfor %}
-                    </tr>
-                </tbody>
-            </table>
-
-            <table class="area-table">
-                <thead>
-                    <tr>
-                        <th style="width:14%;">AREAS</th>
-                        <th style="width:9%;">DATE</th>
-                        <th style="width:10%;">LEVEL OF INFESTATION</th>
-                        <th style="width:5%;">Spray</th>
-                        <th style="width:5%;">Mist</th>
-                        <th style="width:7%;">Rat Bait</th>
-                        <th style="width:7%;">Powder (GL)</th>
-                        <th style="width:21%;">REMARKS</th>
-                        <th style="width:22%;">RECOMMENDATION</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for area in report.treated_areas.all %}
-                    <tr>
-                        <td>{{ area.area_name }}</td>
-                        <td class="center">{{ report.service.confirmed_date|default:report.service.date|date:'m/d/Y' }}</td>
-                        <td class="center">{{ area.infestation_level|upper }}</td>
-                        <td class="center">{% if area.spray %}OK{% endif %}</td>
-                        <td class="center">{% if area.mist %}OK{% endif %}</td>
-                        <td class="center">{% if area.rat_bait %}OK{% endif %}</td>
-                        <td class="center">{% if area.powder %}OK{% endif %}</td>
-                        <td>{{ area.remarks|default:'-' }}</td>
-                        <td>{{ area.recommendation|default:'-' }}</td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="9" class="center">No treated areas recorded.</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-
-            <div class="signature-row">
-                <div>
-                    <div class="sig-line"></div>
-                </div>
-                <div>
-                    <div class="sig-line"></div>
-                    <div class="sig-name">Operation Supervisor</div>
-                </div>
-            </div>
+        <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:12px;">
+            {% if role == 'om' %}
+                <a href="{% url 'om_download_service_report_pdf' report.id %}" class="back-link" style="margin:0;background:#1a2a5e;color:#fff;padding:8px 12px;border-radius:8px;">Download PDF</a>
+            {% else %}
+                <a href="{% url 'technician_download_service_report_pdf' report.id %}" class="back-link" style="margin:0;background:#1a2a5e;color:#fff;padding:8px 12px;border-radius:8px;">Download PDF</a>
+            {% endif %}
         </div>
     </div>
 </div>
