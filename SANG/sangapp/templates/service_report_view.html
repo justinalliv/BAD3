@@ -4,15 +4,24 @@
 
 {% block extra_css %}
     .container {
-        max-width: 980px;
-        margin: 0 auto;
-        padding: 14px 24px 24px;
+        max-width: 1080px;
+        margin: 28px auto 48px;
+        padding: 0 24px;
+    }
+
+    .identified-top {
+        text-align: right;
+        color: #333;
+        margin: 10px 0 10px;
+        font-size: 0.9em;
     }
 
     .sheet {
         background: #fff;
         border: 1px solid #ddd;
-        padding: 20px;
+        border-radius: 12px;
+        padding: 24px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
     }
 
     .title {
@@ -25,8 +34,8 @@
     .meta {
         display: grid;
         grid-template-columns: 1fr 1fr;
-        gap: 8px 12px;
-        margin-bottom: 14px;
+        gap: 10px 14px;
+        margin-bottom: 16px;
         font-size: 0.95em;
     }
 
@@ -46,13 +55,12 @@
     .chem-summary {
         width: 100%;
         border-collapse: collapse;
-        margin-bottom: 14px;
+        margin-top: 6px;
     }
 
     .chem-summary th,
     .chem-summary td {
-        border: 1px solid #d8d8d8;
-        padding: 10px 8px;
+        padding: 12px 14px;
         text-align: center;
         font-size: 0.9em;
     }
@@ -66,6 +74,18 @@
     .chem-summary td {
         background: #fff;
         color: #1f1f1f;
+        border-bottom: 1px solid #edf0f6;
+    }
+
+    .chem-summary tbody tr:last-child td {
+        border-bottom: none;
+    }
+
+    .table-wrap {
+        border: 1px solid #d7dbe6;
+        border-radius: 10px;
+        overflow: hidden;
+        margin-top: 6px;
     }
 
     .area-table {
@@ -75,8 +95,8 @@
 
     .area-table th,
     .area-table td {
-        border: 1px solid #d8d8d8;
-        padding: 10px 8px;
+        border: none;
+        padding: 12px 14px;
         font-size: 0.9em;
         color: #222;
         text-align: left;
@@ -87,13 +107,32 @@
         background: #1a2a5e;
         color: #fff;
         font-size: 0.9em;
-        font-weight: 600;
+        font-weight: 700;
         text-align: center;
+        letter-spacing: 0.2px;
     }
 
     .area-table td.center {
         text-align: center;
         vertical-align: middle;
+    }
+
+    .area-table th:first-child,
+    .area-table td:first-child {
+        text-align: center;
+        vertical-align: middle;
+    }
+
+    .area-table tbody td {
+        border-bottom: 1px solid #edf0f6;
+    }
+
+    .area-table tbody tr:last-child td {
+        border-bottom: none;
+    }
+
+    .area-table tbody tr:hover {
+        background: #f8f9fc;
     }
 
     .signature-row {
@@ -115,18 +154,48 @@
         text-align: center;
     }
 
+    .back-row {
+        margin-top: 14px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 10px;
+    }
+
     .back-link {
-        display: inline-block;
-        margin-bottom: 10px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 38px;
+        padding: 0 16px;
+        border-radius: 8px;
+        border: 1px solid #cfd3df;
+        background: #fff;
         color: #1a2a5e;
-        font-weight: 700;
         text-decoration: none;
+    }
+
+    @media (max-width: 760px) {
+        .meta {
+            grid-template-columns: 1fr;
+        }
+
+        .back-row {
+            flex-direction: column;
+            align-items: center;
+        }
     }
 {% endblock %}
 
 {% block content %}
 <div class="container">
-    <a href="{% url back_url_name|default:'om_service_reports' %}" class="back-link">Back</a>
+    {% if role == 'om' %}
+        <p class="identified-top">User Identified As: Operations Manager</p>
+    {% elif role == 'technician' %}
+        <p class="identified-top">User Identified As: Technician</p>
+    {% elif role == 'customer' %}
+        <p class="identified-top">User Identified As: Customer</p>
+    {% endif %}
 
     <div class="sheet">
         <h1 class="title">Service Report</h1>
@@ -143,61 +212,65 @@
         <p class="intro">Please find below the report for the service conducted on {{ report.service.confirmed_date|default:report.service.date|date:'F d, Y' }}.</p>
 
         <div class="chem-label">Chemicals Used</div>
-        <table class="chem-summary">
-            <thead>
-                <tr>
-                    {% for chemical in report.chemicals.all %}
-                    <th>{{ chemical.chemical_name|upper }}</th>
-                    {% empty %}
-                    <th>No Chemicals Recorded</th>
-                    {% endfor %}
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    {% for chemical in report.chemicals.all %}
-                    <td>{{ chemical.amount }} {{ chemical.unit_measure }}</td>
-                    {% empty %}
-                    <td>-</td>
-                    {% endfor %}
-                </tr>
-            </tbody>
-        </table>
+        <div class="table-wrap">
+            <table class="chem-summary">
+                <thead>
+                    <tr>
+                        {% for chemical in report.chemicals.all %}
+                        <th>{{ chemical.chemical_name|upper }}</th>
+                        {% empty %}
+                        <th>No Chemicals Recorded</th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        {% for chemical in report.chemicals.all %}
+                        <td>{{ chemical.amount }} {{ chemical.unit_measure }}</td>
+                        {% empty %}
+                        <td>-</td>
+                        {% endfor %}
+                    </tr>
+                </tbody>
+            </table>
+        </div>
 
-        <table class="area-table">
-            <thead>
-                <tr>
-                    <th style="width:14%;">Areas</th>
-                    <th style="width:9%;">Date</th>
-                    <th style="width:10%;">Infestation Level</th>
-                    <th style="width:5%;">Spray</th>
-                    <th style="width:5%;">Mist</th>
-                    <th style="width:7%;">Rat Bait</th>
-                    <th style="width:7%;">Powder (GL)</th>
-                    <th style="width:21%;">Remarks</th>
-                    <th style="width:22%;">Recommendation</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for area in report.treated_areas.all %}
-                <tr>
-                    <td>{{ area.area_name }}</td>
-                    <td class="center">{{ report.service.confirmed_date|default:report.service.date|date:'m/d/Y' }}</td>
-                    <td class="center">{{ area.infestation_level|upper }}</td>
-                    <td class="center">{% if area.spray %}OK{% endif %}</td>
-                    <td class="center">{% if area.mist %}OK{% endif %}</td>
-                    <td class="center">{% if area.rat_bait %}OK{% endif %}</td>
-                    <td class="center">{% if area.powder %}OK{% endif %}</td>
-                    <td>{{ area.remarks|default:'-' }}</td>
-                    <td>{{ area.recommendation|default:'-' }}</td>
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="9" class="center">No treated areas recorded.</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+        <div class="table-wrap">
+            <table class="area-table">
+                <thead>
+                    <tr>
+                        <th style="width:14%;">Areas</th>
+                        <th style="width:9%;">Date</th>
+                        <th style="width:10%;">Infestation Level</th>
+                        <th style="width:5%;">Spray</th>
+                        <th style="width:5%;">Mist</th>
+                        <th style="width:7%;">Rat Bait</th>
+                        <th style="width:7%;">Powder (GL)</th>
+                        <th style="width:21%;">Remarks</th>
+                        <th style="width:22%;">Recommendation</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for area in report.treated_areas.all %}
+                    <tr>
+                        <td>{{ area.area_name }}</td>
+                        <td class="center">{{ report.service.confirmed_date|default:report.service.date|date:'m/d/Y' }}</td>
+                        <td class="center">{{ area.infestation_level|upper }}</td>
+                        <td class="center">{% if area.spray %}OK{% endif %}</td>
+                        <td class="center">{% if area.mist %}OK{% endif %}</td>
+                        <td class="center">{% if area.rat_bait %}OK{% endif %}</td>
+                        <td class="center">{% if area.powder %}OK{% endif %}</td>
+                        <td>{{ area.remarks|default:'-' }}</td>
+                        <td>{{ area.recommendation|default:'-' }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="9" class="center">No treated areas recorded.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
 
         <div class="signature-row">
             <div>
@@ -209,13 +282,10 @@
             </div>
         </div>
 
-        <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:12px;">
-            {% if role == 'om' %}
-                <a href="{% url 'om_download_service_report_pdf' report.id %}" class="back-link" style="margin:0;background:#1a2a5e;color:#fff;padding:8px 12px;border-radius:8px;">Download PDF</a>
-            {% else %}
-                <a href="{% url 'technician_download_service_report_pdf' report.id %}" class="back-link" style="margin:0;background:#1a2a5e;color:#fff;padding:8px 12px;border-radius:8px;">Download PDF</a>
-            {% endif %}
-        </div>
+    </div>
+
+    <div class="back-row">
+        <a href="{% url back_url_name|default:'om_service_reports' %}" class="back-link">Back</a>
     </div>
 </div>
 {% endblock %}

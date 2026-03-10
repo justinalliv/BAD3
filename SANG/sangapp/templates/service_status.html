@@ -208,6 +208,10 @@
                                     <a href="{% url 'customer_view_estimated_bill' service.id %}" class="action-btn">View Estimated Bill</a>
                                 {% endif %}
 
+                                {% if service.service_report %}
+                                    <a href="{% url 'customer_view_service_report' service.id %}" class="action-btn">View Service Report</a>
+                                {% endif %}
+
                                 <button type="button" class="action-btn delete" onclick="openDeleteModal('{{ service.id }}')">Delete Service</button>
 
                                 {% if service.status != 'For Confirmation' and service.status != 'For Treatment Booking' and service.status != 'For Inspection' and service.status != 'For Treatment' and not service.estimated_bill %}

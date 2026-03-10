@@ -740,7 +740,7 @@ def service_status(request):
         customer=customer
     ).exclude(
         status__in=['Completed', 'Cancelled']
-    ).select_related('property', 'estimated_bill').order_by('-created_at')
+    ).select_related('property', 'estimated_bill', 'service_report').order_by('-created_at')
     
     return render(request, 'service_status.html', {
         'customer': customer,
@@ -816,6 +816,34 @@ def customer_view_estimated_bill(request, service_id):
         'role': 'customer',
         'back_url_name': 'service_status',
         'allow_confirm': can_confirm,
+    })
+
+
+def customer_view_service_report(request, service_id):
+    if 'customer_id' not in request.session:
+        return redirect('login')
+
+    try:
+        customer = Customer.objects.get(id=request.session['customer_id'])
+    except Customer.DoesNotExist:
+        request.session.flush()
+        return redirect('login')
+
+    report = ServiceReport.objects.select_related(
+        'service__customer', 'service__property', 'technician'
+    ).prefetch_related('chemicals', 'treated_areas').filter(
+        service_id=service_id,
+        service__customer=customer,
+    ).first()
+
+    if not report:
+        messages.error(request, 'Service report not found.')
+        return redirect('service_status')
+
+    return render(request, 'service_report_view.html', {
+        'report': report,
+        'role': 'customer',
+        'back_url_name': 'service_status',
     })
 
 
@@ -1865,7 +1893,7 @@ def technician_service_status(request):
 
     services = Service.objects.exclude(
         status__in=['Completed', 'Cancelled']
-    ).select_related('customer', 'property').annotate(
+    ).select_related('customer', 'property', 'service_report').annotate(
         workflow_order=Case(
             *status_order_cases,
             default=len(OM_STATUS_WORKFLOW),
@@ -2455,46 +2483,6 @@ def _service_report_redirect_name(request):
     return 'om_service_reports'
 
 
-def download_service_report_pdf(request, report_id):
-    if 'technician_id' not in request.session and 'om_id' not in request.session:
-        return redirect('login')
-
-    report = ServiceReport.objects.select_related(
-        'service__customer', 'service__property'
-    ).prefetch_related('chemicals', 'treated_areas').filter(id=report_id).first()
-
-    if not report:
-        messages.error(request, 'Service report not found.')
-        return redirect(_service_report_redirect_name(request))
-
-    table_rows = [
-        [
-            area.area_name,
-            area.infestation_level,
-            'Yes' if area.spray else 'No',
-            area.remarks or '-',
-        ]
-        for area in report.treated_areas.all()
-    ]
-
-    pdf_bytes = _render_simple_pdf(
-        title='Service Report',
-        header_lines=[
-            f"Report ID: {report.id:07d}",
-            f"Service ID: {report.service.id:07d}",
-            f"Customer: {report.service.customer.first_name} {report.service.customer.last_name}",
-            f"Date: {report.created_at:%m/%d/%Y}",
-            f"Chemicals: {', '.join([f'{chemical.chemical_name} ({chemical.amount} {chemical.unit_measure})' for chemical in report.chemicals.all()]) or '-'}",
-        ],
-        table_headers=['Area', 'Infestation', 'Spray', 'Remarks'],
-        table_rows=table_rows,
-    )
-
-    response = HttpResponse(pdf_bytes, content_type='application/pdf')
-    response['Content-Disposition'] = f'attachment; filename="service_report_{report.id:07d}.pdf"'
-    return response
-
-
 def edit_service_report(request, report_id):
     if 'technician_id' not in request.session and 'om_id' not in request.session:
         return redirect('login')
@@ -2658,7 +2646,7 @@ def om_service_status(request):
 
     services_qs = Service.objects.exclude(
         status__in=['Completed', 'Cancelled']
-    ).select_related('customer', 'property').annotate(
+    ).select_related('customer', 'property', 'service_report').annotate(
         workflow_order=Case(
             *status_order_cases,
             default=len(OM_STATUS_WORKFLOW),

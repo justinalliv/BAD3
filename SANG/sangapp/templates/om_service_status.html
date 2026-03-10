@@ -256,6 +256,10 @@
                                 <a href="{% url 'om_view_estimated_bill' service.estimated_bill.id %}" class="action-btn update">View Estimated Bill</a>
                             {% endif %}
 
+                            {% if service.service_report %}
+                                <a href="{% url 'om_view_service_report' service.service_report.id %}" class="action-btn update">View Service Report</a>
+                            {% endif %}
+
                             {% if service.status == 'For Booking' %}
                                 <a href="{% url 'om_book_treatment' service.id %}" class="action-btn book">Book Treatment</a>
                             {% endif %}

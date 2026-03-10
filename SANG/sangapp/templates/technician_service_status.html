@@ -220,6 +220,9 @@
                         <div class="action-stack">
                             <a href="{% url 'technician_update_service_status' service.id %}" class="action-btn update">Update Status</a>
                             <a href="{% url 'technician_view_booking' service.id %}" class="action-btn edit">View Booking</a>
+                            {% if service.service_report %}
+                                <a href="{% url 'technician_view_service_report' service.service_report.id %}" class="action-btn update">View Service Report</a>
+                            {% endif %}
                         </div>
                     </td>
                 </tr>
