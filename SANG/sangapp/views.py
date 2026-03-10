@@ -52,7 +52,7 @@ OM_STATUS_TRANSITIONS = {
     'For Treatment Booking': ['For Treatment'],
     'For Treatment': ['Ongoing Treatment'],
     'Ongoing Treatment': ['Pending Payment', 'For Treatment'],
-    'Pending Payment': ['Payment Confirmed'],
+    'Pending Payment': ['Payment Confirmed',],
     'Payment Confirmed': ['Completed'],
 }
 
