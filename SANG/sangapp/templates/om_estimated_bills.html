@@ -31,6 +31,15 @@
         margin-bottom: 20px;
     }
 
+    .flash {
+        background: #fff3cd;
+        color: #856404;
+        border: 1px solid #ffe69c;
+        border-radius: 8px;
+        padding: 10px 14px;
+        margin-bottom: 18px;
+    }
+
     .list-shell {
         background-color: white;
         border-radius: 10px;
@@ -67,22 +76,6 @@
         background: #0d1535;
     }
 
-    .action-chip {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        min-height: 32px;
-        padding: 0 10px;
-        border-radius: 8px;
-        color: #fff;
-        text-decoration: none;
-        font-size: 0.8em;
-        font-weight: 700;
-        border: none;
-        cursor: pointer;
-        background: #1a2a5e;
-    }
-
     .search-box {
         width: 280px;
         min-height: 38px;
@@ -98,27 +91,32 @@
 
     .table-wrap {
         max-height: 430px;
-        overflow-y: auto;
+        overflow: auto;
         background: white;
     }
 
     table {
         width: 100%;
+        table-layout: fixed;
         border-collapse: collapse;
     }
 
-    th, td {
+    #billTable th,
+    #billTable td {
         padding: 15px;
         text-align: left;
         color: #333;
-        font-size: 0.95em;
+        font-size: 0.9em;
         border-bottom: 1px solid #e0e0e0;
+        vertical-align: top;
+        word-break: break-word;
+        overflow-wrap: anywhere;
     }
 
-    th {
+    #billTable th {
         background: #1a2a5e;
         color: #fff;
-        font-size: 0.95em;
+        font-size: 0.9em;
         font-weight: 600;
     }
 
@@ -126,44 +124,80 @@
         border-bottom: none;
     }
 
-    .file-link {
-        color: #4a4a4a;
-        text-decoration: underline;
-        font-weight: 600;
+    .action-stack {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        align-items: center;
+    }
+
+    .action-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 132px;
+        min-height: 32px;
+        padding: 6px 10px;
+        border-radius: 8px;
+        color: #fff;
+        text-decoration: none;
+        font-size: 0.8em;
+        font-weight: 700;
+        white-space: normal;
+        border: none;
+        cursor: pointer;
+        transition: background-color 0.2s;
+    }
+
+    .action-btn.view {
+        background: #1a2a5e;
+    }
+
+    .action-btn.view:hover {
+        background: #0d1535;
+    }
+
+    .action-btn.edit {
+        background: #6c7293;
+    }
+
+    .action-btn.edit:hover {
+        background: #585e7a;
+    }
+
+    .action-btn.delete {
+        background: #d9534f;
+    }
+
+    .action-btn.delete:hover {
+        background: #c74743;
     }
 
     .empty {
         text-align: center;
         color: #777;
-        padding: 28px 0;
+        padding: 34px 10px;
+        font-size: 0.95em;
     }
 
-    .success-banner {
-        background: #1a2a5e;
-        color: #fff;
-        padding: 10px 16px 10px 36px;
-        font-size: 0.86em;
-        font-weight: 600;
-        margin-bottom: 10px;
-        display: inline-block;
-        position: relative;
-    }
+    @media (max-width: 1100px) {
+        .header-row {
+            flex-wrap: wrap;
+            justify-content: flex-start;
+        }
 
-    .success-banner::before {
-        content: '!';
-        position: absolute;
-        left: 10px;
-        top: 50%;
-        transform: translateY(-50%);
-        width: 18px;
-        height: 18px;
-        border-radius: 50%;
-        background: #fff;
-        color: #1a2a5e;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: 800;
+        .toolbar {
+            justify-content: flex-start;
+        }
+
+        .search-box {
+            width: 100%;
+            max-width: 320px;
+        }
+
+        #billTable {
+            min-width: 980px;
+        }
     }
 {% endblock %}
 
@@ -182,9 +216,7 @@
 
     {% if messages %}
         {% for message in messages %}
-            {% if message.tags == 'success' %}
-                <div class="success-banner">{{ message }}</div>
-            {% endif %}
+            <div class="flash">{{ message }}</div>
         {% endfor %}
     {% endif %}
 
@@ -193,20 +225,18 @@
             <input type="text" id="searchBox" class="search-box" placeholder="Search">
         </div>
 
-        <table>
-            <thead>
-                <tr>
-                    <th>Service ID</th>
-                    <th>Customer Name</th>
-                    <th>Address</th>
-                    <th>Service Type</th>
-                    <th>Estimated Bill ID</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
-        </table>
         <div class="table-wrap">
             <table id="billTable">
+                <thead>
+                    <tr>
+                        <th style="width:12%;">Service ID</th>
+                        <th style="width:18%;">Customer Name</th>
+                        <th style="width:26%;">Address</th>
+                        <th style="width:20%;">Service Type</th>
+                        <th style="width:12%;">Estimated Bill ID</th>
+                        <th style="width:12%;">Action</th>
+                    </tr>
+                </thead>
                 <tbody>
                     {% for bill in estimated_bills %}
                     <tr>
@@ -216,13 +246,12 @@
                         <td>{{ bill.service.preferred_service }}</td>
                         <td>{{ bill.id|stringformat:'07d' }}</td>
                         <td>
-                            <div style="display:flex;gap:6px;flex-wrap:wrap;">
-                                <a href="{% url 'om_view_estimated_bill' bill.id %}" class="action-chip">View</a>
-                                <a href="{% url 'om_edit_estimated_bill' bill.id %}" class="action-chip" style="background:#6c7293;">Edit</a>
-                                <a href="{% url 'om_download_estimated_bill_pdf' bill.id %}" class="action-chip" style="background:#2b7a4b;">Download PDF</a>
+                            <div class="action-stack">
+                                <a href="{% url 'om_view_estimated_bill' bill.id %}" class="action-btn view">View</a>
+                                <a href="{% url 'om_edit_estimated_bill' bill.id %}" class="action-btn edit">Edit</a>
                                 <form method="POST" action="{% url 'om_delete_estimated_bill' bill.id %}" style="margin:0;" onsubmit="return confirm('Delete this estimated bill?');">
                                     {% csrf_token %}
-                                    <button type="submit" class="action-chip" style="background:#d9534f;">Delete</button>
+                                    <button type="submit" class="action-btn delete">Delete</button>
                                 </form>
                             </div>
                         </td>

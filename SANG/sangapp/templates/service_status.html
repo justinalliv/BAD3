@@ -57,18 +57,27 @@
             text-align: left;
             font-weight: 600;
             font-size: 0.95em;
+            border: none;
         }
         td {
             padding: 15px;
-            border-bottom: 1px solid #e0e0e0;
+            border: none;
             font-size: 0.95em;
             color: #333;
         }
         tbody tr:hover {
             background-color: #f5f5f5;
         }
-        tbody tr:last-child td {
-            border-bottom: none;
+        #servicesTable {
+            border-collapse: collapse;
+            border-spacing: 0;
+            border: 0;
+        }
+
+        #servicesTable th,
+        #servicesTable td {
+            border: 0 !important;
+            box-shadow: none;
         }
         .invoice-link {
             color: #1a2a5e;
@@ -168,6 +177,15 @@
         .action-btn.delete:hover {
             background: #c74743;
         }
+
+        .action-wrap {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
 {% endblock %}
 
 {% block content %}
@@ -192,7 +210,6 @@
                         <th>Service Type</th>
                         <th>Preferred Date</th>
                         <th>Confirmed Date</th>
-                        <th>OM Acknowledged</th>
                         <th>Status</th>
                         <th>Action</th>
                     </tr>
@@ -216,19 +233,12 @@
                             {% endif %}
                         </td>
                         <td>
-                            {% if service.om_seen_at %}
-                                {{ service.om_seen_at|date:'M d, Y h:i A' }}
-                            {% else %}
-                                Pending
-                            {% endif %}
-                        </td>
-                        <td>
                             <span class="status-badge status-{{ service.status|lower|cut:' ' }}">
                                 {{ service.status }}
                             </span>
                         </td>
                         <td>
-                            <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                            <div class="action-wrap">
                                 {% if service.status == 'For Confirmation' %}
                                     <span style="font-size:0.86em;color:#666;">Submitted {{ service.created_at|date:'M d, Y h:i A' }}. Please wait for OM call.</span>
                                 {% elif service.estimated_bill %}

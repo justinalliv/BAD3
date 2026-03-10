@@ -1,0 +1,130 @@
+{% extends 'base.html' %}
+
+{% block title %}View Booking - Supreme Biotech Solutions{% endblock %}
+
+{% block extra_css %}
+    .view-container {
+        max-width: 620px;
+        margin: 18px auto 26px;
+        padding: 0 24px;
+    }
+
+    .identified-top {
+        width: 100%;
+        text-align: right;
+        color: #333;
+        margin: 10px 0 6px;
+        padding: 0 28px;
+        font-size: 0.9em;
+    }
+
+    .view-card {
+        background: #fff;
+        border: 1px solid #d9d9d9;
+        border-radius: 12px;
+        padding: 18px;
+    }
+
+    .view-header {
+        text-align: center;
+        margin-bottom: 14px;
+    }
+
+    .view-header h1 {
+        color: #1a2a5e;
+        font-size: clamp(1.7rem, 3.6vh, 2.3rem);
+        margin: 0;
+    }
+
+    .field-grid {
+        display: grid;
+        gap: 10px;
+    }
+
+    .field label {
+        display: block;
+        color: #4a4a4a;
+        font-size: 0.94em;
+        font-weight: 600;
+        margin-bottom: 4px;
+    }
+
+    .field-value {
+        min-height: 44px;
+        padding: 10px 12px;
+        border: 1px solid #d6d6d6;
+        border-radius: 10px;
+        background: #f1f1f1;
+        color: #333;
+        font-size: 0.94em;
+        line-height: 1.35;
+    }
+
+    .button-row {
+        margin-top: 14px;
+        display: flex;
+        justify-content: center;
+    }
+
+    .btn-back {
+        min-width: 180px;
+        min-height: 44px;
+        border: none;
+        border-radius: 12px;
+        font-size: 0.94em;
+        font-weight: 700;
+        cursor: pointer;
+        background: #1a2a5e;
+        color: #fff;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .btn-back:hover {
+        background: #0d1535;
+    }
+{% endblock %}
+
+{% block content %}
+<p class="identified-top">User Identified As: Operations Manager</p>
+<div class="view-container">
+    <div class="view-card">
+        <div class="view-header">
+            <h1>View Booking</h1>
+        </div>
+
+        <div class="field-grid">
+            <div class="field">
+                <label>Customer Name</label>
+                <div class="field-value">{{ service.customer.first_name }} {{ service.customer.last_name }}</div>
+            </div>
+
+            <div class="field">
+                <label>Property Address</label>
+                <div class="field-value">{{ service.property.street_number }} {{ service.property.street }}, {{ service.property.city }}</div>
+            </div>
+
+            <div class="field">
+                <label>Service Type</label>
+                <div class="field-value">{{ service.preferred_service|default:'-' }}</div>
+            </div>
+
+            <div class="field">
+                <label>Preferred Date</label>
+                <div class="field-value">{{ service.date|date:'M d, Y' }}</div>
+            </div>
+
+            <div class="field">
+                <label>Preferred Time</label>
+                <div class="field-value">{{ service.time_slot|default:'-' }}</div>
+            </div>
+        </div>
+
+        <div class="button-row">
+            <a href="{% url 'om_service_status' %}" class="btn-back">Back to Service Status</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

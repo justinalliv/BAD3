@@ -28,6 +28,30 @@
         border-radius: 12px;
         border: 1px solid #ddd;
         padding: 22px;
+        overflow-x: auto;
+    }
+
+    #serviceTable {
+        width: 100%;
+        table-layout: fixed;
+        border-collapse: collapse;
+        border-spacing: 0;
+        border: 0;
+    }
+
+    #serviceTable th,
+    #serviceTable td {
+        font-size: 0.86em;
+        padding: 10px 8px;
+        vertical-align: top;
+        word-break: break-word;
+        overflow-wrap: anywhere;
+        border: 0 !important;
+        box-shadow: none;
+    }
+
+    #serviceTable th {
+        white-space: normal;
     }
 
     .top-actions {
@@ -82,21 +106,22 @@
         display: flex;
         flex-direction: column;
         gap: 8px;
+        align-items: center;
     }
 
     .action-btn {
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        min-width: 150px;
-        min-height: 34px;
-        padding: 7px 12px;
+        min-width: 132px;
+        min-height: 32px;
+        padding: 6px 10px;
         border-radius: 8px;
         color: white;
         text-decoration: none;
-        font-size: 0.84em;
+        font-size: 0.8em;
         font-weight: 700;
-        white-space: nowrap;
+        white-space: normal;
         border: none;
         cursor: pointer;
         transition: background-color 0.2s;
@@ -153,6 +178,23 @@
         padding: 10px 14px;
         margin-bottom: 18px;
     }
+
+    @media (max-width: 1100px) {
+        .top-actions {
+            flex-wrap: wrap;
+            justify-content: flex-start;
+        }
+
+        .search-box,
+        .filter-box {
+            width: 100%;
+            max-width: 320px;
+        }
+
+        #serviceTable {
+            min-width: 980px;
+        }
+    }
 {% endblock %}
 
 {% block content %}
@@ -183,10 +225,6 @@
                 <tr>
                     <th>Service ID</th>
                     <th>Customer Name</th>
-                    <th>Property Address</th>
-                    <th>Service Type</th>
-                    <th>Preferred Date</th>
-                    <th>Preferred Time</th>
                     <th>Confirmed Inspection Date</th>
                     <th>Confirmed Treatment Date</th>
                     <th>Created At</th>
@@ -199,12 +237,6 @@
                 <tr>
                     <td>{{ service.id|stringformat:"07d" }}</td>
                     <td>{{ service.customer.first_name }} {{ service.customer.last_name }}</td>
-                    <td>{{ service.property.street_number }} {{ service.property.street }}, {{ service.property.city }}</td>
-                    <td>
-                        {{ service.preferred_service|default:'-' }}
-                    </td>
-                    <td>{{ service.date|date:'M d, Y' }}</td>
-                    <td>{{ service.time_slot|default:'-' }}</td>
                     <td>{% if service.inspection_confirmed_date %}{{ service.inspection_confirmed_date|date:'M d, Y' }}{% else %}-{% endif %}</td>
                     <td>{% if service.treatment_confirmed_date %}{{ service.treatment_confirmed_date|date:'M d, Y' }}{% else %}-{% endif %}</td>
                     <td>{{ service.created_at|date:'M d, Y h:i A' }}</td>
@@ -214,10 +246,10 @@
                     <td>
                         <div class="action-stack">
                             <a href="{% url 'om_update_service_status' service.id %}" class="action-btn update">Update Status</a>
+                            <a href="{% url 'om_view_booking' service.id %}" class="action-btn edit">View Booking</a>
 
                             {% if service.status == 'For Confirmation' or service.status == 'For Inspection' or service.status == 'For Treatment' %}
-                                <a href="{% url 'om_edit_booking' service.id %}" class="action-btn edit">Edit Booking</a>
-                                   <button type="button" class="action-btn delete" onclick="openDeleteModal('{{ service.id }}')">Delete Service</button>
+                                <button type="button" class="action-btn delete" onclick="openDeleteModal('{{ service.id }}')">Delete Service</button>
                             {% endif %}
 
                             {% if service.estimated_bill %}

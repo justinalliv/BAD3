@@ -140,18 +140,21 @@
 
         <div class="form-group">
             <label for="new_status">New Status</label>
-            <select id="new_status" name="new_status" {% if errors.new_status %}class="error"{% endif %}>
+            <select id="new_status" name="new_status" {% if errors.new_status %}class="error"{% endif %} {% if not status_choices %}disabled{% endif %}>
                 <option value="">Select an option</option>
                 {% for value, label in status_choices %}
                     <option value="{{ value }}" {% if form_data.new_status == value %}selected{% endif %}>{{ label }}</option>
                 {% endfor %}
             </select>
             {% if errors.new_status %}<div class="error-message">{{ errors.new_status }}</div>{% endif %}
+            {% if not status_choices %}
+                <div class="error-message">No available next status for this service.</div>
+            {% endif %}
         </div>
 
         <div class="button-row">
             <button type="submit" class="btn btn-cancel" name="action" value="cancel">Cancel</button>
-            <button type="button" class="btn btn-confirm" id="openConfirmModal">Save Changes</button>
+            <button type="button" class="btn btn-confirm" id="openConfirmModal" {% if not status_choices %}disabled{% endif %}>Save Changes</button>
         </div>
     </form>
 

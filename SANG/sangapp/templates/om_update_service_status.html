@@ -34,6 +34,13 @@
         margin-bottom: 8px;
     }
 
+    .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        margin-bottom: 8px;
+    }
+
     .form-group label {
         display: block;
         color: #4a4a4a;
@@ -112,6 +119,12 @@
     .btn-confirm:hover {
         background: #0d1535;
     }
+
+    @media (max-width: 700px) {
+        .form-row {
+            grid-template-columns: 1fr;
+        }
+    }
 {% endblock %}
 
 {% block content %}
@@ -125,64 +138,73 @@
         {% csrf_token %}
 
         <div class="form-group">
-            <label for="service_id">Service ID</label>
-            <input id="service_id" type="text" value="{{ service.id|stringformat:'07d' }}" readonly>
-        </div>
-
-        <div class="form-group">
-            <label for="customer_name">Customer Name</label>
-            <input id="customer_name" type="text" value="{{ service.customer.first_name }} {{ service.customer.last_name }}" readonly>
-        </div>
-
-        <div class="form-group">
             <label for="current_status">Current Status</label>
             <input id="current_status" type="text" value="{{ service.status }}" readonly>
         </div>
 
         <div class="form-group">
-            <label for="preferred_date">Preferred Date</label>
-            <input id="preferred_date" type="text" value="{{ service.date|date:'M d, Y' }}" readonly>
-        </div>
-
-        <div class="form-group">
-            <label for="preferred_time">Preferred Time</label>
-            <input id="preferred_time" type="text" value="{{ service.time_slot }}" readonly>
-        </div>
-
-        <div class="form-group">
             <label for="new_status">New Status</label>
-            <select id="new_status" name="new_status" {% if errors.new_status %}class="error"{% endif %}>
+            <select id="new_status" name="new_status" {% if errors.new_status %}class="error"{% endif %} {% if not status_choices %}disabled{% endif %}>
                 <option value="">Select an option</option>
                 {% for value, label in status_choices %}
                     <option value="{{ value }}" {% if form_data.new_status == value %}selected{% endif %}>{{ label }}</option>
                 {% endfor %}
             </select>
             {% if errors.new_status %}<div class="error-message">{{ errors.new_status }}</div>{% endif %}
+            {% if not status_choices %}
+                <div class="error-message">No available next status for this service.</div>
+            {% endif %}
         </div>
 
-        <div class="form-group">
-            <label for="inspection_confirmed_date">Confirmed Inspection Date</label>
-            <input
-                id="inspection_confirmed_date"
-                name="inspection_confirmed_date"
-                type="date"
-                value="{% if form_data.inspection_confirmed_date %}{{ form_data.inspection_confirmed_date }}{% elif service.inspection_confirmed_date %}{{ service.inspection_confirmed_date|date:'Y-m-d' }}{% endif %}">
-            {% if errors.inspection_confirmed_date %}<div class="error-message">{{ errors.inspection_confirmed_date }}</div>{% endif %}
+        <div class="form-row">
+            <div class="form-group">
+                <label for="inspection_confirmed_date">Confirmed Inspection Date</label>
+                <input
+                    id="inspection_confirmed_date"
+                    name="inspection_confirmed_date"
+                    type="date"
+                    value="{% if form_data.inspection_confirmed_date %}{{ form_data.inspection_confirmed_date }}{% elif service.inspection_confirmed_date %}{{ service.inspection_confirmed_date|date:'Y-m-d' }}{% endif %}">
+                {% if errors.inspection_confirmed_date %}<div class="error-message">{{ errors.inspection_confirmed_date }}</div>{% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="inspection_confirmed_time">Confirmed Inspection Time</label>
+                <select id="inspection_confirmed_time" name="inspection_confirmed_time" {% if errors.inspection_confirmed_time %}class="error"{% endif %}>
+                    <option value="">Select time slot</option>
+                    {% for value, label in time_slot_choices %}
+                        <option value="{{ value }}" {% if form_data.inspection_confirmed_time == value or service.inspection_confirmed_time == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+                {% if errors.inspection_confirmed_time %}<div class="error-message">{{ errors.inspection_confirmed_time }}</div>{% endif %}
+            </div>
         </div>
 
-        <div class="form-group">
-            <label for="treatment_confirmed_date">Confirmed Treatment Date</label>
-            <input
-                id="treatment_confirmed_date"
-                name="treatment_confirmed_date"
-                type="date"
-                value="{% if form_data.treatment_confirmed_date %}{{ form_data.treatment_confirmed_date }}{% elif service.treatment_confirmed_date %}{{ service.treatment_confirmed_date|date:'Y-m-d' }}{% endif %}">
-            {% if errors.treatment_confirmed_date %}<div class="error-message">{{ errors.treatment_confirmed_date }}</div>{% endif %}
+        <div class="form-row">
+            <div class="form-group">
+                <label for="treatment_confirmed_date">Confirmed Treatment Date</label>
+                <input
+                    id="treatment_confirmed_date"
+                    name="treatment_confirmed_date"
+                    type="date"
+                    value="{% if form_data.treatment_confirmed_date %}{{ form_data.treatment_confirmed_date }}{% elif service.treatment_confirmed_date %}{{ service.treatment_confirmed_date|date:'Y-m-d' }}{% endif %}">
+                {% if errors.treatment_confirmed_date %}<div class="error-message">{{ errors.treatment_confirmed_date }}</div>{% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="treatment_confirmed_time">Confirmed Treatment Time</label>
+                <select id="treatment_confirmed_time" name="treatment_confirmed_time" {% if errors.treatment_confirmed_time %}class="error"{% endif %}>
+                    <option value="">Select time slot</option>
+                    {% for value, label in time_slot_choices %}
+                        <option value="{{ value }}" {% if form_data.treatment_confirmed_time == value or service.treatment_confirmed_time == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+                {% if errors.treatment_confirmed_time %}<div class="error-message">{{ errors.treatment_confirmed_time }}</div>{% endif %}
+            </div>
         </div>
 
         <div class="button-row">
             <button type="submit" class="btn btn-cancel" name="action" value="cancel">Cancel</button>
-            <button type="button" class="btn btn-confirm" id="openConfirmModal">Save Changes</button>
+            <button type="button" class="btn btn-confirm" id="openConfirmModal" {% if not status_choices %}disabled{% endif %}>Save Changes</button>
         </div>
     </form>
 

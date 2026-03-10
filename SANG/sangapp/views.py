@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.db import transaction
+from django.db.models import Case, When, IntegerField
 from django.core.mail import send_mail
 from django.conf import settings
 from django.http import HttpResponse
@@ -27,6 +28,31 @@ from .models import (
     InvoiceItem,
 )
 from .forms import CustomerRegistrationForm
+
+
+OM_STATUS_WORKFLOW = [
+    'For Confirmation',
+    'For Inspection',
+    'Ongoing Inspection',
+    'Estimated Bill Created',
+    'For Treatment',
+    'Ongoing Treatment',
+    'Pending Payment',
+    'Payment Confirmed',
+    'Completed',
+    'Cancelled',
+]
+
+OM_STATUS_TRANSITIONS = {
+    'For Confirmation': ['For Inspection'],
+    'For Inspection': ['Ongoing Inspection'],
+    'Ongoing Inspection': ['Estimated Bill Created'],
+    'Estimated Bill Created': ['For Treatment'],
+    'For Treatment': ['Ongoing Treatment'],
+    'Ongoing Treatment': ['Pending Payment'],
+    'Pending Payment': ['Payment Confirmed'],
+    'Payment Confirmed': ['Completed'],
+}
 
 def home(request):
     """Public home page."""
@@ -927,45 +953,6 @@ def om_view_estimated_bill(request, estimated_bill_id):
     })
 
 
-def om_download_estimated_bill_pdf(request, estimated_bill_id):
-    if 'om_id' not in request.session:
-        return redirect('login')
-
-    estimated_bill = EstimatedBill.objects.select_related(
-        'service__customer', 'service__property'
-    ).prefetch_related('items').filter(id=estimated_bill_id).first()
-
-    if not estimated_bill:
-        messages.error(request, 'Estimated bill not found.')
-        return redirect('om_estimated_bills')
-
-    pdf_bytes = _render_simple_pdf(
-        title='Estimated Bill',
-        header_lines=[
-            f"Estimated Bill ID: {estimated_bill.id:07d}",
-            f"Service ID: {estimated_bill.service.id:07d}",
-            f"Customer: {estimated_bill.service.customer.first_name} {estimated_bill.service.customer.last_name}",
-            f"Address: {estimated_bill.service.property.street_number} {estimated_bill.service.property.street}, {estimated_bill.service.property.city}",
-            f"Date Created: {estimated_bill.created_at:%m/%d/%Y}",
-        ],
-        table_headers=['Service Type', 'Qty', 'Unit Price', 'Line Total'],
-        table_rows=[
-            [
-                item.service_type,
-                item.quantity,
-                f"₱ {item.unit_price}",
-                f"₱ {item.line_total}",
-            ]
-            for item in estimated_bill.items.all()
-        ],
-        total_line=f"Total: ₱ {estimated_bill.total_amount}",
-    )
-
-    response = HttpResponse(pdf_bytes, content_type='application/pdf')
-    response['Content-Disposition'] = f'attachment; filename="estimated_bill_{estimated_bill.id:07d}.pdf"'
-    return response
-
-
 def om_edit_estimated_bill(request, estimated_bill_id):
     if 'om_id' not in request.session:
         return redirect('login')
@@ -1854,14 +1841,47 @@ def technician_service_status(request):
     created_order = request.GET.get('created_order', 'newest').strip().lower()
     order_by = 'created_at' if created_order == 'oldest' else '-created_at'
 
+    status_order_cases = [
+        When(status=status_value, then=position)
+        for position, status_value in enumerate(OM_STATUS_WORKFLOW)
+    ]
+
     services = Service.objects.exclude(
         status__in=['Completed', 'Cancelled']
-    ).select_related('customer', 'property').order_by(order_by)
+    ).select_related('customer', 'property').annotate(
+        workflow_order=Case(
+            *status_order_cases,
+            default=len(OM_STATUS_WORKFLOW),
+            output_field=IntegerField(),
+        )
+    ).order_by('workflow_order', order_by)
 
     return render(request, 'technician_service_status.html', {
         'technician': technician,
         'services': services,
         'created_order': created_order,
+    })
+
+
+def technician_view_booking(request, service_id):
+    """Display read-only booking details for technician."""
+    if 'technician_id' not in request.session:
+        return redirect('login')
+
+    try:
+        technician = Technician.objects.get(id=request.session['technician_id'])
+    except Technician.DoesNotExist:
+        request.session.flush()
+        return redirect('login')
+
+    service = Service.objects.select_related('customer', 'property').filter(id=service_id).first()
+    if not service:
+        messages.error(request, 'Service record not found.')
+        return redirect('technician_service_status')
+
+    return render(request, 'technician_view_booking.html', {
+        'technician': technician,
+        'service': service,
     })
 
 
@@ -1881,14 +1901,13 @@ def technician_update_service_status(request, service_id):
         messages.error(request, 'Service record not found.')
         return redirect('technician_service_status')
 
-    status_choices = [
-        ('For Inspection', 'For Inspection'),
-        ('Ongoing Inspection', 'Ongoing Inspection'),
-        ('Estimated Bill Created', 'Estimated Bill Created'),
-        ('For Treatment', 'For Treatment'),
-        ('Ongoing Treatment', 'Ongoing Treatment'),
-    ]
-    allowed_statuses = {value for value, _ in status_choices}
+    technician_transitions = {
+        'For Inspection': ['Ongoing Inspection'],
+        'For Treatment': ['Ongoing Treatment'],
+    }
+    allowed_next_statuses = technician_transitions.get(service.status, [])
+    status_choices = [(value, value) for value in allowed_next_statuses]
+    allowed_statuses = set(allowed_next_statuses)
 
     if request.method == 'POST':
         if request.POST.get('action') == 'cancel':
@@ -1900,7 +1919,7 @@ def technician_update_service_status(request, service_id):
         if not new_status:
             errors['new_status'] = 'Required fields must be filled in.'
         elif new_status not in allowed_statuses:
-            errors['new_status'] = 'Invalid status selected.'
+            errors['new_status'] = 'Invalid status transition for current service status.'
 
         if errors:
             return render(request, 'technician_update_service_status.html', {
@@ -2615,9 +2634,20 @@ def om_service_status(request):
     created_order = request.GET.get('created_order', 'newest').strip().lower()
     order_by = 'created_at' if created_order == 'oldest' else '-created_at'
 
+    status_order_cases = [
+        When(status=status_value, then=position)
+        for position, status_value in enumerate(OM_STATUS_WORKFLOW)
+    ]
+
     services_qs = Service.objects.exclude(
         status__in=['Completed', 'Cancelled']
-    ).select_related('customer', 'property').order_by(order_by)
+    ).select_related('customer', 'property').annotate(
+        workflow_order=Case(
+            *status_order_cases,
+            default=len(OM_STATUS_WORKFLOW),
+            output_field=IntegerField(),
+        )
+    ).order_by('workflow_order', order_by)
 
     unseen_confirmation_ids = list(
         services_qs.filter(status='For Confirmation', om_seen_at__isnull=True).values_list('id', flat=True)
@@ -2651,15 +2681,10 @@ def om_update_service_status(request, service_id):
         messages.error(request, 'Service record not found.')
         return redirect('om_service_status')
 
-    status_choices = [
-        ('For Confirmation', 'For Confirmation'),
-        ('For Inspection', 'For Inspection'),
-        ('Ongoing Inspection', 'Ongoing Inspection'),
-        ('Estimated Bill Created', 'Estimated Bill Created'),
-        ('For Treatment', 'For Treatment'),
-        ('Ongoing Treatment', 'Ongoing Treatment'),
-    ]
-    allowed_statuses = {value for value, _ in status_choices}
+    allowed_next_statuses = OM_STATUS_TRANSITIONS.get(service.status, [])
+    status_choices = [(value, value) for value in allowed_next_statuses]
+    allowed_statuses = set(allowed_next_statuses)
+    allowed_time_slots = {value for value, _ in Service.TIME_SLOT_CHOICES}
 
     if request.method == 'POST':
         if request.POST.get('action') == 'cancel':
@@ -2667,19 +2692,31 @@ def om_update_service_status(request, service_id):
 
         new_status = request.POST.get('new_status', '').strip()
         inspection_confirmed_date = request.POST.get('inspection_confirmed_date', '').strip()
+        inspection_confirmed_time = request.POST.get('inspection_confirmed_time', '').strip()
         treatment_confirmed_date = request.POST.get('treatment_confirmed_date', '').strip()
+        treatment_confirmed_time = request.POST.get('treatment_confirmed_time', '').strip()
         errors = {}
 
         if not new_status:
             errors['new_status'] = 'Required fields must be filled in.'
         elif new_status not in allowed_statuses:
-            errors['new_status'] = 'Invalid status selected.'
+            errors['new_status'] = 'Invalid status transition for current service status.'
 
         if new_status == 'For Inspection' and not inspection_confirmed_date:
             errors['inspection_confirmed_date'] = 'Required fields must be filled in.'
 
+        if new_status == 'For Inspection' and not inspection_confirmed_time:
+            errors['inspection_confirmed_time'] = 'Required fields must be filled in.'
+        elif inspection_confirmed_time and inspection_confirmed_time not in allowed_time_slots:
+            errors['inspection_confirmed_time'] = 'Invalid time slot selected.'
+
         if new_status == 'For Treatment' and not treatment_confirmed_date:
             errors['treatment_confirmed_date'] = 'Required fields must be filled in.'
+
+        if new_status == 'For Treatment' and not treatment_confirmed_time:
+            errors['treatment_confirmed_time'] = 'Required fields must be filled in.'
+        elif treatment_confirmed_time and treatment_confirmed_time not in allowed_time_slots:
+            errors['treatment_confirmed_time'] = 'Invalid time slot selected.'
 
         if errors:
             return render(request, 'om_update_service_status.html', {
@@ -2688,6 +2725,7 @@ def om_update_service_status(request, service_id):
                 'errors': errors,
                 'form_data': request.POST,
                 'status_choices': status_choices,
+                'time_slot_choices': Service.TIME_SLOT_CHOICES,
             })
 
         update_fields = ['status']
@@ -2695,13 +2733,15 @@ def om_update_service_status(request, service_id):
 
         if new_status == 'For Inspection':
             service.inspection_confirmed_date = inspection_confirmed_date
+            service.inspection_confirmed_time = inspection_confirmed_time
             service.confirmed_date = inspection_confirmed_date
-            update_fields.extend(['inspection_confirmed_date', 'confirmed_date'])
+            update_fields.extend(['inspection_confirmed_date', 'inspection_confirmed_time', 'confirmed_date'])
 
         if new_status == 'For Treatment':
             service.treatment_confirmed_date = treatment_confirmed_date
+            service.treatment_confirmed_time = treatment_confirmed_time
             service.confirmed_date = treatment_confirmed_date
-            update_fields.extend(['treatment_confirmed_date', 'confirmed_date'])
+            update_fields.extend(['treatment_confirmed_date', 'treatment_confirmed_time', 'confirmed_date'])
 
         service.save(update_fields=update_fields)
         messages.success(request, 'Service status updated successfully.')
@@ -2711,6 +2751,7 @@ def om_update_service_status(request, service_id):
         'om': om,
         'service': service,
         'status_choices': status_choices,
+        'time_slot_choices': Service.TIME_SLOT_CHOICES,
         'form_data': {},
     })
 
@@ -2858,6 +2899,28 @@ def om_edit_booking(request, service_id):
         'service_choices': Service.PREFERRED_SERVICE_CHOICES,
         'pest_choices': Service.PEST_PROBLEM_CHOICES,
         'today': date_cls.today().isoformat(),
+    })
+
+
+def om_view_booking(request, service_id):
+    """Display read-only booking details for OM."""
+    if 'om_id' not in request.session:
+        return redirect('login')
+
+    try:
+        om = OperationsManager.objects.get(id=request.session['om_id'])
+    except OperationsManager.DoesNotExist:
+        request.session.flush()
+        return redirect('login')
+
+    service = Service.objects.select_related('customer', 'property').filter(id=service_id).first()
+    if not service:
+        messages.error(request, 'Service record not found.')
+        return redirect('om_service_status')
+
+    return render(request, 'om_view_booking.html', {
+        'om': om,
+        'service': service,
     })
 
 
