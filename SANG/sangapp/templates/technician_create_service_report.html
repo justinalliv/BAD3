@@ -332,7 +332,7 @@
                                 <td>{{ service.customer.first_name }} {{ service.customer.last_name }}</td>
                                 <td>{{ service.property.street_number }} {{ service.property.street }}, {{ service.property.city }}</td>
                                 <td>{{ service.preferred_service }}</td>
-                                <td>{{ service.confirmed_date|default:service.date|date:'m/d/Y' }}</td>
+                                <td>{{ service.confirmed_date|default:service.date|date:'M d, Y' }}</td>
                             </tr>
                             {% empty %}
                             <tr><td colspan="6" class="empty-box">No Ongoing Treatment services available for report creation.</td></tr>
