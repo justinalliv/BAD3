@@ -56,37 +56,44 @@
     }
 
     .section {
-        background-color: white;
-        border-radius: 10px;
-        padding: 30px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        background: #fff;
+        border-radius: 12px;
+        border: 1px solid #ddd;
+        padding: 22px;
+        overflow-x: auto;
     }
 
     table {
         width: 100%;
         border-collapse: collapse;
+        table-layout: fixed;
+        border-spacing: 0;
+        border: 0;
     }
 
     th {
-        padding: 15px;
+        padding: 10px 8px;
         text-align: left;
         font-weight: 600;
-        font-size: 0.95em;
+        font-size: 0.84em;
+        white-space: normal;
+        border: 0 !important;
+        box-shadow: none;
     }
 
     td {
-        padding: 15px;
-        border-bottom: 1px solid #e0e0e0;
-        font-size: 0.95em;
+        padding: 10px 8px;
+        border: 0 !important;
+        font-size: 0.84em;
         color: #333;
+        vertical-align: top;
+        word-break: break-word;
+        overflow-wrap: anywhere;
+        box-shadow: none;
     }
 
     tbody tr:hover {
         background-color: #f5f5f5;
-    }
-
-    tbody tr:last-child td {
-        border-bottom: none;
     }
 
     .action-btn {
@@ -156,15 +163,15 @@
 
     .section-header {
         display: flex;
-        justify-content: space-between;
+        justify-content: flex-end;
         align-items: center;
         margin-bottom: 20px;
     }
 
-    .section-header h2 {
-        color: #1a2a5e;
-        font-size: 1.3em;
-        font-weight: 600;
+    @media (max-width: 1100px) {
+        table {
+            min-width: 980px;
+        }
     }
 {% endblock %}
 
@@ -191,7 +198,6 @@
         <!-- Property List Section -->
         <div class="section">
             <div class="section-header">
-                <h2>Property List</h2>
                 <input type="text" id="searchBox" class="search-box" placeholder="Search">
             </div>
 
@@ -216,8 +222,8 @@
                             <td>{{ property.property_type }}</td>
                             <td>{{ property.floor_area }} sqm</td>
                             <td class="action-cell">
-                                <a href="{% url 'edit_property' property.id %}" class="action-btn update">Update Status</a>
-                                <button type="button" class="action-btn delete delete-btn delete-action" data-property-id="{{ property.id }}" data-property-name="{{ property.property_name|escapejs }}">Delete Booking</button>
+                                <a href="{% url 'edit_property' property.id %}" class="action-btn update">Edit Property</a>
+                                <button type="button" class="action-btn delete delete-btn delete-action" data-property-id="{{ property.id }}" data-property-name="{{ property.property_name|escapejs }}">Delete Property</button>
                             </td>
                         </tr>
                         {% endfor %}
