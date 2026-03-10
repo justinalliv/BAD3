@@ -303,6 +303,16 @@
             </div>
         </div>
     </div>
+
+    <div id="selectServiceModal" class="modal">
+        <div class="modal-content">
+            <h2>Service ID Required</h2>
+            <p>Please click a Service ID first before submitting.</p>
+            <div class="modal-buttons">
+                <button type="button" class="modal-btn modal-btn-confirm" id="closeSelectServiceModal">OK</button>
+            </div>
+        </div>
+    </div>
 </div>
 {% endblock %}
 
@@ -399,9 +409,16 @@
     const continueEditing = document.getElementById('continueEditing');
     const confirmSubmit = document.getElementById('confirmSubmit');
     const createEstimatedBillForm = document.getElementById('createEstimatedBillForm');
+    const selectServiceModal = document.getElementById('selectServiceModal');
+    const closeSelectServiceModal = document.getElementById('closeSelectServiceModal');
 
     if (openConfirmModal && confirmModal && continueEditing && confirmSubmit && createEstimatedBillForm) {
         openConfirmModal.addEventListener('click', function () {
+            const selectedService = createEstimatedBillForm.querySelector('input[name="selected_service_id"]:checked');
+            if (!selectedService) {
+                selectServiceModal.classList.add('show');
+                return;
+            }
             document.getElementById('formAction').value = 'submit';
             confirmModal.classList.add('show');
         });
@@ -416,8 +433,21 @@
             createEstimatedBillForm.submit();
         });
 
-        createEstimatedBillForm.addEventListener('submit', function () {
+        createEstimatedBillForm.addEventListener('submit', function (event) {
+            const action = document.getElementById('formAction').value;
+            const selectedService = createEstimatedBillForm.querySelector('input[name="selected_service_id"]:checked');
+            if (action !== 'cancel' && !selectedService) {
+                event.preventDefault();
+                selectServiceModal.classList.add('show');
+                return;
+            }
             serializeItems();
+        });
+    }
+
+    if (closeSelectServiceModal && selectServiceModal) {
+        closeSelectServiceModal.addEventListener('click', function () {
+            selectServiceModal.classList.remove('show');
         });
     }
 
