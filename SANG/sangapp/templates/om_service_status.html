@@ -248,7 +248,7 @@
                             <a href="{% url 'om_update_service_status' service.id %}" class="action-btn update">Update Status</a>
                             <a href="{% url 'om_view_booking' service.id %}" class="action-btn edit">View Booking</a>
 
-                            {% if service.status == 'For Confirmation' or service.status == 'For Inspection' or service.status == 'For Treatment' %}
+                            {% if service.status == 'For Confirmation' or service.status == 'For Inspection' or service.status == 'For Treatment' or service.status == 'For Booking' %}
                                 <button type="button" class="action-btn delete" onclick="openDeleteModal('{{ service.id }}')">Delete Service</button>
                             {% endif %}
 
@@ -256,7 +256,7 @@
                                 <a href="{% url 'om_view_estimated_bill' service.estimated_bill.id %}" class="action-btn update">View Estimated Bill</a>
                             {% endif %}
 
-                            {% if service.status == 'Estimated Bill Created' %}
+                            {% if service.status == 'For Booking' %}
                                 <a href="{% url 'om_book_treatment' service.id %}" class="action-btn book">Book Treatment</a>
                             {% endif %}
                         </div>

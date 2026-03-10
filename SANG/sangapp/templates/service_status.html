@@ -3,72 +3,54 @@
 {% block title %}Service Status - Supreme Biotech Solutions{% endblock %}
 
 {% block extra_css %}
-        .header-section {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 40px;
+        .container {
+            max-width: 1200px;
+            margin: 28px auto 48px;
+            padding: 0 24px;
         }
 
-        .header-section {
-            text-align: left;
-        }
-
-        .header-section h1 {
+        h1 {
             color: #1a2a5e;
             font-size: 2.5em;
+            margin-bottom: 22px;
+            text-align: center;
         }
 
-        .section-header {
+        .table-wrap {
+            background: #fff;
+            border-radius: 12px;
+            border: 1px solid #ddd;
+            padding: 22px;
+            overflow-x: auto;
+        }
+
+        .top-actions {
             display: flex;
-            justify-content: space-between;
+            justify-content: flex-end;
             align-items: center;
-            margin-bottom: 20px;
-        }
-
-        .section-header h2 {
-            color: #1a2a5e;
-            font-size: 1.3em;
-            font-weight: 600;
-            margin: 0;
+            gap: 10px;
+            margin-bottom: 14px;
         }
 
         .search-box {
-            padding: 10px 15px;
+            width: 260px;
+            min-height: 40px;
             border: 1px solid #ddd;
-            border-radius: 5px;
-            font-size: 0.95em;
-            transition: border-color 0.3s;
+            border-radius: 12px;
+            padding: 0 12px;
+            font-size: 0.9em;
+            background: #fff;
         }
+
         .search-box:focus {
             outline: none;
             border-color: #1a2a5e;
-            box-shadow: 0 0 0 2px rgba(26, 42, 94, 0.1);
+            box-shadow: 0 0 0 3px rgba(26, 42, 94, 0.12);
         }
-        /* Table Section */
-        .section {
-            background-color: white;
-            border-radius: 10px;
-            padding: 30px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-        th {
-            padding: 15px;
-            text-align: left;
-            font-weight: 600;
-            font-size: 0.95em;
-            border: none;
-        }
-        td {
-            padding: 15px;
-            border: none;
-            font-size: 0.95em;
-            color: #333;
-        }
-        tbody tr:hover {
-            background-color: #f5f5f5;
-        }
+
         #servicesTable {
+            width: 100%;
+            table-layout: fixed;
             border-collapse: collapse;
             border-spacing: 0;
             border: 0;
@@ -76,48 +58,25 @@
 
         #servicesTable th,
         #servicesTable td {
+            font-size: 0.84em;
+            padding: 10px 8px;
+            text-align: left;
+            vertical-align: top;
+            word-break: break-word;
+            overflow-wrap: anywhere;
             border: 0 !important;
             box-shadow: none;
+            color: #333;
         }
-        .invoice-link {
-            color: #1a2a5e;
-            text-decoration: underline;
-            cursor: pointer;
+
+        #servicesTable th {
+            white-space: normal;
+            color: #fff;
+            background: #1a2a5e;
         }
-        .invoice-link:hover {
-            color: #0d1535;
-        }
-        .status-for-inspection {
-            background-color: #fff3cd;
-            color: #856404;
-        }
-        .status-forconfirmation {
-            background-color: #fde2e4;
-            color: #7a1f2b;
-        }
-        .status-ongoing-inspection {
-            background-color: #d1ecf1;
-            color: #0c5460;
-        }
-        .status-for-treatment {
-            background-color: #e7e8ff;
-            color: #4a4a8e;
-        }
-        .status-estimatedbillcreated {
-            background-color: #fff4cc;
-            color: #8a6d00;
-        }
-        .status-ongoing-treatment {
-            background-color: #cfe2ff;
-            color: #084298;
-        }
-        .status-pending-payment {
-            background-color: #f8d7da;
-            color: #842029;
-        }
-        .status-payment-confirmed {
-            background-color: #d1e7dd;
-            color: #0f5132;
+
+        tbody tr:hover {
+            background-color: #f5f5f5;
         }
         /* Empty State */
         .empty-state {
@@ -155,16 +114,16 @@
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            min-width: 150px;
-            min-height: 34px;
-            padding: 7px 12px;
+            min-width: 132px;
+            min-height: 32px;
+            padding: 6px 10px;
             border-radius: 8px;
             background: #1a2a5e;
             color: #fff;
-            font-size: 0.84em;
+            font-size: 0.8em;
             text-decoration: none;
             font-weight: 700;
-            white-space: nowrap;
+            white-space: normal;
             border: none;
             cursor: pointer;
             transition: background-color 0.2s;
@@ -181,24 +140,34 @@
         .action-wrap {
             display: flex;
             gap: 6px;
-            flex-wrap: wrap;
-            justify-content: center;
+            flex-direction: column;
             align-items: center;
-            text-align: center;
+            text-align: left;
+        }
+
+        @media (max-width: 1100px) {
+            .top-actions {
+                justify-content: flex-start;
+            }
+
+            .search-box {
+                width: 100%;
+                max-width: 320px;
+            }
+
+            #servicesTable {
+                min-width: 1080px;
+            }
         }
 {% endblock %}
 
 {% block content %}
     <!-- Main Content -->
     <div class="container">
-        <div class="header-section">
-            <h1>Service Status</h1>
-        </div>
+        <h1>Service Status</h1>
 
-        <!-- Services Table -->
-        <div class="section">
-            <div class="section-header">
-                <h2>Service List</h2>
+        <div class="table-wrap">
+            <div class="top-actions">
                 <input type="text" class="search-box" id="searchInput" placeholder="Search">
             </div>
             {% if services %}
@@ -208,8 +177,9 @@
                         <th>Service ID</th>
                         <th>Property Address</th>
                         <th>Service Type</th>
-                        <th>Preferred Date</th>
-                        <th>Confirmed Date</th>
+                        <th>Preferred Inspection Date</th>
+                        <th>Confirmed Inspection Date</th>
+                        <th>Confirmed Treatment Date</th>
                         <th>Status</th>
                         <th>Action</th>
                     </tr>
@@ -223,15 +193,8 @@
                             {{ service.preferred_service|default:'-' }}
                         </td>
                         <td>{{ service.date|date:'M d, Y' }}</td>
-                        <td>
-                            {% if service.confirmed_date %}
-                                {{ service.confirmed_date|date:'M d, Y' }}
-                            {% elif service.status == 'For Confirmation' %}
-                                Waiting for OM confirmation
-                            {% else %}
-                                -
-                            {% endif %}
-                        </td>
+                        <td>{% if service.inspection_confirmed_date %}{{ service.inspection_confirmed_date|date:'M d, Y' }}{% else %}-{% endif %}</td>
+                        <td>{% if service.treatment_confirmed_date %}{{ service.treatment_confirmed_date|date:'M d, Y' }}{% else %}-{% endif %}</td>
                         <td>
                             <span class="status-badge status-{{ service.status|lower|cut:' ' }}">
                                 {{ service.status }}
@@ -239,7 +202,7 @@
                         </td>
                         <td>
                             <div class="action-wrap">
-                                {% if service.status == 'For Confirmation' %}
+                                {% if service.status == 'For Confirmation' or service.status == 'For Treatment Booking' %}
                                     <span style="font-size:0.86em;color:#666;">Submitted {{ service.created_at|date:'M d, Y h:i A' }}. Please wait for OM call.</span>
                                 {% elif service.estimated_bill %}
                                     <a href="{% url 'customer_view_estimated_bill' service.id %}" class="action-btn">View Estimated Bill</a>
@@ -247,7 +210,7 @@
 
                                 <button type="button" class="action-btn delete" onclick="openDeleteModal('{{ service.id }}')">Delete Service</button>
 
-                                {% if service.status != 'For Confirmation' and service.status != 'For Inspection' and service.status != 'For Treatment' and not service.estimated_bill %}
+                                {% if service.status != 'For Confirmation' and service.status != 'For Treatment Booking' and service.status != 'For Inspection' and service.status != 'For Treatment' and not service.estimated_bill %}
                                     -
                                 {% endif %}
                             </div>

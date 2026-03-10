@@ -35,6 +35,7 @@ OM_STATUS_WORKFLOW = [
     'For Inspection',
     'Ongoing Inspection',
     'Estimated Bill Created',
+    'For Treatment Booking',
     'For Treatment',
     'Ongoing Treatment',
     'Pending Payment',
@@ -46,10 +47,11 @@ OM_STATUS_WORKFLOW = [
 OM_STATUS_TRANSITIONS = {
     'For Confirmation': ['For Inspection'],
     'For Inspection': ['Ongoing Inspection'],
-    'Ongoing Inspection': ['Estimated Bill Created'],
-    'Estimated Bill Created': ['For Treatment'],
+    'Ongoing Inspection': ['Estimated Bill Created', 'Ongoing Inspection'],
+    'Estimated Bill Created': ['For Treatment Booking', 'Ongoing Inspection'],
+    'For Treatment Booking': ['For Treatment'],
     'For Treatment': ['Ongoing Treatment'],
-    'Ongoing Treatment': ['Pending Payment'],
+    'Ongoing Treatment': ['Pending Payment', 'For Treatment'],
     'Pending Payment': ['Payment Confirmed'],
     'Payment Confirmed': ['Completed'],
 }
@@ -2790,12 +2792,12 @@ def om_edit_booking(request, service_id):
         messages.error(request, 'Service record not found.')
         return redirect('om_service_status')
 
-    if service.status not in {'For Confirmation', 'For Inspection', 'For Treatment'}:
-        messages.error(request, 'Edit booking is only available for For Confirmation, For Inspection, or For Treatment statuses.')
+    if service.status not in {'For Confirmation', 'For Inspection', 'For Treatment', 'For Booking'}:
+        messages.error(request, 'Edit booking is only available for For Confirmation, For Inspection, For Booking, or For Treatment statuses.')
         return redirect('om_service_status')
 
     customer_properties = Property.objects.filter(customer=service.customer)
-    is_treatment = service.status == 'For Treatment'
+    is_treatment = service.status in {'For Treatment', 'For Booking'}
     treatment_service_choices = [choice for choice in Service.PREFERRED_SERVICE_CHOICES if choice[0] != 'Other']
 
     if request.method == 'POST':
@@ -2953,8 +2955,8 @@ def om_delete_booking(request, service_id):
         messages.error(request, 'Service record not found.')
         return redirect('om_service_status')
 
-    if service.status not in {'For Confirmation', 'For Inspection', 'For Treatment'}:
-        messages.error(request, 'Only services with For Confirmation, For Inspection, or For Treatment status can be deleted.')
+    if service.status not in {'For Confirmation', 'For Inspection', 'For Treatment', 'For Booking'}:
+        messages.error(request, 'Only services with For Confirmation, For Inspection, For Booking, or For Treatment status can be deleted.')
         return redirect('om_service_status')
 
     service.delete()
@@ -2981,8 +2983,8 @@ def om_book_treatment(request, service_id):
         messages.error(request, 'Service record not found.')
         return redirect('om_service_status')
 
-    if service.status != 'Estimated Bill Created':
-        messages.error(request, 'Book Treatment is only available for services with Estimated Bill Created status.')
+    if service.status not in {'For Booking', 'Estimated Bill Created'}:
+        messages.error(request, 'Book Treatment is only available for services with For Booking status.')
         return redirect('om_service_status')
 
     treatment_service_choices = [

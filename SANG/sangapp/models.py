@@ -79,6 +79,7 @@ class Service(models.Model):
         ('For Inspection', 'For Inspection'),
         ('Ongoing Inspection', 'Ongoing Inspection'),
         ('Estimated Bill Created', 'Estimated Bill Created'),
+        ('For Booking', 'For Booking'),
         ('For Treatment', 'For Treatment'),
         ('Ongoing Treatment', 'Ongoing Treatment'),
         ('Pending Payment', 'Pending Payment'),
