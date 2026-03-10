@@ -764,10 +764,6 @@ def customer_delete_booking(request, service_id):
         messages.error(request, 'Service record not found.')
         return redirect('service_status')
 
-    if service.status not in {'For Confirmation', 'For Inspection', 'For Treatment'}:
-        messages.error(request, 'Only services with For Confirmation, For Inspection, or For Treatment status can be deleted.')
-        return redirect('service_status')
-
     service.delete()
     messages.success(request, 'Service deleted successfully.')
     return redirect('service_status')
@@ -794,11 +790,30 @@ def customer_view_estimated_bill(request, service_id):
         messages.error(request, 'Estimated bill not found.')
         return redirect('service_status')
 
+    service = estimated_bill.service
+    can_confirm = service.status == 'Estimated Bill Created'
+
+    if request.method == 'POST' and request.POST.get('action') == 'confirm':
+        if not can_confirm:
+            messages.error(request, 'This estimated bill cannot be confirmed at the current service status.')
+            return redirect('service_status')
+
+        next_statuses = OM_STATUS_TRANSITIONS.get(service.status, [])
+        next_status = next_statuses[0] if next_statuses else None
+        if not next_status:
+            messages.error(request, 'No valid next status found for this service.')
+            return redirect('service_status')
+
+        service.status = next_status
+        service.save(update_fields=['status'])
+        messages.success(request, 'Estimated bill confirmed successfully.')
+        return redirect('service_status')
+
     return render(request, 'om_estimated_bill_view.html', {
         'estimated_bill': estimated_bill,
         'role': 'customer',
         'back_url_name': 'service_status',
-        'allow_confirm': False,
+        'allow_confirm': can_confirm,
     })
 
 

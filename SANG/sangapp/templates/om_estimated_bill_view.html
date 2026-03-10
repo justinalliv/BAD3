@@ -88,20 +88,14 @@
         color: #222;
     }
 
-    .bottom-actions {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        gap: 10px;
-        margin-top: 16px;
-    }
-
     .confirm-btn {
         border: none;
         background: #1a2a5e;
         color: #fff;
-        padding: 8px 14px;
+        min-height: 38px;
+        padding: 0 16px;
         border-radius: 8px;
+        font-size: 0.96em;
         font-weight: 700;
         cursor: pointer;
     }
@@ -110,6 +104,8 @@
         margin-top: 14px;
         display: flex;
         justify-content: center;
+        align-items: center;
+        gap: 10px;
     }
 
     .back-link {
@@ -130,9 +126,9 @@
             grid-template-columns: 1fr;
         }
 
-        .bottom-actions {
+        .back-row {
             flex-direction: column;
-            align-items: flex-start;
+            align-items: center;
         }
     }
 {% endblock %}
@@ -180,18 +176,57 @@
 
         <p class="total">Total Estimated Amount: ₱ {{ estimated_bill.total_amount }}</p>
 
-        <div class="bottom-actions">
-            {% if allow_confirm %}
-                <form method="POST" style="margin:0;">
-                    {% csrf_token %}
-                    <button type="submit" name="action" value="confirm" class="confirm-btn">Confirm Estimated Bill</button>
-                </form>
-            {% endif %}
-        </div>
     </div>
 
     <div class="back-row">
         <a href="{% url back_url_name|default:'om_estimated_bills' %}" class="back-link">Back</a>
+        {% if allow_confirm %}
+            <form method="POST" id="confirmEstimatedBillForm" style="margin:0;">
+                {% csrf_token %}
+                <button type="button" id="openConfirmModal" class="confirm-btn">Confirm</button>
+                <input type="hidden" name="action" value="confirm">
+            </form>
+        {% endif %}
     </div>
+
+    {% if allow_confirm %}
+    <div id="confirmModal" class="modal">
+        <div class="modal-content">
+            <h2>Confirm estimated bill</h2>
+            <p>Are you sure you want to confirm this estimated bill?</p>
+            <div class="modal-buttons">
+                <button type="button" class="modal-btn modal-btn-cancel" id="continueEditing">Continue Editing</button>
+                <button type="button" class="modal-btn modal-btn-confirm" id="confirmSubmit">Confirm</button>
+            </div>
+        </div>
+    </div>
+    {% endif %}
 </div>
+{% endblock %}
+
+{% block extra_js %}
+{% if allow_confirm %}
+<script>
+    const openConfirmModal = document.getElementById('openConfirmModal');
+    const confirmModal = document.getElementById('confirmModal');
+    const continueEditing = document.getElementById('continueEditing');
+    const confirmSubmit = document.getElementById('confirmSubmit');
+    const confirmEstimatedBillForm = document.getElementById('confirmEstimatedBillForm');
+
+    if (openConfirmModal && confirmModal && continueEditing && confirmSubmit && confirmEstimatedBillForm) {
+        openConfirmModal.addEventListener('click', function () {
+            confirmModal.classList.add('show');
+        });
+
+        continueEditing.addEventListener('click', function () {
+            confirmModal.classList.remove('show');
+        });
+
+        confirmSubmit.addEventListener('click', function () {
+            confirmModal.classList.remove('show');
+            confirmEstimatedBillForm.submit();
+        });
+    }
+</script>
+{% endif %}
 {% endblock %}
