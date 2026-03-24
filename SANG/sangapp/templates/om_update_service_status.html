@@ -41,6 +41,10 @@
         margin-bottom: 8px;
     }
 
+    .conditional-row {
+        display: none;
+    }
+
     .form-group label {
         display: block;
         color: #4a4a4a;
@@ -156,7 +160,7 @@
             {% endif %}
         </div>
 
-        <div class="form-row">
+        <div class="form-row conditional-row" id="inspectionFieldsRow">
             <div class="form-group">
                 <label for="inspection_confirmed_date">Confirmed Inspection Date</label>
                 <input
@@ -179,7 +183,7 @@
             </div>
         </div>
 
-        <div class="form-row">
+        <div class="form-row conditional-row" id="treatmentFieldsRow">
             <div class="form-group">
                 <label for="treatment_confirmed_date">Confirmed Treatment Date</label>
                 <input
@@ -228,6 +232,24 @@
     const continueEditing = document.getElementById('continueEditing');
     const confirmSubmit = document.getElementById('confirmSubmit');
     const updateStatusForm = document.getElementById('updateStatusForm');
+    const newStatusSelect = document.getElementById('new_status');
+    const inspectionFieldsRow = document.getElementById('inspectionFieldsRow');
+    const treatmentFieldsRow = document.getElementById('treatmentFieldsRow');
+
+    function updateConditionalFields() {
+        if (!newStatusSelect || !inspectionFieldsRow || !treatmentFieldsRow) {
+            return;
+        }
+
+        const selectedStatus = newStatusSelect.value;
+        inspectionFieldsRow.style.display = selectedStatus === 'For Inspection' ? 'grid' : 'none';
+        treatmentFieldsRow.style.display = selectedStatus === 'For Treatment' ? 'grid' : 'none';
+    }
+
+    if (newStatusSelect) {
+        newStatusSelect.addEventListener('change', updateConditionalFields);
+        updateConditionalFields();
+    }
 
     if (openConfirmModal && confirmModal && continueEditing && confirmSubmit && updateStatusForm) {
         openConfirmModal.addEventListener('click', function () {

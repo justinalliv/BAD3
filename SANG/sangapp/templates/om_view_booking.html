@@ -102,6 +102,11 @@
             </div>
 
             <div class="field">
+                <label>Customer Number</label>
+                <div class="field-value">{{ service.customer.phone_number|default:'-' }}</div>
+            </div>
+
+            <div class="field">
                 <label>Property Address</label>
                 <div class="field-value">{{ service.property.street_number }} {{ service.property.street }}, {{ service.property.city }}</div>
             </div>
