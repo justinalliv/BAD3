@@ -88,7 +88,7 @@
 {% endblock %}
 
 {% block content %}
-<p class="identified-top">User Identified As: Operations Manager</p>
+<p class="identified-top">User Identified As: {{ identified_as }}</p>
 <div class="view-container">
     <div class="view-card">
         <div class="view-header">
@@ -128,7 +128,7 @@
         </div>
 
         <div class="button-row">
-            <a href="{% url 'om_service_status' %}" class="btn-back">Back to Service Status</a>
+            <a href="{% url back_url_name %}" class="btn-back">Back to Service Status</a>
         </div>
     </div>
 </div>

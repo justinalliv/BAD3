@@ -1884,6 +1884,8 @@ def technician_service_status(request):
         return redirect('login')
 
     created_order = request.GET.get('created_order', 'newest').strip().lower()
+    if created_order not in {'newest', 'oldest'}:
+        created_order = 'newest'
     order_by = 'created_at' if created_order == 'oldest' else '-created_at'
 
     status_order_cases = [
@@ -1899,7 +1901,7 @@ def technician_service_status(request):
             default=len(OM_STATUS_WORKFLOW),
             output_field=IntegerField(),
         )
-    ).order_by('workflow_order', order_by)
+    ).order_by(order_by, 'workflow_order')
 
     return render(request, 'technician_service_status.html', {
         'technician': technician,
@@ -1924,9 +1926,11 @@ def technician_view_booking(request, service_id):
         messages.error(request, 'Service record not found.')
         return redirect('technician_service_status')
 
-    return render(request, 'technician_view_booking.html', {
+    return render(request, 'view_booking.html', {
         'technician': technician,
         'service': service,
+        'identified_as': 'Technician',
+        'back_url_name': 'technician_service_status',
     })
 
 
@@ -2637,6 +2641,8 @@ def om_service_status(request):
         return redirect('login')
 
     created_order = request.GET.get('created_order', 'newest').strip().lower()
+    if created_order not in {'newest', 'oldest'}:
+        created_order = 'newest'
     order_by = 'created_at' if created_order == 'oldest' else '-created_at'
 
     status_order_cases = [
@@ -2652,7 +2658,7 @@ def om_service_status(request):
             default=len(OM_STATUS_WORKFLOW),
             output_field=IntegerField(),
         )
-    ).order_by('workflow_order', order_by)
+    ).order_by(order_by, 'workflow_order')
 
     unseen_confirmation_ids = list(
         services_qs.filter(status='For Confirmation', om_seen_at__isnull=True).values_list('id', flat=True)
@@ -2923,9 +2929,11 @@ def om_view_booking(request, service_id):
         messages.error(request, 'Service record not found.')
         return redirect('om_service_status')
 
-    return render(request, 'om_view_booking.html', {
+    return render(request, 'view_booking.html', {
         'om': om,
         'service': service,
+        'identified_as': 'Operations Manager',
+        'back_url_name': 'om_service_status',
     })
 
 
