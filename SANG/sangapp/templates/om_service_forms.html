@@ -4,7 +4,7 @@
 
 {% block extra_css %}
     .container {
-        max-width: 980px;
+        max-width: 1120px;
         margin: 24px auto 40px;
         padding: 0 24px;
     }
@@ -21,6 +21,7 @@
         border: 1px solid #ddd;
         border-radius: 12px;
         padding: 24px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
     }
 
     .title {
@@ -33,8 +34,64 @@
     .sub {
         color: #555;
         text-align: center;
-        margin-bottom: 16px;
+        margin-bottom: 22px;
         font-size: 0.95em;
+    }
+
+    .create-card {
+        border: 1px solid #dfe3ee;
+        border-radius: 10px;
+        padding: 16px;
+        margin-bottom: 18px;
+        background: #f9fafc;
+    }
+
+    .create-title {
+        color: #1a2a5e;
+        font-size: 1.1em;
+        font-weight: 700;
+        margin-bottom: 10px;
+    }
+
+    .create-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1.2fr 170px;
+        gap: 10px;
+        align-items: center;
+    }
+
+    .field {
+        width: 100%;
+        min-height: 42px;
+        border: 1px solid #d2d7e6;
+        border-radius: 10px;
+        padding: 0 12px;
+        font-size: 0.94em;
+        background: #fff;
+    }
+
+    .field:focus {
+        outline: none;
+        border-color: #1a2a5e;
+        box-shadow: 0 0 0 3px rgba(26, 42, 94, 0.12);
+    }
+
+    .btn {
+        min-height: 40px;
+        border: none;
+        border-radius: 10px;
+        font-size: 0.9em;
+        font-weight: 700;
+        cursor: pointer;
+    }
+
+    .btn-primary {
+        background: #1a2a5e;
+        color: #fff;
+    }
+
+    .btn-primary:hover {
+        background: #0d1535;
     }
 
     table {
@@ -47,10 +104,36 @@
         padding: 12px 14px;
         border-bottom: 1px solid #e9ebf1;
         text-align: left;
+        vertical-align: middle;
     }
 
     th {
         background: #1a2a5e;
+        color: #fff;
+    }
+
+    .row-actions {
+        display: flex;
+        gap: 8px;
+    }
+
+    .btn-row {
+        min-height: 34px;
+        border: none;
+        border-radius: 8px;
+        padding: 0 12px;
+        font-size: 0.84em;
+        font-weight: 700;
+        cursor: pointer;
+    }
+
+    .btn-edit {
+        background: #eef1fb;
+        color: #1a2a5e;
+    }
+
+    .btn-delete {
+        background: #d9534f;
         color: #fff;
     }
 
@@ -72,6 +155,16 @@
         color: #1a2a5e;
         text-decoration: none;
     }
+
+    @media (max-width: 1000px) {
+        .create-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .row-actions {
+            flex-direction: column;
+        }
+    }
 {% endblock %}
 
 {% block content %}
@@ -80,32 +173,172 @@
 
     <div class="sheet">
         <h1 class="title">Service Forms</h1>
-        <p class="sub">Current options used in service form treatment fields.</p>
+        <p class="sub">Manage dropdown field options used by Inspection, Treatment, Service Report Submission, and Payment Proof Submission forms.</p>
+
+        <form method="POST" class="create-card">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="create">
+            <div class="create-title">Create Field Option</div>
+            <div class="create-grid">
+                <select name="form_section" id="createFormSection" class="field" required>
+                    <option value="">Select Form Section</option>
+                    {% for section, fields in field_catalog.items %}
+                    <option value="{{ section }}">{{ section }}</option>
+                    {% endfor %}
+                </select>
+                <select name="field_name" id="createFieldName" class="field" required>
+                    <option value="">Select Field</option>
+                </select>
+                <input type="text" name="option_value" class="field" placeholder="Enter new option" required>
+                <button type="submit" class="btn btn-primary">Add Option</button>
+            </div>
+        </form>
 
         <table>
             <thead>
                 <tr>
-                    <th style="width: 14%;">#</th>
-                    <th>Service Form Option</th>
+                    <th style="width: 8%;">#</th>
+                    <th style="width: 22%;">Form Section</th>
+                    <th style="width: 20%;">Field Name</th>
+                    <th style="width: 30%;">Option Value</th>
+                    <th style="width: 20%;">Actions</th>
                 </tr>
             </thead>
             <tbody>
-                {% for value, label in service_type_choices %}
+                {% for section, fields in grouped_options.items %}
+                {% for field_name, options in fields.items %}
+                {% for option in options %}
                 <tr>
                     <td>{{ forloop.counter }}</td>
-                    <td>{{ label }}</td>
+                    <td>{{ section }}</td>
+                    <td>{{ field_name }}</td>
+                    <td>{{ option.option_value }}</td>
+                    <td>
+                        <div class="row-actions">
+                            <button
+                                type="button"
+                                class="btn-row btn-edit"
+                                data-edit-id="{{ option.id }}"
+                                data-edit-section="{{ option.form_section|escape }}"
+                                data-edit-field="{{ option.field_name|escape }}"
+                                data-edit-value="{{ option.option_value|escape }}"
+                            >Edit</button>
+                            <form method="POST" style="display:inline;">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="delete">
+                                <input type="hidden" name="option_id" value="{{ option.id }}">
+                                <button type="submit" class="btn-row btn-delete">Delete</button>
+                            </form>
+                        </div>
+                    </td>
                 </tr>
+                {% endfor %}
+                {% endfor %}
                 {% empty %}
                 <tr>
-                    <td colspan="2" style="text-align:center;color:#666;">No service form options available.</td>
+                    <td colspan="5" style="text-align:center;color:#666;">No service form options available.</td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
 
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <h2>Edit Field Option</h2>
+            <form method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="update">
+                <input type="hidden" name="option_id" id="editOptionId">
+                <div style="margin-bottom:10px;">
+                    <select name="form_section" id="editFormSection" class="field" required>
+                        {% for section, fields in field_catalog.items %}
+                        <option value="{{ section }}">{{ section }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div style="margin-bottom:10px;">
+                    <select name="field_name" id="editFieldName" class="field" required></select>
+                </div>
+                <div style="margin-bottom:14px;">
+                    <input type="text" name="option_value" id="editOptionValue" class="field" placeholder="Option value" required>
+                </div>
+                <div class="modal-buttons">
+                    <button type="button" class="modal-btn modal-btn-cancel" id="closeEditModal">Cancel</button>
+                    <button type="submit" class="modal-btn modal-btn-confirm">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <div class="back-row">
         <a href="{% url 'om_manage_service_forms' %}" class="back-link">Back</a>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const fieldCatalog = JSON.parse('{{ field_catalog_json|escapejs }}');
+
+    function fillFieldSelect(sectionSelect, fieldSelect, selectedField = '') {
+        const section = sectionSelect.value;
+        const fields = fieldCatalog[section] || [];
+        fieldSelect.innerHTML = '';
+        if (!fields.length) {
+            const empty = document.createElement('option');
+            empty.value = '';
+            empty.textContent = 'Select Field';
+            fieldSelect.appendChild(empty);
+            return;
+        }
+
+        fields.forEach((field) => {
+            const option = document.createElement('option');
+            option.value = field;
+            option.textContent = field;
+            if (selectedField === field) {
+                option.selected = true;
+            }
+            fieldSelect.appendChild(option);
+        });
+    }
+
+    const createFormSection = document.getElementById('createFormSection');
+    const createFieldName = document.getElementById('createFieldName');
+    if (createFormSection && createFieldName) {
+        createFormSection.addEventListener('change', function () {
+            fillFieldSelect(createFormSection, createFieldName);
+        });
+    }
+
+    const editModal = document.getElementById('editModal');
+    const editOptionId = document.getElementById('editOptionId');
+    const editFormSection = document.getElementById('editFormSection');
+    const editFieldName = document.getElementById('editFieldName');
+    const editOptionValue = document.getElementById('editOptionValue');
+    const closeEditModal = document.getElementById('closeEditModal');
+
+    document.querySelectorAll('[data-edit-id]').forEach((button) => {
+        button.addEventListener('click', function () {
+            editOptionId.value = this.dataset.editId;
+            editFormSection.value = this.dataset.editSection || '';
+            fillFieldSelect(editFormSection, editFieldName, this.dataset.editField || '');
+            editOptionValue.value = this.dataset.editValue || '';
+            editModal.classList.add('show');
+        });
+    });
+
+    if (editFormSection && editFieldName) {
+        editFormSection.addEventListener('change', function () {
+            fillFieldSelect(editFormSection, editFieldName);
+        });
+    }
+
+    if (closeEditModal && editModal) {
+        closeEditModal.addEventListener('click', function () {
+            editModal.classList.remove('show');
+        });
+    }
+</script>
 {% endblock %}

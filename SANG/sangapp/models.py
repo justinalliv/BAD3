@@ -276,6 +276,23 @@ class InvoiceItemOption(models.Model):
         ordering = ['name']
 
 
+class ServiceFormOption(models.Model):
+    form_section = models.CharField(max_length=100)
+    field_name = models.CharField(max_length=100)
+    option_value = models.CharField(max_length=255)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.form_section} | {self.field_name} | {self.option_value}"
+
+    class Meta:
+        db_table = 'service_form_options'
+        ordering = ['form_section', 'field_name', 'option_value']
+        unique_together = ('form_section', 'field_name', 'option_value')
+
+
 class InvoiceItem(models.Model):
     invoice = models.ForeignKey(Invoice, on_delete=models.CASCADE, related_name='items')
     item_type = models.CharField(max_length=255)

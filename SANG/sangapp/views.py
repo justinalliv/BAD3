@@ -10,6 +10,7 @@ from decimal import Decimal, InvalidOperation
 from io import BytesIO
 import json
 import re
+from collections import defaultdict
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 from .models import (
@@ -27,6 +28,7 @@ from .models import (
     Invoice,
     InvoiceItem,
     InvoiceItemOption,
+    ServiceFormOption,
 )
 from .forms import CustomerRegistrationForm
 
@@ -55,6 +57,14 @@ OM_STATUS_TRANSITIONS = {
     'Ongoing Treatment': ['Pending Payment', 'For Treatment'],
     'Pending Payment': ['Payment Confirmed',],
     'Payment Confirmed': ['Completed'],
+}
+
+
+SERVICE_FORM_FIELD_CATALOG = {
+    'Inspection': ['Type of Property', 'Preferred Service', 'Pest Problems'],
+    'Treatment': ['Treatment Service'],
+    'Service Report Submission': ['Service Done', 'Chemicals Used', 'Levels of Infestation'],
+    'Payment Proof Submission': ['Bank Used for Payment', 'Payment Type'],
 }
 
 def home(request):
@@ -1712,9 +1722,109 @@ def om_service_forms(request):
         request.session.flush()
         return redirect('login')
 
+    if request.method == 'POST':
+        action = request.POST.get('action', '').strip()
+        option_id = request.POST.get('option_id', '').strip()
+        form_section = request.POST.get('form_section', '').strip()
+        field_name = request.POST.get('field_name', '').strip()
+        option_value = request.POST.get('option_value', '').strip()
+
+        valid_field_names = SERVICE_FORM_FIELD_CATALOG.get(form_section, [])
+        if action in {'create', 'update'}:
+            if not form_section or field_name not in valid_field_names or not option_value:
+                messages.error(request, 'Required fields must be filled in.')
+                return redirect('om_service_forms')
+
+        if action == 'create':
+            existing = ServiceFormOption.objects.filter(
+                form_section=form_section,
+                field_name=field_name,
+                option_value__iexact=option_value,
+            ).first()
+
+            if existing and existing.is_active:
+                messages.error(request, 'Entered option already exists.')
+                return redirect('om_service_forms')
+
+            if existing and not existing.is_active:
+                existing.option_value = option_value
+                existing.is_active = True
+                existing.save(update_fields=['option_value', 'is_active', 'updated_at'])
+                messages.success(request, 'Field option restored successfully.')
+                return redirect('om_service_forms')
+
+            ServiceFormOption.objects.create(
+                form_section=form_section,
+                field_name=field_name,
+                option_value=option_value,
+                is_active=True,
+            )
+            messages.success(request, 'Field option added successfully.')
+            return redirect('om_service_forms')
+
+        if action == 'update':
+            if not option_id.isdigit():
+                messages.error(request, 'Invalid field option.')
+                return redirect('om_service_forms')
+
+            option = ServiceFormOption.objects.filter(id=int(option_id)).first()
+            if not option:
+                messages.error(request, 'Field option not found.')
+                return redirect('om_service_forms')
+
+            duplicate = ServiceFormOption.objects.filter(
+                form_section=form_section,
+                field_name=field_name,
+                option_value__iexact=option_value,
+                is_active=True,
+            ).exclude(id=option.id).exists()
+
+            if duplicate:
+                messages.error(request, 'Entered option already exists.')
+                return redirect('om_service_forms')
+
+            option.form_section = form_section
+            option.field_name = field_name
+            option.option_value = option_value
+            option.save(update_fields=['form_section', 'field_name', 'option_value', 'updated_at'])
+            messages.success(request, 'Field option updated successfully.')
+            return redirect('om_service_forms')
+
+        if action == 'delete':
+            if not option_id.isdigit():
+                messages.error(request, 'Invalid field option.')
+                return redirect('om_service_forms')
+
+            option = ServiceFormOption.objects.filter(id=int(option_id)).first()
+            if not option:
+                messages.error(request, 'Field option not found.')
+                return redirect('om_service_forms')
+
+            if not option.is_active:
+                messages.info(request, 'Field option is already inactive.')
+                return redirect('om_service_forms')
+
+            option.is_active = False
+            option.save(update_fields=['is_active', 'updated_at'])
+            messages.success(request, 'Field option deleted successfully.')
+            return redirect('om_service_forms')
+
+        messages.error(request, 'Unsupported action.')
+        return redirect('om_service_forms')
+
+    active_options = ServiceFormOption.objects.filter(is_active=True).order_by(
+        'form_section', 'field_name', 'option_value'
+    )
+
+    grouped_options = defaultdict(lambda: defaultdict(list))
+    for option in active_options:
+        grouped_options[option.form_section][option.field_name].append(option)
+
     return render(request, 'om_service_forms.html', {
         'om': om,
-        'service_type_choices': Service.PREFERRED_SERVICE_CHOICES,
+        'field_catalog': SERVICE_FORM_FIELD_CATALOG,
+        'field_catalog_json': json.dumps(SERVICE_FORM_FIELD_CATALOG),
+        'grouped_options': dict(grouped_options),
     })
 
 
@@ -1753,8 +1863,16 @@ def om_service_items(request):
                 default_unit_price = Decimal('1500.00')
 
             if action == 'create':
-                if InvoiceItemOption.objects.filter(name__iexact=name).exists():
+                existing_item = InvoiceItemOption.objects.filter(name__iexact=name).first()
+                if existing_item and existing_item.is_active:
                     messages.error(request, 'A service item with this name already exists.')
+                    return redirect('om_service_items')
+                if existing_item and not existing_item.is_active:
+                    existing_item.name = name
+                    existing_item.default_unit_price = default_unit_price
+                    existing_item.is_active = True
+                    existing_item.save(update_fields=['name', 'default_unit_price', 'is_active'])
+                    messages.success(request, 'Service item restored successfully.')
                     return redirect('om_service_items')
                 InvoiceItemOption.objects.create(
                     name=name,
@@ -1789,11 +1907,18 @@ def om_service_items(request):
             if not item_id.isdigit():
                 messages.error(request, 'Invalid service item.')
                 return redirect('om_service_items')
-            deleted_count, _ = InvoiceItemOption.objects.filter(id=int(item_id)).delete()
-            if deleted_count:
-                messages.success(request, 'Service item deleted successfully.')
-            else:
+            service_item = InvoiceItemOption.objects.filter(id=int(item_id)).first()
+            if not service_item:
                 messages.error(request, 'Service item not found.')
+                return redirect('om_service_items')
+
+            if not service_item.is_active:
+                messages.info(request, 'Service item is already inactive.')
+                return redirect('om_service_items')
+
+            service_item.is_active = False
+            service_item.save(update_fields=['is_active'])
+            messages.success(request, 'Service item deactivated successfully.')
             return redirect('om_service_items')
 
         messages.error(request, 'Unsupported action.')
