@@ -2272,6 +2272,20 @@ def om_service_items(request):
             messages.success(request, 'Service item updated successfully.')
             return redirect('om_service_items')
 
+        if action == 'hard_delete':
+            if not item_id.isdigit():
+                messages.error(request, 'Invalid service item.')
+                return redirect('om_service_items')
+
+            service_item = InvoiceItemOption.objects.filter(id=int(item_id)).first()
+            if not service_item:
+                messages.error(request, 'Service item not found.')
+                return redirect('om_service_items')
+
+            service_item.delete()
+            messages.success(request, 'Service item permanently deleted.')
+            return redirect('om_service_items')
+
         messages.error(request, 'Unsupported action.')
         return redirect('om_service_items')
 
@@ -2378,6 +2392,20 @@ def om_chemicals(request):
             chemical.is_active = False
             chemical.save(update_fields=['is_active'])
             messages.success(request, 'Chemical deactivated successfully.')
+            return redirect('om_chemicals')
+
+        if action == 'hard_delete':
+            if not chemical_id.isdigit():
+                messages.error(request, 'Invalid chemical.')
+                return redirect('om_chemicals')
+
+            chemical = Chemical.objects.filter(id=int(chemical_id)).first()
+            if not chemical:
+                messages.error(request, 'Chemical not found.')
+                return redirect('om_chemicals')
+
+            chemical.delete()
+            messages.success(request, 'Chemical permanently deleted.')
             return redirect('om_chemicals')
 
         messages.error(request, 'Unsupported action.')
