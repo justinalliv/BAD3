@@ -53,18 +53,6 @@
         overflow: hidden;
     }
 
-    .filters-card {
-        border: 1px solid #dfe3ee;
-        border-radius: 10px;
-        padding: 12px;
-        margin-bottom: 16px;
-        background: #f9fafc;
-        display: flex;
-        gap: 10px;
-        align-items: center;
-        flex-wrap: wrap;
-    }
-
     .create-title {
         color: #1a2a5e;
         font-size: 1.1em;
@@ -167,6 +155,23 @@
         color: #fff;
     }
 
+    .modal-btn-danger {
+        background: #d9534f;
+        color: #fff;
+    }
+
+    .modal-btn-danger:hover {
+        background: #b92f2b;
+    }
+
+    .edit-controls-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 14px;
+    }
+
     .back-row {
         margin-top: 14px;
         display: flex;
@@ -205,20 +210,6 @@
         <h1 class="title">Service Forms</h1>
         <p class="sub">Manage dropdown field options used by Inspection, Treatment, Service Report Submission, and Payment Proof Submission forms.{% if selected_section %} Viewing: <strong>{{ selected_section }}</strong>.{% endif %}</p>
 
-        {% if selected_section == 'Inspection' %}
-        <form method="GET" class="filters-card">
-            <input type="hidden" name="section" value="Inspection">
-            <select name="inspection_filter" class="field field-select" style="max-width:280px;min-height:38px;">
-                <option value="">All Inspection Fields</option>
-                {% for field in inspection_filter_options %}
-                <option value="{{ field }}" {% if inspection_filter == field %}selected{% endif %}>{{ field }}</option>
-                {% endfor %}
-            </select>
-            <button type="submit" class="btn btn-primary" style="min-height:38px;padding:0 14px;">Filter</button>
-            <a href="{% url 'om_service_forms' %}?section=Inspection" class="back-link" style="min-height:38px;">Clear</a>
-        </form>
-        {% endif %}
-
         <form method="POST" class="create-card">
             {% csrf_token %}
             <input type="hidden" name="action" value="create">
@@ -232,6 +223,26 @@
                 <input type="number" name="option_rate" class="field" min="0.01" step="0.01" placeholder="Treatment rate" required>
                 <button type="submit" class="btn btn-primary">Add Treatment</button>
             </div>
+            {% elif selected_section == 'Inspection' or selected_section == 'Service Report Submission' or selected_section == 'Payment Proof Submission' %}
+            <input type="hidden" name="form_section" value="{{ selected_section }}">
+            <div class="create-grid" style="grid-template-columns: 1fr 1.2fr 170px;">
+                <select name="field_name" id="sectionFilterSelect" class="field field-select" required>
+                    {% for field in section_filter_options %}
+                    <option value="{{ field }}" {% if section_filter == field %}selected{% endif %}>{{ field }}</option>
+                    {% endfor %}
+                </select>
+                <input
+                    type="text"
+                    name="option_value"
+                    class="field"
+                    placeholder="{% if selected_section == 'Service Report Submission' and section_filter == 'Chemicals Used' %}Manage chemicals in Chemicals page{% else %}Enter new option{% endif %}"
+                    {% if selected_section == 'Service Report Submission' and section_filter == 'Chemicals Used' %}readonly{% else %}required{% endif %}
+                >
+                <button type="submit" class="btn btn-primary" {% if selected_section == 'Service Report Submission' and section_filter == 'Chemicals Used' %}disabled title="Manage Chemicals Used under Chemicals"{% endif %}>Add Option</button>
+            </div>
+            {% if selected_section == 'Service Report Submission' and section_filter == 'Chemicals Used' %}
+            <p style="margin:10px 0 0;color:#666;font-size:0.88em;">Chemicals Used options are managed in Chemicals.</p>
+            {% endif %}
             {% else %}
             <div class="create-grid">
                 <select name="form_section" id="createFormSection" class="field field-select" required>
@@ -293,21 +304,19 @@
                     {% endfor %}
                 </tbody>
                 {% else %}
-                {% if selected_section == 'Inspection' %}
+                {% if selected_section == 'Inspection' or selected_section == 'Service Report Submission' or selected_section == 'Payment Proof Submission' %}
                 <thead>
                     <tr>
-                        <th style="width: 12%;">Inspection ID</th>
-                        <th style="width: 28%;">Field Name</th>
-                        <th style="width: 30%;">Option Value</th>
-                        <th style="width: 12%;">Status</th>
-                        <th style="width: 18%;">Actions</th>
+                        <th style="width: 14%;">{% if selected_section == 'Inspection' %}Inspection{% elif selected_section == 'Service Report Submission' %}Service Report{% else %}Payment Proof{% endif %} ID</th>
+                        <th style="width: 44%;">Option Value</th>
+                        <th style="width: 16%;">Status</th>
+                        <th style="width: 26%;">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for option in option_rows %}
                     <tr>
                         <td>{{ option.scoped_option_id|default:option.id }}</td>
-                        <td>{{ option.field_name }}</td>
                         <td>{{ option.option_value }}</td>
                         <td>{% if option.is_active %}Active{% else %}Inactive{% endif %}</td>
                         <td>
@@ -328,7 +337,7 @@
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="5" style="text-align:center;color:#666;">No inspection options available.</td>
+                        <td colspan="4" style="text-align:center;color:#666;">No {{ selected_section|lower }} options available.</td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -360,13 +369,8 @@
                                     data-edit-value="{{ option.option_value|escape }}"
                                     data-edit-description="{{ option.option_description|escape }}"
                                     data-edit-rate="{{ option.option_rate|default:'' }}"
+                                    data-edit-active="{{ option.is_active|yesno:'true,false' }}"
                                 >Edit</button>
-                                <form method="POST" style="display:inline;">
-                                    {% csrf_token %}
-                                    <input type="hidden" name="action" value="delete">
-                                    <input type="hidden" name="option_id" value="{{ option.id }}">
-                                    <button type="submit" class="btn-row btn-delete">Delete</button>
-                                </form>
                             </div>
                         </td>
                     </tr>
@@ -387,7 +391,7 @@
             <h2>Edit Field Option</h2>
             <form method="POST">
                 {% csrf_token %}
-                <input type="hidden" name="action" value="update">
+                <input type="hidden" name="action" id="editAction" value="update">
                 <input type="hidden" name="option_id" id="editOptionId">
                 {% if selected_section == 'Treatment' %}
                 <input type="hidden" name="form_section" value="Treatment">
@@ -401,22 +405,33 @@
                 <div style="margin-bottom:14px;">
                     <input type="number" name="option_rate" id="editOptionRate" class="field" min="0.01" step="0.01" placeholder="Treatment rate" required>
                 </div>
-                <label style="display:flex;align-items:center;gap:8px;margin-bottom:14px;font-size:0.92em;color:#333;">
-                    <input type="checkbox" id="editOptionActive" name="is_active" checked>
-                    Active treatment service
-                </label>
-                {% elif selected_section == 'Inspection' %}
-                <input type="hidden" name="form_section" value="Inspection">
-                <div style="margin-bottom:10px;">
-                    <select name="field_name" id="editFieldName" class="field field-select" required></select>
+                <div class="edit-controls-row">
+                    <label style="display:flex;align-items:center;gap:8px;font-size:0.92em;color:#333;">
+                        <input type="checkbox" id="editOptionActive" name="is_active" checked>
+                        Active treatment service
+                    </label>
+                    <button type="button" class="modal-btn modal-btn-danger" id="hardDeleteOptionBtn">Hard Delete</button>
                 </div>
+                {% elif selected_section == 'Inspection' or selected_section == 'Service Report Submission' or selected_section == 'Payment Proof Submission' %}
+                <input type="hidden" name="form_section" value="{{ selected_section }}">
+                <input type="hidden" name="field_name" id="editFieldName">
                 <div style="margin-bottom:14px;">
-                    <input type="text" name="option_value" id="editOptionValue" class="field" placeholder="Inspection option value" required>
+                    <input
+                        type="text"
+                        name="option_value"
+                        id="editOptionValue"
+                        class="field"
+                        placeholder="{{ selected_section }} option value"
+                        {% if selected_section == 'Service Report Submission' and section_filter == 'Chemicals Used' %}readonly{% else %}required{% endif %}
+                    >
                 </div>
-                <label style="display:flex;align-items:center;gap:8px;margin-bottom:14px;font-size:0.92em;color:#333;">
-                    <input type="checkbox" id="editOptionActive" name="is_active" checked>
-                    Active inspection option
-                </label>
+                <div class="edit-controls-row">
+                    <label style="display:flex;align-items:center;gap:8px;font-size:0.92em;color:#333;">
+                        <input type="checkbox" id="editOptionActive" name="is_active" checked>
+                        Active {{ selected_section|lower }} option
+                    </label>
+                    <button type="button" class="modal-btn modal-btn-danger" id="hardDeleteOptionBtn">Hard Delete</button>
+                </div>
                 {% else %}
                 <div style="margin-bottom:10px;">
                     <select name="form_section" id="editFormSection" class="field field-select" required>
@@ -430,6 +445,13 @@
                 </div>
                 <div style="margin-bottom:14px;">
                     <input type="text" name="option_value" id="editOptionValue" class="field" placeholder="Option value" required>
+                </div>
+                <div class="edit-controls-row">
+                    <label style="display:flex;align-items:center;gap:8px;font-size:0.92em;color:#333;">
+                        <input type="checkbox" id="editOptionActive" name="is_active" checked>
+                        Active option
+                    </label>
+                    <button type="button" class="modal-btn modal-btn-danger" id="hardDeleteOptionBtn">Hard Delete</button>
                 </div>
                 {% endif %}
                 <div class="modal-buttons">
@@ -483,6 +505,7 @@
     }
 
     const editModal = document.getElementById('editModal');
+    const editAction = document.getElementById('editAction');
     const editOptionId = document.getElementById('editOptionId');
     const editFormSection = document.getElementById('editFormSection');
     const editFieldName = document.getElementById('editFieldName');
@@ -490,26 +513,20 @@
     const editOptionDescription = document.getElementById('editOptionDescription');
     const editOptionRate = document.getElementById('editOptionRate');
     const editOptionActive = document.getElementById('editOptionActive');
+    const hardDeleteOptionBtn = document.getElementById('hardDeleteOptionBtn');
     const closeEditModal = document.getElementById('closeEditModal');
 
     document.querySelectorAll('[data-edit-id]').forEach((button) => {
         button.addEventListener('click', function () {
+            if (editAction) {
+                editAction.value = 'update';
+            }
             editOptionId.value = this.dataset.editId;
             if (editFormSection && editFieldName) {
                 editFormSection.value = this.dataset.editSection || '';
                 fillFieldSelect(editFormSection, editFieldName, this.dataset.editField || '');
             } else if (!editFormSection && editFieldName) {
-                const inspectionFields = fieldCatalog.Inspection || [];
-                editFieldName.innerHTML = '';
-                inspectionFields.forEach((field) => {
-                    const option = document.createElement('option');
-                    option.value = field;
-                    option.textContent = field;
-                    if ((this.dataset.editField || '') === field) {
-                        option.selected = true;
-                    }
-                    editFieldName.appendChild(option);
-                });
+                editFieldName.value = this.dataset.editField || '';
             }
             editOptionValue.value = this.dataset.editValue || '';
             if (editOptionDescription) {
@@ -525,6 +542,22 @@
         });
     });
 
+    if (hardDeleteOptionBtn && editOptionId && editAction) {
+        hardDeleteOptionBtn.addEventListener('click', function () {
+            if (!editOptionId.value) {
+                return;
+            }
+
+            const confirmed = window.confirm('Permanently delete this option? This cannot be undone.');
+            if (!confirmed) {
+                return;
+            }
+
+            editAction.value = 'hard_delete';
+            hardDeleteOptionBtn.form.submit();
+        });
+    }
+
     if (editFormSection && editFieldName) {
         editFormSection.addEventListener('change', function () {
             fillFieldSelect(editFormSection, editFieldName);
@@ -534,6 +567,15 @@
     if (closeEditModal && editModal) {
         closeEditModal.addEventListener('click', function () {
             editModal.classList.remove('show');
+        });
+    }
+
+    const sectionFilterSelect = document.getElementById('sectionFilterSelect');
+    if (sectionFilterSelect) {
+        sectionFilterSelect.addEventListener('change', function () {
+            const selectedField = encodeURIComponent(this.value || '');
+            const selectedSection = encodeURIComponent('{{ selected_section }}');
+            window.location.href = `{% url 'om_service_forms' %}?section=${selectedSection}&field_filter=${selectedField}`;
         });
     }
 </script>

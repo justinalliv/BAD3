@@ -640,7 +640,7 @@
             <li><a href="{% url 'om_billing' %}" {% if current == 'om_billing' or current == 'om_estimated_bills' or current == 'om_create_estimated_bill' or current == 'om_view_estimated_bill' or current == 'om_edit_estimated_bill' or current == 'om_invoices' or current == 'om_create_invoice' or current == 'om_view_invoice' or current == 'om_edit_invoice' %}class="active"{% endif %}>Billing</a></li>
             <li><a href="{% url 'om_service_reports' %}" {% if current == 'om_service_reports' or current == 'om_view_service_report' %}class="active"{% endif %}>Service Reports</a></li>
             <li><a href="{% url 'om_remittance_records' %}" {% if current == 'om_remittance_records' %}class="active"{% endif %}>Remittance Records</a></li>
-            <li><a href="{% url 'om_manage_service_forms' %}" {% if current == 'om_manage_service_forms' or current == 'om_service_forms' or current == 'om_chemicals' or current == 'om_service_items' or current == 'om_invoice_items' %}class="active"{% endif %}>Service Configuration</a></li>
+            <li><a href="{% url 'om_manage_service_forms' %}" {% if current == 'om_manage_service_forms' or current == 'om_service_forms' or current == 'om_chemicals' or current == 'om_service_items' or current == 'om_invoice_items' %}class="active"{% endif %}>Service Forms</a></li>
             <li><a href="{% url 'om_manage_accounts' %}" {% if current == 'om_manage_accounts' or current == 'om_edit_technician_account' %}class="active"{% endif %}>Manage Accounts</a></li>
         </ul>
 

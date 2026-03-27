@@ -1954,19 +1954,26 @@ def om_service_forms(request):
     if selected_section and selected_section not in SERVICE_FORM_FIELD_CATALOG:
         selected_section = ''
 
-    inspection_filter = request.GET.get('inspection_filter', '').strip()
-    inspection_filter_options = SERVICE_FORM_FIELD_CATALOG.get('Inspection', [])
-    if selected_section != 'Inspection':
-        inspection_filter = ''
-    elif inspection_filter and inspection_filter not in inspection_filter_options:
-        inspection_filter = ''
+    section_filter_sections = {'Inspection', 'Service Report Submission', 'Payment Proof Submission'}
+    section_filter = request.GET.get('field_filter', '').strip()
+    legacy_inspection_filter = request.GET.get('inspection_filter', '').strip()
+    if not section_filter and selected_section == 'Inspection' and legacy_inspection_filter:
+        section_filter = legacy_inspection_filter
+
+    section_filter_options = SERVICE_FORM_FIELD_CATALOG.get(selected_section, []) if selected_section in section_filter_sections else []
+    if selected_section not in section_filter_sections:
+        section_filter = ''
+    elif section_filter and section_filter not in section_filter_options:
+        section_filter = ''
+    elif not section_filter and section_filter_options:
+        section_filter = section_filter_options[0]
 
     def _build_forms_redirect_url():
         query = []
         if selected_section:
             query.append(f"section={selected_section}")
-        if selected_section == 'Inspection' and inspection_filter:
-            query.append(f"inspection_filter={quote_plus(inspection_filter)}")
+        if selected_section in section_filter_sections and section_filter:
+            query.append(f"field_filter={quote_plus(section_filter)}")
         if query:
             return f"{request.path}?{'&'.join(query)}"
         return reverse('om_service_forms')
@@ -1985,7 +1992,10 @@ def om_service_forms(request):
         is_active = request.POST.get('is_active') == 'on'
 
         is_treatment_service = form_section == 'Treatment' and field_name == 'Treatment Service'
-        is_inspection_option = form_section == 'Inspection' and field_name in SERVICE_FORM_FIELD_CATALOG.get('Inspection', [])
+        is_service_report_chemicals_field = (
+            form_section == 'Service Report Submission' and
+            field_name == 'Chemicals Used'
+        )
         option_rate = None
 
         valid_field_names = SERVICE_FORM_FIELD_CATALOG.get(form_section, [])
@@ -2011,6 +2021,10 @@ def om_service_forms(request):
                     return redirect_forms()
 
         if action == 'create':
+            if is_service_report_chemicals_field:
+                messages.error(request, 'Chemicals Used options are managed under Chemicals.')
+                return redirect_forms()
+
             existing = ServiceFormOption.objects.filter(
                 form_section=form_section,
                 field_name=field_name,
@@ -2063,6 +2077,12 @@ def om_service_forms(request):
                 messages.error(request, 'Field option not found.')
                 return redirect_forms()
 
+            if option.form_section == 'Service Report Submission' and option.field_name == 'Chemicals Used':
+                # Lock value changes for Chemicals Used; manage names in Chemicals page.
+                form_section = option.form_section
+                field_name = option.field_name
+                option_value = option.option_value
+
             duplicate = ServiceFormOption.objects.filter(
                 form_section=form_section,
                 field_name=field_name,
@@ -2079,10 +2099,8 @@ def om_service_forms(request):
             option.option_value = option_value
             option.option_description = option_description if is_treatment_service else ''
             option.option_rate = option_rate if is_treatment_service else None
-            update_fields = ['form_section', 'field_name', 'option_value', 'option_description', 'option_rate', 'updated_at']
-            if is_treatment_service or is_inspection_option:
-                option.is_active = is_active
-                update_fields.insert(-1, 'is_active')
+            option.is_active = is_active
+            update_fields = ['form_section', 'field_name', 'option_value', 'option_description', 'option_rate', 'is_active', 'updated_at']
             option.save(update_fields=update_fields)
             messages.success(request, 'Field option updated successfully.')
             return redirect_forms()
@@ -2106,6 +2124,20 @@ def om_service_forms(request):
             messages.success(request, 'Field option deleted successfully.')
             return redirect_forms()
 
+        if action == 'hard_delete':
+            if not option_id.isdigit():
+                messages.error(request, 'Invalid field option.')
+                return redirect_forms()
+
+            option = ServiceFormOption.objects.filter(id=int(option_id)).first()
+            if not option:
+                messages.error(request, 'Field option not found.')
+                return redirect_forms()
+
+            option.delete()
+            messages.success(request, 'Field option permanently deleted.')
+            return redirect_forms()
+
         messages.error(request, 'Unsupported action.')
         return redirect_forms()
 
@@ -2117,10 +2149,10 @@ def om_service_forms(request):
     )
     if selected_section == 'Treatment':
         options_qs = options_qs.filter(form_section='Treatment')
-    elif selected_section == 'Inspection':
-        options_qs = options_qs.filter(form_section='Inspection')
-        if inspection_filter:
-            options_qs = options_qs.filter(field_name=inspection_filter)
+    elif selected_section in section_filter_sections:
+        options_qs = options_qs.filter(form_section=selected_section)
+        if section_filter:
+            options_qs = options_qs.filter(field_name=section_filter)
     else:
         options_qs = options_qs.filter(is_active=True)
         if selected_section:
@@ -2154,8 +2186,8 @@ def om_service_forms(request):
         'grouped_options': dict(grouped_options),
         'option_rows': option_rows,
         'selected_section': selected_section,
-        'inspection_filter': inspection_filter,
-        'inspection_filter_options': inspection_filter_options,
+        'section_filter': section_filter,
+        'section_filter_options': section_filter_options,
     })
 
 
@@ -2351,15 +2383,6 @@ def om_chemicals(request):
         messages.error(request, 'Unsupported action.')
         return redirect('om_chemicals')
 
-    usage_rows = ServiceReportChemical.objects.values('chemical_id').annotate(
-        usage_count=Count('id'),
-    )
-    usage_map = {
-        row['chemical_id']: row['usage_count']
-        for row in usage_rows
-        if row['chemical_id'] is not None
-    }
-
     chemical_rows = []
     for chemical in Chemical.objects.order_by('name'):
         chemical_rows.append({
@@ -2367,7 +2390,6 @@ def om_chemicals(request):
             'name': chemical.name,
             'standard_unit_measure': chemical.standard_unit_measure,
             'is_active': chemical.is_active,
-            'usage_count': usage_map.get(chemical.id, 0),
         })
 
     return render(request, 'om_chemicals.html', {
