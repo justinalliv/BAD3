@@ -3,54 +3,233 @@
 {% block title %}Edit Invoice - Supreme Biotech Solutions{% endblock %}
 
 {% block extra_css %}
-    .container { max-width: 960px; margin: 0 auto; padding: 20px 24px; }
-    .title { text-align: center; color: #1a2a5e; margin-bottom: 14px; }
-    .meta { background:#fff; border:1px solid #ddd; border-radius:10px; padding:12px; margin-bottom:12px; }
-    .row { display:grid; grid-template-columns: 1fr 180px 90px; gap:10px; margin-bottom:10px; }
-    .field { width:100%; min-height:42px; border:1px solid #d5d5d5; border-radius:10px; padding:0 10px; }
-    .btn { border:none; border-radius:8px; min-height:38px; padding:0 12px; font-weight:700; cursor:pointer; }
-    .btn-delete { background:#d9534f; color:#fff; }
-    .btn-add { background:#eef1fb; color:#1a2a5e; border:1px solid #c5cce5; }
-    .btn-cancel { background:#e2e2e2; color:#333; }
-    .btn-save { background:#1a2a5e; color:#fff; }
-    .actions { display:flex; justify-content:center; gap:10px; margin-top:14px; }
-    .error { color:#d32f2f; font-size:0.9em; margin-top:8px; }
+    .container {
+        max-width: 1160px;
+        margin: 0 auto;
+        padding: 0 24px 28px;
+    }
+
+    .identified-top {
+        text-align: right;
+        color: #333;
+        margin: 10px 0 8px;
+        font-size: 0.9em;
+    }
+
+    .title {
+        text-align: center;
+        color: #1a2a5e;
+        font-size: clamp(2rem, 4.8vh, 3rem);
+        margin: 8px 0 16px;
+    }
+
+    .section-card {
+        background-color: white;
+        border-radius: 10px;
+        padding: 24px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        margin-bottom: 18px;
+    }
+
+    .meta {
+        color: #2f3238;
+        font-size: 0.98em;
+        line-height: 1.55;
+    }
+
+    .meta strong {
+        color: #1f2430;
+    }
+
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 14px;
+    }
+
+    .section-label {
+        color: #1a2a5e;
+        font-size: 1.55em;
+        margin: 0;
+        font-weight: 700;
+        line-height: 1.2;
+    }
+
+    .row {
+        display: grid;
+        grid-template-columns: 1.2fr 0.9fr 0.9fr 140px;
+        gap: 12px;
+        margin-bottom: 10px;
+        align-items: center;
+        max-width: 100%;
+        background: #f9fafc;
+        border: 1px solid #dfe3ee;
+        border-radius: 10px;
+        padding: 10px;
+    }
+
+    .field {
+        width: 100%;
+        min-height: 46px;
+        border: 1px solid #d7d7d7;
+        border-radius: 12px;
+        padding: 0 12px;
+        font-size: 0.96em;
+        color: #333;
+        background: #fff;
+    }
+
+    .field:focus {
+        outline: none;
+        border-color: #1a2a5e;
+        box-shadow: 0 0 0 3px rgba(26, 42, 94, 0.12);
+    }
+
+    .delete-btn {
+        min-width: 128px;
+        min-height: 34px;
+        padding: 7px 12px;
+        border: none;
+        border-radius: 8px;
+        background: #d9534f;
+        color: #fff;
+        font-weight: 700;
+        font-size: 0.84em;
+        cursor: pointer;
+    }
+
+    .delete-btn:hover {
+        background: #c74743;
+    }
+
+    .add-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        min-height: 36px;
+        padding: 0 14px;
+        border-radius: 999px;
+        border: 1px solid #c5cce5;
+        background: #eef1fb;
+        color: #1a2a5e;
+        font-size: 0.84em;
+        font-weight: 700;
+        cursor: pointer;
+    }
+
+    .add-btn::before {
+        content: '+';
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background: #1a2a5e;
+        color: #fff;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.95em;
+        line-height: 1;
+    }
+
+    .error {
+        color: #d32f2f;
+        font-size: 0.9em;
+        margin-top: 8px;
+    }
+
+    .actions {
+        display: flex;
+        justify-content: center;
+        gap: 14px;
+        margin-top: 22px;
+    }
+
+    .btn {
+        min-width: 178px;
+        min-height: 46px;
+        border: none;
+        border-radius: 12px;
+        font-size: 0.98em;
+        font-weight: 700;
+        cursor: pointer;
+    }
+
+    .btn-cancel {
+        background: #e2e2e2;
+        color: #333;
+    }
+
+    .btn-submit {
+        background: #1a2a5e;
+        color: #fff;
+    }
+
+    @media (max-width: 900px) {
+        .row {
+            grid-template-columns: 1fr;
+        }
+
+        .delete-btn {
+            width: 100%;
+        }
+    }
 {% endblock %}
 
 {% block content %}
 <div class="container">
+    <p class="identified-top">User Identified As: Operations Manager</p>
     <h1 class="title">Edit Invoice</h1>
-    <div class="meta">
-        <strong>Invoice ID:</strong> INV{{ invoice.id|stringformat:'04d' }}<br>
-        <strong>Service ID:</strong> {{ invoice.service.id|stringformat:'07d' }}<br>
-        <strong>Customer:</strong> {{ invoice.service.customer.first_name }} {{ invoice.service.customer.last_name }}
-    </div>
 
     <form method="POST" id="editForm">
         {% csrf_token %}
         <input type="hidden" name="items_json" id="itemsJsonInput">
         <input type="hidden" name="action" id="formAction" value="submit">
 
-        <div id="rows"></div>
-        <button type="button" class="btn btn-add" id="addBtn">+ Add an item</button>
+        <div class="section-card">
+            <div class="meta">
+                <strong>Invoice ID:</strong> INV{{ invoice.id|stringformat:'04d' }}<br>
+                <strong>Service ID:</strong> {{ invoice.service.id|stringformat:'07d' }}<br>
+                <strong>Customer:</strong> {{ invoice.service.customer.first_name }} {{ invoice.service.customer.last_name }}
+            </div>
+        </div>
 
-        {% if errors.general %}<div class="error">{{ errors.general }}</div>{% endif %}
+        <div class="section-card">
+            <div class="section-header" style="margin-bottom:12px;">
+                <h2 class="section-label">Service Items</h2>
+            </div>
+
+            <div id="rows"></div>
+            <button type="button" class="add-btn" id="addBtn">+ Add an item</button>
+
+            {% if errors.general %}<div class="error">{{ errors.general }}</div>{% endif %}
+        </div>
 
         <div class="actions">
             <button type="submit" class="btn btn-cancel" onclick="document.getElementById('formAction').value='cancel'">Cancel</button>
-            <button type="submit" class="btn btn-save" onclick="document.getElementById('formAction').value='submit'">Save Changes</button>
+            <button type="button" class="btn btn-submit" id="openConfirmModal">Save Changes</button>
         </div>
     </form>
+
+    <div id="confirmModal" class="modal">
+        <div class="modal-content">
+            <h2>Are you sure you want to save changes?</h2>
+            <div class="modal-buttons">
+                <button type="button" class="modal-btn modal-btn-cancel" id="continueEditing">Continue Editing</button>
+                <button type="button" class="modal-btn modal-btn-confirm" id="confirmSubmit">Confirm</button>
+            </div>
+        </div>
+    </div>
 </div>
 {% endblock %}
 
 {% block extra_js %}
 <script>
-    const choices = JSON.parse('{{ invoice_item_choices_json|escapejs }}');
-
     let items = [];
     try { items = JSON.parse('{{ items_json|escapejs }}'); } catch (error) { items = []; }
-    if (!Array.isArray(items) || !items.length) items = [{ item_type: '', quantity: '' }];
+    if (!Array.isArray(items) || !items.length) items = [{ item_type: '', quantity: '', unit_price: '' }];
 
     const rows = document.getElementById('rows');
     const itemsJsonInput = document.getElementById('itemsJsonInput');
@@ -58,16 +237,13 @@
     function renderRows() {
         rows.innerHTML = '';
         items.forEach((item, index) => {
-            const options = ['<option value="">Select an item</option>'].concat(
-                choices.map(choice => `<option value="${choice.value}" ${item.item_type === choice.value ? 'selected' : ''}>${choice.label}</option>`)
-            ).join('');
-
             const row = document.createElement('div');
             row.className = 'row';
             row.innerHTML = `
-                <select class="field" data-index="${index}" data-field="item_type">${options}</select>
+                <input type="text" class="field" data-index="${index}" data-field="item_type" value="${item.item_type || ''}" placeholder="Service item name">
                 <input type="number" min="1" class="field" data-index="${index}" data-field="quantity" value="${item.quantity || ''}" placeholder="Quantity">
-                <button type="button" class="btn btn-delete" data-delete-index="${index}">Delete</button>
+                <input type="number" min="0.01" step="0.01" class="field" data-index="${index}" data-field="unit_price" value="${item.unit_price || ''}" placeholder="Unit price">
+                <button type="button" class="delete-btn" data-delete-index="${index}">Delete</button>
             `;
             rows.appendChild(row);
         });
@@ -89,7 +265,7 @@
             button.addEventListener('click', function () {
                 const index = Number(this.dataset.deleteIndex);
                 items.splice(index, 1);
-                if (!items.length) items.push({ item_type: '', quantity: '' });
+                if (!items.length) items.push({ item_type: '', quantity: '', unit_price: '' });
                 renderRows();
             });
         });
@@ -100,11 +276,36 @@
     }
 
     document.getElementById('addBtn').addEventListener('click', function () {
-        items.push({ item_type: '', quantity: '' });
+        items.push({ item_type: '', quantity: '', unit_price: '' });
         renderRows();
     });
 
-    document.getElementById('editForm').addEventListener('submit', serializeItems);
+    const openConfirmModal = document.getElementById('openConfirmModal');
+    const confirmModal = document.getElementById('confirmModal');
+    const continueEditing = document.getElementById('continueEditing');
+    const confirmSubmit = document.getElementById('confirmSubmit');
+    const editForm = document.getElementById('editForm');
+
+    if (openConfirmModal && confirmModal && continueEditing && confirmSubmit && editForm) {
+        openConfirmModal.addEventListener('click', function () {
+            confirmModal.classList.add('show');
+        });
+
+        continueEditing.addEventListener('click', function () {
+            confirmModal.classList.remove('show');
+        });
+
+        confirmSubmit.addEventListener('click', function () {
+            confirmModal.classList.remove('show');
+            document.getElementById('formAction').value = 'submit';
+            serializeItems();
+            editForm.submit();
+        });
+
+        editForm.addEventListener('submit', function () {
+            serializeItems();
+        });
+    }
 
     renderRows();
 </script>

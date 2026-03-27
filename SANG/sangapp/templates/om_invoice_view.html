@@ -4,15 +4,24 @@
 
 {% block extra_css %}
     .container {
-        max-width: 980px;
-        margin: 0 auto;
-        padding: 14px 24px 24px;
+        max-width: 1080px;
+        margin: 28px auto 48px;
+        padding: 0 24px;
+    }
+
+    .identified-top {
+        text-align: right;
+        color: #333;
+        margin: 10px 0 10px;
+        font-size: 0.9em;
     }
 
     .sheet {
         background: #fff;
         border: 1px solid #ddd;
-        padding: 20px;
+        border-radius: 12px;
+        padding: 24px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
     }
 
     .title {
@@ -25,9 +34,16 @@
     .meta {
         display: grid;
         grid-template-columns: 1fr 1fr;
-        gap: 8px 12px;
-        margin-bottom: 14px;
+        gap: 10px 14px;
+        margin-bottom: 16px;
         font-size: 0.95em;
+    }
+
+    .bill-table-wrap {
+        border: 1px solid #d7dbe6;
+        border-radius: 10px;
+        overflow: hidden;
+        margin-top: 6px;
     }
 
     table {
@@ -36,8 +52,7 @@
     }
 
     th, td {
-        border: 1px solid #d8d8d8;
-        padding: 10px 8px;
+        padding: 12px 14px;
         font-size: 0.9em;
         text-align: left;
     }
@@ -45,6 +60,25 @@
     th {
         background: #1a2a5e;
         color: #fff;
+        font-weight: 700;
+        letter-spacing: 0.2px;
+    }
+
+    tbody td {
+        border-bottom: 1px solid #edf0f6;
+    }
+
+    tbody tr:last-child td {
+        border-bottom: none;
+    }
+
+    tbody tr:hover {
+        background: #f8f9fc;
+    }
+
+    .num-col {
+        text-align: right;
+        white-space: nowrap;
     }
 
     .total {
@@ -54,18 +88,61 @@
         color: #222;
     }
 
-    .back-link {
-        display: inline-block;
-        margin-bottom: 10px;
-        color: #1a2a5e;
+    .download-btn {
+        border: none;
+        background: #1a2a5e;
+        color: #fff;
+        min-height: 38px;
+        padding: 0 16px;
+        border-radius: 8px;
+        font-size: 0.96em;
         font-weight: 700;
         text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .download-btn:hover {
+        background: #0d1535;
+    }
+
+    .actions-row {
+        margin-top: 14px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .back-link {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 38px;
+        padding: 0 16px;
+        border-radius: 8px;
+        border: 1px solid #cfd3df;
+        background: #fff;
+        color: #1a2a5e;
+        text-decoration: none;
+    }
+
+    @media (max-width: 760px) {
+        .meta {
+            grid-template-columns: 1fr;
+        }
+
+        .actions-row {
+            flex-direction: column;
+            align-items: center;
+        }
     }
 {% endblock %}
 
 {% block content %}
 <div class="container">
-    <a href="{% url back_url_name|default:'om_invoices' %}" class="back-link">Back</a>
+    <p class="identified-top">User Identified As: Operations Manager</p>
 
     <div class="sheet">
         <h1 class="title">Invoice</h1>
@@ -79,32 +156,35 @@
             <div><strong>Service Date:</strong> {{ invoice.service.date|date:'m/d/Y' }}</div>
         </div>
 
-        <table>
-            <thead>
-                <tr>
-                    <th>Description</th>
-                    <th>Quantity</th>
-                    <th>Unit Price</th>
-                    <th>Line Total</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for item in invoice.items.all %}
-                <tr>
-                    <td>{{ item.item_type }}</td>
-                    <td>{{ item.quantity }}</td>
-                    <td>₱ {{ item.unit_price }}</td>
-                    <td>₱ {{ item.line_total }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+        <div class="bill-table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Service Type</th>
+                        <th class="num-col">Quantity</th>
+                        <th class="num-col">Unit Price</th>
+                        <th class="num-col">Line Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in invoice.items.all %}
+                    <tr>
+                        <td>{{ item.item_type }}</td>
+                        <td class="num-col">{{ item.quantity }}</td>
+                        <td class="num-col">₱ {{ item.unit_price }}</td>
+                        <td class="num-col">₱ {{ item.line_total }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
 
         <p class="total">Total Amount: ₱ {{ invoice.total_amount }}</p>
+    </div>
 
-        <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:12px;">
-            <a href="{% url 'om_download_invoice_pdf' invoice.id %}" class="back-link" style="margin:0;background:#1a2a5e;color:#fff;padding:8px 12px;border-radius:8px;">Download PDF</a>
-        </div>
+    <div class="actions-row">
+        <a href="{% url back_url_name|default:'om_invoices' %}" class="back-link">Back</a>
+        <a href="{% url 'om_download_invoice_pdf' invoice.id %}" class="download-btn">Download PDF</a>
     </div>
 </div>
 {% endblock %}

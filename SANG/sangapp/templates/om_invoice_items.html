@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% block title %}Invoice Items - Supreme Biotech Solutions{% endblock %}
+{% block title %}Service Items - Supreme Biotech Solutions{% endblock %}
 
 {% block extra_css %}
     .container {
@@ -97,35 +97,29 @@
     <p class="identified-top">User Identified As: Operations Manager</p>
 
     <div class="sheet">
-        <h1 class="title">Invoice Items</h1>
-        <p class="sub">Structured invoice item options used by the invoice module dropdown.</p>
+        <h1 class="title">Service Items</h1>
+        <p class="sub">Reference list of manually entered service items from existing invoices.</p>
 
         <table>
             <thead>
                 <tr>
                     <th style="width: 10%;">#</th>
-                    <th style="width: 54%;">Item Type</th>
-                    <th style="width: 18%;">Default Unit Price</th>
-                    <th style="width: 18%;">Status</th>
+                    <th style="width: 50%;">Service Item Name</th>
+                    <th style="width: 20%;">Suggested Unit Price</th>
+                    <th style="width: 20%;">Usage Count</th>
                 </tr>
             </thead>
             <tbody>
-                {% for option in invoice_item_options %}
+                {% for item in service_items %}
                 <tr>
                     <td>{{ forloop.counter }}</td>
-                    <td>{{ option.name }}</td>
-                    <td>PHP {{ option.default_unit_price }}</td>
-                    <td>
-                        {% if option.is_active %}
-                        <span class="status-pill active">Active</span>
-                        {% else %}
-                        <span class="status-pill inactive">Inactive</span>
-                        {% endif %}
-                    </td>
+                    <td>{{ item.item_type }}</td>
+                    <td>PHP {{ item.suggested_unit_price }}</td>
+                    <td>{{ item.usage_count }}</td>
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="4" style="text-align:center;color:#666;">No invoice item options available.</td>
+                    <td colspan="4" style="text-align:center;color:#666;">No service items yet.</td>
                 </tr>
                 {% endfor %}
             </tbody>

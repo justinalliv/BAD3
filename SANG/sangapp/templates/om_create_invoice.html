@@ -109,7 +109,7 @@
 
     .invoice-row {
         display: grid;
-        grid-template-columns: 1fr 1fr 140px;
+        grid-template-columns: 1.2fr 0.9fr 0.9fr 140px;
         gap: 12px;
         margin-bottom: 10px;
         align-items: center;
@@ -135,17 +135,6 @@
         outline: none;
         border-color: #1a2a5e;
         box-shadow: 0 0 0 3px rgba(26, 42, 94, 0.12);
-    }
-
-    .field-select {
-        appearance: none;
-        -webkit-appearance: none;
-        -moz-appearance: none;
-        padding-right: 42px;
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='10' viewBox='0 0 14 10'%3E%3Cpath fill='none' stroke='%234a4a4a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M1 1l6 6 6-6'/%3E%3C/svg%3E");
-        background-repeat: no-repeat;
-        background-position: right 14px center;
-        background-size: 14px 10px;
     }
 
     .delete-btn {
@@ -228,22 +217,8 @@
         color: #fff;
     }
 
-    .autofill-grid {
-        display: grid;
-        grid-template-columns: 1fr 220px;
-        gap: 12px;
-        margin-bottom: 12px;
-    }
-
-    .autofill-note {
-        margin-top: 8px;
-        color: #666;
-        font-size: 0.86em;
-    }
-
     @media (max-width: 900px) {
-        .invoice-row,
-        .autofill-grid {
+        .invoice-row {
             grid-template-columns: 1fr;
         }
     }
@@ -262,7 +237,7 @@
 
         <div class="section-card">
             <div class="section-header">
-                <h2 class="section-label">Select service record</h2>
+                <h2 class="section-label">Select Service Record</h2>
                 <div class="search-wrap">
                     <input type="text" id="searchBox" class="search-box" placeholder="Search">
                 </div>
@@ -303,17 +278,11 @@
 
         <div class="section-card">
             <div class="section-header" style="margin-bottom:12px;">
-                <h2 class="section-label">Invoice Items</h2>
-            </div>
-
-            <div class="autofill-grid">
-                <input type="text" class="field" id="autofillServiceType" placeholder="Service Type" readonly>
-                <input type="number" class="field" id="autofillQuantity" placeholder="Quantity" readonly>
+                <h2 class="section-label">Service Items</h2>
             </div>
 
             <div id="invoiceRows"></div>
             <button type="button" class="add-btn" id="addItemBtn">+ Add an item</button>
-            <p class="autofill-note">Service Type and Quantity are autofilled from the selected estimated bill or previous invoice.</p>
 
             {% if errors.general %}<p class="error">{{ errors.general }}</p>{% endif %}
         </div>
@@ -348,10 +317,6 @@
 
 {% block extra_js %}
 <script>
-    const invoiceItemChoices = JSON.parse('{{ invoice_item_choices_json|default:"[]"|escapejs }}');
-    const serviceSeedMap = JSON.parse('{{ service_seed_map_json|default:"{}"|escapejs }}');
-    const serviceMetaMap = JSON.parse('{{ service_meta_map_json|default:"{}"|escapejs }}');
-
     let invoiceItems = [];
     try {
         invoiceItems = JSON.parse('{{ items_json|default:"[]"|escapejs }}');
@@ -360,7 +325,7 @@
     }
 
     if (!Array.isArray(invoiceItems) || invoiceItems.length === 0) {
-        invoiceItems = [{ item_type: '', quantity: '' }];
+        invoiceItems = [{ item_type: '', quantity: '', unit_price: '' }];
     }
 
     const invoiceRows = document.getElementById('invoiceRows');
@@ -368,18 +333,6 @@
     const addItemBtn = document.getElementById('addItemBtn');
     const searchBox = document.getElementById('searchBox');
     const serviceTable = document.getElementById('serviceTable');
-    const autofillServiceType = document.getElementById('autofillServiceType');
-    const autofillQuantity = document.getElementById('autofillQuantity');
-
-    function buildOptions(selectedValue) {
-        return ['<option value="">Select an item</option>']
-            .concat(invoiceItemChoices.map(choice => {
-                const selected = selectedValue === choice.value ? 'selected' : '';
-                return `<option value="${choice.value}" ${selected}>${choice.label}</option>`;
-            }))
-            .join('');
-    }
-
     function renderRows() {
         invoiceRows.innerHTML = '';
 
@@ -387,8 +340,9 @@
             const row = document.createElement('div');
             row.className = 'invoice-row';
             row.innerHTML = `
-                <select class="field field-select" data-index="${index}" data-field="item_type">${buildOptions(item.item_type || '')}</select>
+                <input type="text" class="field" data-index="${index}" data-field="item_type" placeholder="Service item name" value="${item.item_type || ''}">
                 <input type="number" min="1" class="field" data-index="${index}" data-field="quantity" placeholder="Enter quantity" value="${item.quantity || ''}">
+                <input type="number" min="0.01" step="0.01" class="field" data-index="${index}" data-field="unit_price" placeholder="Unit price" value="${item.unit_price || ''}">
                 <button type="button" class="delete-btn" data-delete-index="${index}">Delete</button>
             `;
             invoiceRows.appendChild(row);
@@ -412,7 +366,7 @@
                 const index = Number(this.dataset.deleteIndex);
                 invoiceItems.splice(index, 1);
                 if (invoiceItems.length === 0) {
-                    invoiceItems.push({ item_type: '', quantity: '' });
+                    invoiceItems.push({ item_type: '', quantity: '', unit_price: '' });
                 }
                 renderRows();
             });
@@ -423,30 +377,13 @@
         itemsJsonInput.value = JSON.stringify(invoiceItems.map(item => ({
             item_type: item.item_type || '',
             quantity: item.quantity || '',
+            unit_price: item.unit_price || '',
         })));
-    }
-
-    function applyServiceSeed(serviceId) {
-        const seed = serviceSeedMap[String(serviceId)] || [{ item_type: '', quantity: '' }];
-        invoiceItems = seed.map(item => ({
-            item_type: item.item_type || '',
-            quantity: item.quantity || '',
-        }));
-
-        const meta = serviceMetaMap[String(serviceId)] || {};
-        if (autofillServiceType) {
-            autofillServiceType.value = meta.service_type || '';
-        }
-        if (autofillQuantity) {
-            autofillQuantity.value = meta.quantity || '';
-        }
-
-        renderRows();
     }
 
     if (addItemBtn) {
         addItemBtn.addEventListener('click', function () {
-            invoiceItems.push({ item_type: '', quantity: '' });
+            invoiceItems.push({ item_type: '', quantity: '', unit_price: '' });
             renderRows();
         });
     }
@@ -460,18 +397,7 @@
         });
     }
 
-    document.querySelectorAll('input[name="selected_service_id"]').forEach((radio) => {
-        radio.addEventListener('change', function () {
-            applyServiceSeed(this.value);
-        });
-    });
-
-    const initiallySelected = document.querySelector('input[name="selected_service_id"]:checked');
-    if (initiallySelected && (!invoiceItems.length || (invoiceItems.length === 1 && !invoiceItems[0].item_type && !invoiceItems[0].quantity))) {
-        applyServiceSeed(initiallySelected.value);
-    } else {
-        renderRows();
-    }
+    renderRows();
 
     const openConfirmModal = document.getElementById('openConfirmModal');
     const confirmModal = document.getElementById('confirmModal');
