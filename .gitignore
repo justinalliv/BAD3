@@ -2,3 +2,15 @@ __pycache__/
 *.py[cod]
 *$py.class
 .DS_Store
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Local Python build/test artifacts
+.pytest_cache/
+.mypy_cache/
+
+# Local DB/runtime files
+*.sqlite3
