@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% block title %}Service Items - Supreme Biotech Solutions{% endblock %}
+{% block title %}Chemicals - Supreme Biotech Solutions{% endblock %}
 
 {% block extra_css %}
     .container {
@@ -55,7 +55,7 @@
 
     .create-grid {
         display: grid;
-        grid-template-columns: 1.1fr 1.3fr 0.9fr 170px;
+        grid-template-columns: 1.2fr 1fr 170px;
         gap: 10px;
         align-items: center;
     }
@@ -90,10 +90,6 @@
         color: #fff;
     }
 
-    .btn-primary:hover {
-        background: #0d1535;
-    }
-
     table {
         width: 100%;
         border-collapse: collapse;
@@ -120,20 +116,10 @@
         font-weight: 700;
     }
 
-    .status-pill.active {
-        background: #d1e7dd;
-        color: #0f5132;
-    }
+    .status-pill.active { background: #d1e7dd; color: #0f5132; }
+    .status-pill.inactive { background: #e2e3e5; color: #383d41; }
 
-    .status-pill.inactive {
-        background: #e2e3e5;
-        color: #383d41;
-    }
-
-    .row-actions {
-        display: flex;
-        gap: 8px;
-    }
+    .row-actions { display: flex; gap: 8px; }
 
     .btn-row {
         min-height: 34px;
@@ -145,22 +131,10 @@
         cursor: pointer;
     }
 
-    .btn-edit {
-        background: #eef1fb;
-        color: #1a2a5e;
-    }
+    .btn-edit { background: #eef1fb; color: #1a2a5e; }
+    .btn-delete { background: #d9534f; color: #fff; }
 
-    .btn-delete {
-        background: #d9534f;
-        color: #fff;
-    }
-
-    .back-row {
-        margin-top: 14px;
-        display: flex;
-        justify-content: center;
-    }
-
+    .back-row { margin-top: 14px; display: flex; justify-content: center; }
     .back-link {
         display: inline-flex;
         align-items: center;
@@ -173,16 +147,6 @@
         color: #1a2a5e;
         text-decoration: none;
     }
-
-    @media (max-width: 900px) {
-        .create-grid {
-            grid-template-columns: 1fr;
-        }
-
-        .row-actions {
-            flex-direction: column;
-        }
-    }
 {% endblock %}
 
 {% block content %}
@@ -190,17 +154,16 @@
     <p class="identified-top">User Identified As: Operations Manager</p>
 
     <div class="sheet">
-        <h1 class="title">Service Items</h1>
-        <p class="sub">Create and manage reusable Service Items used in Invoice generation.</p>
+        <h1 class="title">Chemicals</h1>
+        <p class="sub">Manage ID-based chemicals used in Service Report submissions.</p>
 
         <form method="POST" class="create-card">
             {% csrf_token %}
             <input type="hidden" name="action" value="create">
-            <div class="create-title">Create Service Item</div>
+            <div class="create-title">Create Chemical</div>
             <div class="create-grid">
-                <input type="text" name="name" class="field" placeholder="Service item name (e.g., Baygon)" required>
-                <input type="text" name="description" class="field" placeholder="Item description (optional)">
-                <input type="number" name="default_unit_price" class="field" min="0.01" step="0.01" placeholder="Default price (optional)">
+                <input type="text" name="name" class="field" placeholder="Chemical name (e.g., Temprid)" required>
+                <input type="text" name="standard_unit_measure" class="field" placeholder="Standard unit measure (e.g., mL)" required>
                 <button type="submit" class="btn btn-primary">Create</button>
             </div>
         </form>
@@ -209,54 +172,43 @@
             <thead>
                 <tr>
                     <th style="width: 8%;">#</th>
-                    <th style="width: 8%;">Item ID</th>
-                    <th style="width: 22%;">Service Item Name</th>
-                    <th style="width: 18%;">Description</th>
-                    <th style="width: 14%;">Item Rate</th>
+                    <th style="width: 10%;">Chemical ID</th>
+                    <th style="width: 28%;">Chemical Name</th>
+                    <th style="width: 20%;">Standard Unit Measure</th>
                     <th style="width: 10%;">Status</th>
                     <th style="width: 10%;">Usage Count</th>
-                    <th style="width: 10%;">Last Used Price</th>
-                    <th style="width: 10%;">Actions</th>
+                    <th style="width: 14%;">Actions</th>
                 </tr>
             </thead>
             <tbody>
-                {% for item in service_items %}
+                {% for chemical in chemicals %}
                 <tr>
                     <td>{{ forloop.counter }}</td>
-                    <td>{{ item.id }}</td>
-                    <td>{{ item.name }}</td>
-                    <td>{{ item.description|default:'-' }}</td>
-                    <td>PHP {{ item.default_unit_price }}</td>
+                    <td>{{ chemical.id }}</td>
+                    <td>{{ chemical.name }}</td>
+                    <td>{{ chemical.standard_unit_measure }}</td>
                     <td>
-                        {% if item.is_active %}
+                        {% if chemical.is_active %}
                         <span class="status-pill active">Active</span>
                         {% else %}
                         <span class="status-pill inactive">Inactive</span>
                         {% endif %}
                     </td>
-                    <td>{{ item.usage_count }}</td>
-                    <td>
-                        {% if item.last_used_unit_price %}
-                        PHP {{ item.last_used_unit_price }}
-                        {% else %}
-                        -
-                        {% endif %}
-                    </td>
+                    <td>{{ chemical.usage_count }}</td>
                     <td>
                         <div class="row-actions">
                             <button
                                 type="button"
                                 class="btn-row btn-edit"
-                                data-edit-id="{{ item.id }}"
-                                data-edit-name="{{ item.name|escape }}"
-                                data-edit-description="{{ item.description|escape }}"
-                                data-edit-price="{{ item.default_unit_price }}"
-                                data-edit-active="{{ item.is_active|yesno:'true,false' }}"
+                                data-edit-id="{{ chemical.id }}"
+                                data-edit-name="{{ chemical.name|escape }}"
+                                data-edit-unit="{{ chemical.standard_unit_measure|escape }}"
+                                data-edit-active="{{ chemical.is_active|yesno:'true,false' }}"
                             >Edit</button>
                             <form method="POST" style="display:inline;">
                                 {% csrf_token %}
                                 <input type="hidden" name="action" value="delete">
-                                <input type="hidden" name="item_id" value="{{ item.id }}">
+                                <input type="hidden" name="chemical_id" value="{{ chemical.id }}">
                                 <button type="submit" class="btn-row btn-delete">Deactivate</button>
                             </form>
                         </div>
@@ -264,7 +216,7 @@
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="8" style="text-align:center;color:#666;">No service items yet.</td>
+                    <td colspan="7" style="text-align:center;color:#666;">No chemicals yet.</td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -273,23 +225,20 @@
 
     <div id="editModal" class="modal">
         <div class="modal-content">
-            <h2>Edit Service Item</h2>
-            <form method="POST" id="editForm">
+            <h2>Edit Chemical</h2>
+            <form method="POST">
                 {% csrf_token %}
                 <input type="hidden" name="action" value="update">
-                <input type="hidden" name="item_id" id="editItemId">
+                <input type="hidden" name="chemical_id" id="editChemicalId">
                 <div style="margin-bottom:10px;">
-                    <input type="text" class="field" id="editName" name="name" placeholder="Service item name" required>
+                    <input type="text" class="field" id="editName" name="name" placeholder="Chemical name" required>
                 </div>
                 <div style="margin-bottom:10px;">
-                    <input type="text" class="field" id="editDescription" name="description" placeholder="Description (optional)">
-                </div>
-                <div style="margin-bottom:10px;">
-                    <input type="number" class="field" id="editPrice" name="default_unit_price" min="0.01" step="0.01" placeholder="Default price (optional)">
+                    <input type="text" class="field" id="editUnit" name="standard_unit_measure" placeholder="Standard unit measure" required>
                 </div>
                 <label style="display:flex;align-items:center;gap:8px;margin-bottom:14px;font-size:0.92em;color:#333;">
                     <input type="checkbox" id="editActive" name="is_active">
-                    Active item
+                    Active chemical
                 </label>
                 <div class="modal-buttons">
                     <button type="button" class="modal-btn modal-btn-cancel" id="closeEditModal">Cancel</button>
@@ -308,19 +257,17 @@
 {% block extra_js %}
 <script>
     const editModal = document.getElementById('editModal');
-    const editItemId = document.getElementById('editItemId');
+    const editChemicalId = document.getElementById('editChemicalId');
     const editName = document.getElementById('editName');
-    const editDescription = document.getElementById('editDescription');
-    const editPrice = document.getElementById('editPrice');
+    const editUnit = document.getElementById('editUnit');
     const editActive = document.getElementById('editActive');
     const closeEditModal = document.getElementById('closeEditModal');
 
     document.querySelectorAll('[data-edit-id]').forEach((button) => {
         button.addEventListener('click', function () {
-            editItemId.value = this.dataset.editId;
+            editChemicalId.value = this.dataset.editId;
             editName.value = this.dataset.editName || '';
-            editDescription.value = this.dataset.editDescription || '';
-            editPrice.value = this.dataset.editPrice || '';
+            editUnit.value = this.dataset.editUnit || '';
             editActive.checked = this.dataset.editActive === 'true';
             editModal.classList.add('show');
         });

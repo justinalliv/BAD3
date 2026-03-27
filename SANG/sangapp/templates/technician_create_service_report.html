@@ -364,7 +364,7 @@
                 <table>
                     <thead>
                         <tr>
-                            <th style="width:40%;">Name</th>
+                            <th style="width:40%;">Chemical</th>
                             <th style="width:22%;">Unit Measure</th>
                             <th style="width:22%;">Amount</th>
                             <th style="width:16%;">Action</th>
@@ -544,6 +544,8 @@
         const textModalValue = document.getElementById('textModalValue');
         const textCancel = document.getElementById('textCancel');
         const textConfirm = document.getElementById('textConfirm');
+        const chemicalChoices = JSON.parse('{{ chemical_choices_json|default:"[]"|escapejs }}');
+        const chemicalUnitMap = Object.fromEntries(chemicalChoices.map(choice => [choice.value, choice.standard_unit_measure]));
 
         let editingAreaIndex = -1;
         let editingField = '';
@@ -564,7 +566,7 @@
         }
 
         if (!Array.isArray(chemicals) || chemicals.length === 0) {
-            chemicals = [{ chemical_name: '', unit_measure: 'mL', amount: '' }];
+            chemicals = [{ chemical_id: '', amount: '' }];
         }
 
         if (!Array.isArray(treatedAreas) || treatedAreas.length === 0) {
@@ -578,21 +580,31 @@
             chemicalsBody.innerHTML = '';
 
             chemicals.forEach((chemical, index) => {
+                const options = ['<option value="">Select chemical</option>'].concat(
+                    chemicalChoices.map(choice => `<option value="${choice.value}" ${chemical.chemical_id === choice.value ? 'selected' : ''}>${choice.label}</option>`)
+                ).join('');
+
                 const row = document.createElement('tr');
                 row.innerHTML = `
-                    <td><input class="row-input" type="text" value="${(chemical.chemical_name || '').replace(/"/g, '&quot;')}" data-index="${index}" data-field="chemical_name"></td>
-                    <td><input class="row-input" type="text" value="${(chemical.unit_measure || '').replace(/"/g, '&quot;')}" data-index="${index}" data-field="unit_measure"></td>
+                    <td>
+                        <select class="row-select" data-index="${index}" data-field="chemical_id">${options}</select>
+                    </td>
+                    <td><input class="row-input" type="text" value="${chemicalUnitMap[chemical.chemical_id] || ''}" readonly></td>
                     <td><input class="row-number" type="number" min="0" step="0.01" value="${chemical.amount || ''}" data-index="${index}" data-field="amount"></td>
                     <td><button type="button" class="small-btn btn-delete" data-delete-chemical="${index}">Delete</button></td>
                 `;
                 chemicalsBody.appendChild(row);
             });
 
-            chemicalsBody.querySelectorAll('input').forEach((input) => {
-                input.addEventListener('input', function () {
+            chemicalsBody.querySelectorAll('[data-field]').forEach((input) => {
+                const eventType = input.tagName === 'SELECT' ? 'change' : 'input';
+                input.addEventListener(eventType, function () {
                     const index = Number(this.dataset.index);
                     const field = this.dataset.field;
                     chemicals[index][field] = this.value;
+                    if (field === 'chemical_id') {
+                        renderChemicals();
+                    }
                 });
             });
 
@@ -601,7 +613,7 @@
                     const index = Number(this.dataset.deleteChemical);
                     chemicals.splice(index, 1);
                     if (chemicals.length === 0) {
-                        chemicals.push({ chemical_name: '', unit_measure: 'mL', amount: '' });
+                        chemicals.push({ chemical_id: '', amount: '' });
                     }
                     renderChemicals();
                 });
@@ -683,7 +695,7 @@
         }
 
         addChemicalBtn.addEventListener('click', function () {
-            chemicals.push({ chemical_name: '', unit_measure: 'mL', amount: '' });
+            chemicals.push({ chemical_id: '', amount: '' });
             renderChemicals();
         });
 

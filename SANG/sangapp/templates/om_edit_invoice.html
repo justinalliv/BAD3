@@ -243,7 +243,7 @@
 
     let items = [];
     try { items = JSON.parse('{{ items_json|escapejs }}'); } catch (error) { items = []; }
-    if (!Array.isArray(items) || !items.length) items = [{ item_type: '', quantity: '', unit_price: '' }];
+    if (!Array.isArray(items) || !items.length) items = [{ service_item_id: '', quantity: '', unit_price: '' }];
 
     const rows = document.getElementById('rows');
     const itemsJsonInput = document.getElementById('itemsJsonInput');
@@ -252,13 +252,13 @@
         rows.innerHTML = '';
         items.forEach((item, index) => {
             const options = ['<option value="">Select a service item</option>'].concat(
-                serviceItemChoices.map(choice => `<option value="${choice.value}" ${item.item_type === choice.value ? 'selected' : ''}>${choice.label}</option>`)
+                serviceItemChoices.map(choice => `<option value="${choice.value}" ${item.service_item_id === choice.value ? 'selected' : ''}>${choice.label}</option>`)
             ).join('');
 
             const row = document.createElement('div');
             row.className = 'row';
             row.innerHTML = `
-                <select class="field field-select" data-index="${index}" data-field="item_type">${options}</select>
+                <select class="field field-select" data-index="${index}" data-field="service_item_id">${options}</select>
                 <input type="number" min="1" class="field" data-index="${index}" data-field="quantity" value="${item.quantity || ''}" placeholder="Quantity">
                 <input type="number" min="0.01" step="0.01" class="field" data-index="${index}" data-field="unit_price" value="${item.unit_price || ''}" placeholder="Unit price">
                 <button type="button" class="delete-btn" data-delete-index="${index}">Delete</button>
@@ -271,7 +271,7 @@
                 const index = Number(this.dataset.index);
                 const field = this.dataset.field;
                 items[index][field] = this.value;
-                if (field === 'item_type' && serviceItemPriceMap[this.value]) {
+                if (field === 'service_item_id' && serviceItemPriceMap[this.value]) {
                     items[index].unit_price = serviceItemPriceMap[this.value];
                     renderRows();
                 }
@@ -287,7 +287,7 @@
             button.addEventListener('click', function () {
                 const index = Number(this.dataset.deleteIndex);
                 items.splice(index, 1);
-                if (!items.length) items.push({ item_type: '', quantity: '', unit_price: '' });
+                if (!items.length) items.push({ service_item_id: '', quantity: '', unit_price: '' });
                 renderRows();
             });
         });
@@ -298,7 +298,7 @@
     }
 
     document.getElementById('addBtn').addEventListener('click', function () {
-        items.push({ item_type: '', quantity: '', unit_price: '' });
+        items.push({ service_item_id: '', quantity: '', unit_price: '' });
         renderRows();
     });
 

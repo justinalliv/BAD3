@@ -174,10 +174,25 @@ class ServiceReport(models.Model):
         ordering = ['-created_at']
 
 
+class Chemical(models.Model):
+    name = models.CharField(max_length=255, unique=True)
+    standard_unit_measure = models.CharField(max_length=50)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        db_table = 'chemicals'
+        ordering = ['name']
+
+
 class ServiceReportChemical(models.Model):
     report = models.ForeignKey(ServiceReport, on_delete=models.CASCADE, related_name='chemicals')
-    chemical_name = models.CharField(max_length=255)
-    unit_measure = models.CharField(max_length=50)
+    chemical = models.ForeignKey(Chemical, on_delete=models.SET_NULL, null=True, blank=True, related_name='usages')
+    chemical_name = models.CharField(max_length=255, blank=True)
+    unit_measure = models.CharField(max_length=50, blank=True)
     amount = models.DecimalField(max_digits=10, decimal_places=2)
 
     def __str__(self):
@@ -264,6 +279,7 @@ class Invoice(models.Model):
 
 class InvoiceItemOption(models.Model):
     name = models.CharField(max_length=255, unique=True)
+    description = models.TextField(blank=True)
     default_unit_price = models.DecimalField(max_digits=12, decimal_places=2, default=1500)
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -295,6 +311,7 @@ class ServiceFormOption(models.Model):
 
 class InvoiceItem(models.Model):
     invoice = models.ForeignKey(Invoice, on_delete=models.CASCADE, related_name='items')
+    service_item = models.ForeignKey(InvoiceItemOption, on_delete=models.SET_NULL, null=True, blank=True, related_name='invoice_lines')
     item_type = models.CharField(max_length=255)
     quantity = models.PositiveIntegerField()
     unit_price = models.DecimalField(max_digits=12, decimal_places=2)

@@ -52,6 +52,7 @@ urlpatterns = [
     path('om/remittance-records/', views.om_remittance_records, name='om_remittance_records'),
     path('om/manage-service-forms/', views.om_manage_service_forms, name='om_manage_service_forms'),
     path('om/manage-service-forms/service-forms/', views.om_service_forms, name='om_service_forms'),
+    path('om/manage-service-forms/chemicals/', views.om_chemicals, name='om_chemicals'),
     path('om/manage-service-forms/service-items/', views.om_service_items, name='om_service_items'),
     path('om/manage-service-forms/invoice-items/', views.om_invoice_items, name='om_invoice_items'),
     path('om/manage-accounts/', views.om_manage_accounts, name='om_manage_accounts'),

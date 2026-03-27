@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.db import transaction
-from django.db.models import Case, When, IntegerField, Count, Max
+from django.db.models import Case, When, IntegerField, Count, Max, Q
 from django.core.mail import send_mail
 from django.conf import settings
 from django.http import HttpResponse
@@ -25,6 +25,7 @@ from .models import (
     ServiceReportArea,
     EstimatedBill,
     EstimatedBillItem,
+    Chemical,
     Invoice,
     InvoiceItem,
     InvoiceItemOption,
@@ -1195,12 +1196,18 @@ def om_edit_invoice(request, invoice_id):
         messages.error(request, 'Invoice not found.')
         return redirect('om_invoices')
 
-    service_item_options = InvoiceItemOption.objects.filter(is_active=True).order_by('name')
-    allowed_item_names = [option.name for option in service_item_options]
+    existing_item_ids = list(
+        invoice.items.exclude(service_item_id__isnull=True).values_list('service_item_id', flat=True)
+    )
+    service_item_options = InvoiceItemOption.objects.filter(
+        Q(is_active=True) | Q(id__in=existing_item_ids)
+    ).order_by('name')
+    allowed_item_map = {option.id: option.name for option in service_item_options}
     service_item_choices = [
         {
-            'value': option.name,
+            'value': str(option.id),
             'label': option.name,
+            'description': option.description,
             'default_unit_price': str(option.default_unit_price),
         }
         for option in service_item_options
@@ -1211,7 +1218,7 @@ def om_edit_invoice(request, invoice_id):
             return redirect('om_invoices')
 
         raw_items = _parse_invoice_items(request.POST.get('items_json'))
-        items, has_invalid = _clean_invoice_items(raw_items, allowed_item_names=allowed_item_names)
+        items, has_invalid = _clean_invoice_items(raw_items, allowed_item_map=allowed_item_map)
         errors = {}
 
         if not service_item_choices:
@@ -1224,7 +1231,7 @@ def om_edit_invoice(request, invoice_id):
             return render(request, 'om_edit_invoice.html', {
                 'invoice': invoice,
                 'errors': errors,
-                'items_json': json.dumps(raw_items if raw_items else [{'item_type': '', 'quantity': '', 'unit_price': ''}]),
+                'items_json': json.dumps(raw_items if raw_items else [{'service_item_id': '', 'quantity': '', 'unit_price': ''}]),
                 'service_item_choices_json': json.dumps(service_item_choices),
             })
 
@@ -1233,6 +1240,7 @@ def om_edit_invoice(request, invoice_id):
             InvoiceItem.objects.bulk_create([
                 InvoiceItem(
                     invoice=invoice,
+                    service_item_id=item['service_item_id'],
                     item_type=item['item_type'],
                     quantity=item['quantity'],
                     unit_price=item['unit_price'],
@@ -1248,7 +1256,7 @@ def om_edit_invoice(request, invoice_id):
         'errors': {},
         'items_json': json.dumps([
             {
-                'item_type': item.item_type,
+                'service_item_id': str(item.service_item_id) if item.service_item_id else '',
                 'quantity': item.quantity,
                 'unit_price': str(item.unit_price),
             }
@@ -1334,27 +1342,33 @@ def _parse_invoice_items(raw_payload):
         return []
 
 
-def _clean_invoice_items(raw_items, allowed_item_names=None):
+def _clean_invoice_items(raw_items, allowed_item_map=None):
     cleaned_items = []
     has_invalid = False
-    allowed_set = set(allowed_item_names or [])
+    allowed_map = allowed_item_map or {}
 
     for item in raw_items:
         if not isinstance(item, dict):
             continue
 
-        item_type = (item.get('item_type') or '').strip()
+        service_item_id_raw = str(item.get('service_item_id') or '').strip()
         quantity_raw = str(item.get('quantity') or '').strip()
         unit_price_raw = str(item.get('unit_price') or '').strip()
 
-        if not (item_type or quantity_raw or unit_price_raw):
+        if not (service_item_id_raw or quantity_raw or unit_price_raw):
             continue
 
-        if not item_type or not quantity_raw or not unit_price_raw:
+        if not service_item_id_raw or not quantity_raw or not unit_price_raw:
             has_invalid = True
             continue
 
-        if allowed_set and item_type not in allowed_set:
+        try:
+            service_item_id = int(service_item_id_raw)
+        except (TypeError, ValueError):
+            has_invalid = True
+            continue
+
+        if allowed_map and service_item_id not in allowed_map:
             has_invalid = True
             continue
 
@@ -1377,7 +1391,8 @@ def _clean_invoice_items(raw_items, allowed_item_names=None):
             continue
 
         cleaned_items.append({
-            'item_type': item_type,
+            'service_item_id': service_item_id,
+            'item_type': allowed_map.get(service_item_id, ''),
             'quantity': quantity,
             'unit_price': unit_price,
         })
@@ -1467,11 +1482,12 @@ def om_create_invoice(request):
     service_candidates = _get_invoice_eligible_services_queryset()
     selectable_services = _filter_invoice_eligible_services(service_candidates)
     service_item_options = InvoiceItemOption.objects.filter(is_active=True).order_by('name')
-    allowed_item_names = [option.name for option in service_item_options]
+    allowed_item_map = {option.id: option.name for option in service_item_options}
     service_item_choices = [
         {
-            'value': option.name,
+            'value': str(option.id),
             'label': option.name,
+            'description': option.description,
             'default_unit_price': str(option.default_unit_price),
         }
         for option in service_item_options
@@ -1483,7 +1499,7 @@ def om_create_invoice(request):
 
         selected_service_id = request.POST.get('selected_service_id', '').strip()
         raw_items = _parse_invoice_items(request.POST.get('items_json'))
-        cleaned_items, has_invalid = _clean_invoice_items(raw_items, allowed_item_names=allowed_item_names)
+        cleaned_items, has_invalid = _clean_invoice_items(raw_items, allowed_item_map=allowed_item_map)
 
         selected_service = next(
             (service for service in selectable_services if str(service.id) == selected_service_id),
@@ -1508,7 +1524,7 @@ def om_create_invoice(request):
                 'services': selectable_services,
                 'selected_service_id': selected_service_id,
                 'errors': errors,
-                'items_json': json.dumps(raw_items if raw_items else [{'item_type': '', 'quantity': '', 'unit_price': ''}]),
+                'items_json': json.dumps(raw_items if raw_items else [{'service_item_id': '', 'quantity': '', 'unit_price': ''}]),
                 'service_item_choices_json': json.dumps(service_item_choices),
             })
 
@@ -1521,6 +1537,7 @@ def om_create_invoice(request):
             InvoiceItem.objects.bulk_create([
                 InvoiceItem(
                     invoice=invoice,
+                    service_item_id=item['service_item_id'],
                     item_type=item['item_type'],
                     quantity=item['quantity'],
                     unit_price=item['unit_price'],
@@ -1555,7 +1572,7 @@ def om_create_invoice(request):
         'services': selectable_services,
         'selected_service_id': '',
         'errors': {},
-        'items_json': json.dumps([{'item_type': '', 'quantity': '', 'unit_price': ''}]),
+        'items_json': json.dumps([{'service_item_id': '', 'quantity': '', 'unit_price': ''}]),
         'service_item_choices_json': json.dumps(service_item_choices),
     })
 
@@ -1844,6 +1861,7 @@ def om_service_items(request):
 
         if action in {'create', 'update'}:
             name = request.POST.get('name', '').strip()
+            description = request.POST.get('description', '').strip()
             default_unit_price_raw = request.POST.get('default_unit_price', '').strip()
             is_active = request.POST.get('is_active') == 'on'
 
@@ -1869,13 +1887,15 @@ def om_service_items(request):
                     return redirect('om_service_items')
                 if existing_item and not existing_item.is_active:
                     existing_item.name = name
+                    existing_item.description = description
                     existing_item.default_unit_price = default_unit_price
                     existing_item.is_active = True
-                    existing_item.save(update_fields=['name', 'default_unit_price', 'is_active'])
+                    existing_item.save(update_fields=['name', 'description', 'default_unit_price', 'is_active'])
                     messages.success(request, 'Service item restored successfully.')
                     return redirect('om_service_items')
                 InvoiceItemOption.objects.create(
                     name=name,
+                    description=description,
                     default_unit_price=default_unit_price,
                     is_active=True,
                 )
@@ -1897,9 +1917,10 @@ def om_service_items(request):
                 return redirect('om_service_items')
 
             service_item.name = name
+            service_item.description = description
             service_item.default_unit_price = default_unit_price
             service_item.is_active = is_active
-            service_item.save(update_fields=['name', 'default_unit_price', 'is_active'])
+            service_item.save(update_fields=['name', 'description', 'default_unit_price', 'is_active'])
             messages.success(request, 'Service item updated successfully.')
             return redirect('om_service_items')
 
@@ -1943,6 +1964,7 @@ def om_service_items(request):
         service_item_rows.append({
             'id': item.id,
             'name': item.name,
+            'description': item.description,
             'default_unit_price': item.default_unit_price,
             'is_active': item.is_active,
             'usage_count': usage.get('usage_count', 0),
@@ -1952,6 +1974,118 @@ def om_service_items(request):
     return render(request, 'om_invoice_items.html', {
         'om': om,
         'service_items': service_item_rows,
+    })
+
+
+def om_chemicals(request):
+    if 'om_id' not in request.session:
+        return redirect('login')
+
+    try:
+        om = OperationsManager.objects.get(id=request.session['om_id'])
+    except OperationsManager.DoesNotExist:
+        request.session.flush()
+        return redirect('login')
+
+    if request.method == 'POST':
+        action = request.POST.get('action', '').strip()
+        chemical_id = request.POST.get('chemical_id', '').strip()
+
+        if action in {'create', 'update'}:
+            name = request.POST.get('name', '').strip()
+            standard_unit_measure = request.POST.get('standard_unit_measure', '').strip()
+            is_active = request.POST.get('is_active') == 'on'
+
+            if not name or not standard_unit_measure:
+                messages.error(request, 'Chemical name and standard unit measure are required.')
+                return redirect('om_chemicals')
+
+            if action == 'create':
+                existing = Chemical.objects.filter(name__iexact=name).first()
+                if existing and existing.is_active:
+                    messages.error(request, 'A chemical with this name already exists.')
+                    return redirect('om_chemicals')
+                if existing and not existing.is_active:
+                    existing.name = name
+                    existing.standard_unit_measure = standard_unit_measure
+                    existing.is_active = True
+                    existing.save(update_fields=['name', 'standard_unit_measure', 'is_active'])
+                    messages.success(request, 'Chemical restored successfully.')
+                    return redirect('om_chemicals')
+
+                Chemical.objects.create(
+                    name=name,
+                    standard_unit_measure=standard_unit_measure,
+                    is_active=True,
+                )
+                messages.success(request, 'Chemical created successfully.')
+                return redirect('om_chemicals')
+
+            if not chemical_id.isdigit():
+                messages.error(request, 'Invalid chemical.')
+                return redirect('om_chemicals')
+
+            chemical = Chemical.objects.filter(id=int(chemical_id)).first()
+            if not chemical:
+                messages.error(request, 'Chemical not found.')
+                return redirect('om_chemicals')
+
+            duplicate = Chemical.objects.filter(name__iexact=name).exclude(id=chemical.id).exists()
+            if duplicate:
+                messages.error(request, 'A chemical with this name already exists.')
+                return redirect('om_chemicals')
+
+            chemical.name = name
+            chemical.standard_unit_measure = standard_unit_measure
+            chemical.is_active = is_active
+            chemical.save(update_fields=['name', 'standard_unit_measure', 'is_active'])
+            messages.success(request, 'Chemical updated successfully.')
+            return redirect('om_chemicals')
+
+        if action == 'delete':
+            if not chemical_id.isdigit():
+                messages.error(request, 'Invalid chemical.')
+                return redirect('om_chemicals')
+
+            chemical = Chemical.objects.filter(id=int(chemical_id)).first()
+            if not chemical:
+                messages.error(request, 'Chemical not found.')
+                return redirect('om_chemicals')
+
+            if not chemical.is_active:
+                messages.info(request, 'Chemical is already inactive.')
+                return redirect('om_chemicals')
+
+            chemical.is_active = False
+            chemical.save(update_fields=['is_active'])
+            messages.success(request, 'Chemical deactivated successfully.')
+            return redirect('om_chemicals')
+
+        messages.error(request, 'Unsupported action.')
+        return redirect('om_chemicals')
+
+    usage_rows = ServiceReportChemical.objects.values('chemical_id').annotate(
+        usage_count=Count('id'),
+    )
+    usage_map = {
+        row['chemical_id']: row['usage_count']
+        for row in usage_rows
+        if row['chemical_id'] is not None
+    }
+
+    chemical_rows = []
+    for chemical in Chemical.objects.order_by('name'):
+        chemical_rows.append({
+            'id': chemical.id,
+            'name': chemical.name,
+            'standard_unit_measure': chemical.standard_unit_measure,
+            'is_active': chemical.is_active,
+            'usage_count': usage_map.get(chemical.id, 0),
+        })
+
+    return render(request, 'om_chemicals.html', {
+        'om': om,
+        'chemicals': chemical_rows,
     })
 
 
@@ -2458,22 +2592,33 @@ def _parse_report_json(raw_payload):
         return []
 
 
-def _clean_chemical_rows(raw_rows):
+def _clean_chemical_rows(raw_rows, chemical_map=None):
     cleaned_rows = []
     has_invalid = False
+    allowed_map = chemical_map or {}
 
     for row in raw_rows:
         if not isinstance(row, dict):
             continue
 
-        chemical_name = (row.get('chemical_name') or '').strip()
-        unit_measure = (row.get('unit_measure') or '').strip()
+        chemical_id_raw = str(row.get('chemical_id') or '').strip()
         amount_raw = str(row.get('amount') or '').strip()
 
-        if not (chemical_name or unit_measure or amount_raw):
+        if not (chemical_id_raw or amount_raw):
             continue
 
-        if not (chemical_name and unit_measure and amount_raw):
+        if not (chemical_id_raw and amount_raw):
+            has_invalid = True
+            continue
+
+        try:
+            chemical_id = int(chemical_id_raw)
+        except (TypeError, ValueError):
+            has_invalid = True
+            continue
+
+        chemical_data = allowed_map.get(chemical_id)
+        if not chemical_data:
             has_invalid = True
             continue
 
@@ -2487,8 +2632,9 @@ def _clean_chemical_rows(raw_rows):
             continue
 
         cleaned_rows.append({
-            'chemical_name': chemical_name,
-            'unit_measure': unit_measure,
+            'chemical_id': chemical_id,
+            'chemical_name': chemical_data['name'],
+            'unit_measure': chemical_data['standard_unit_measure'],
             'amount': amount_value,
         })
 
@@ -2557,8 +2703,25 @@ def technician_create_service_report(request):
 
     draft = request.session.get('tech_service_report_draft', {})
     selected_service_id = draft.get('service_id')
+    active_chemicals = list(Chemical.objects.filter(is_active=True).order_by('name'))
+    chemical_map = {
+        chemical.id: {
+            'name': chemical.name,
+            'standard_unit_measure': chemical.standard_unit_measure,
+        }
+        for chemical in active_chemicals
+    }
+    chemical_choices = [
+        {
+            'value': str(chemical.id),
+            'label': chemical.name,
+            'standard_unit_measure': chemical.standard_unit_measure,
+        }
+        for chemical in active_chemicals
+    ]
+
     default_chemicals = draft.get('chemicals') or [
-        {'chemical_name': '', 'unit_measure': 'mL', 'amount': ''}
+        {'chemical_id': '', 'amount': ''}
     ]
     default_areas = draft.get('treated_areas') or [
         {
@@ -2595,6 +2758,7 @@ def technician_create_service_report(request):
             'errors': errors or {},
             'chemicals_json': json.dumps(chemicals if chemicals is not None else default_chemicals),
             'treated_areas_json': json.dumps(treated_areas if treated_areas is not None else default_areas),
+            'chemical_choices_json': json.dumps(chemical_choices),
         })
 
     if request.method == 'POST':
@@ -2614,7 +2778,7 @@ def technician_create_service_report(request):
                     return render_step_one({'selected_service': 'Please select an Ongoing Treatment service record.'})
 
                 if str(selected_service_id or '') != str(selected_service.id):
-                    default_chemicals = [{'chemical_name': '', 'unit_measure': 'mL', 'amount': ''}]
+                    default_chemicals = [{'chemical_id': '', 'amount': ''}]
                     default_areas = [{
                         'area_name': '',
                         'infestation_level': 'Low',
@@ -2660,7 +2824,7 @@ def technician_create_service_report(request):
 
             if action == 'submit':
                 errors = {}
-                chemicals, chemical_has_invalid = _clean_chemical_rows(raw_chemicals)
+                chemicals, chemical_has_invalid = _clean_chemical_rows(raw_chemicals, chemical_map=chemical_map)
                 treated_areas, area_has_invalid = _clean_area_rows(raw_areas)
 
                 if not chemicals:
@@ -2690,6 +2854,7 @@ def technician_create_service_report(request):
                     ServiceReportChemical.objects.bulk_create([
                         ServiceReportChemical(
                             report=report,
+                            chemical_id=row['chemical_id'],
                             chemical_name=row['chemical_name'],
                             unit_measure=row['unit_measure'],
                             amount=row['amount'],
@@ -2762,6 +2927,23 @@ def edit_service_report(request, report_id):
         'service__customer', 'service__property'
     ).prefetch_related('chemicals', 'treated_areas').filter(id=report_id).first()
 
+    active_chemicals = list(Chemical.objects.filter(is_active=True).order_by('name'))
+    chemical_map = {
+        chemical.id: {
+            'name': chemical.name,
+            'standard_unit_measure': chemical.standard_unit_measure,
+        }
+        for chemical in active_chemicals
+    }
+    chemical_choices = [
+        {
+            'value': str(chemical.id),
+            'label': chemical.name,
+            'standard_unit_measure': chemical.standard_unit_measure,
+        }
+        for chemical in active_chemicals
+    ]
+
     if not report:
         messages.error(request, 'Service report not found.')
         return redirect(_service_report_redirect_name(request))
@@ -2774,7 +2956,7 @@ def edit_service_report(request, report_id):
         raw_areas = _parse_report_json(request.POST.get('treated_areas_json'))
 
         errors = {}
-        chemicals, chemical_has_invalid = _clean_chemical_rows(raw_chemicals)
+        chemicals, chemical_has_invalid = _clean_chemical_rows(raw_chemicals, chemical_map=chemical_map)
         treated_areas, area_has_invalid = _clean_area_rows(raw_areas)
 
         if not chemicals:
@@ -2793,6 +2975,7 @@ def edit_service_report(request, report_id):
                 'errors': errors,
                 'chemicals_json': json.dumps(raw_chemicals),
                 'treated_areas_json': json.dumps(raw_areas),
+                'chemical_choices_json': json.dumps(chemical_choices),
                 'back_url_name': _service_report_redirect_name(request),
             })
 
@@ -2803,6 +2986,7 @@ def edit_service_report(request, report_id):
             ServiceReportChemical.objects.bulk_create([
                 ServiceReportChemical(
                     report=report,
+                    chemical_id=row['chemical_id'],
                     chemical_name=row['chemical_name'],
                     unit_measure=row['unit_measure'],
                     amount=row['amount'],
@@ -2833,8 +3017,7 @@ def edit_service_report(request, report_id):
         'errors': {},
         'chemicals_json': json.dumps([
             {
-                'chemical_name': chemical.chemical_name,
-                'unit_measure': chemical.unit_measure,
+                'chemical_id': str(chemical.chemical_id) if chemical.chemical_id else '',
                 'amount': str(chemical.amount),
             }
             for chemical in report.chemicals.all()
@@ -2853,6 +3036,7 @@ def edit_service_report(request, report_id):
             for area in report.treated_areas.all()
         ]),
         'back_url_name': _service_report_redirect_name(request),
+        'chemical_choices_json': json.dumps(chemical_choices),
     })
 
 

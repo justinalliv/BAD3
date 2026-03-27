@@ -26,12 +26,13 @@
     .actions {
         display: flex;
         justify-content: center;
-        gap: 22px;
+        gap: 18px;
+        flex-wrap: wrap;
     }
 
     .option-btn {
-        width: 360px;
-        min-height: 190px;
+        width: 300px;
+        min-height: 172px;
         border: 1px solid #d6d6d6;
         border-radius: 12px;
         font-size: 1rem;
@@ -96,8 +97,51 @@
                 <path d="M8 13h8"></path>
                 <path d="M8 17h5"></path>
             </svg>
-            <span class="card-title">Service Forms</span>
-            <span class="card-sub">Create, edit, and delete dropdown field options</span>
+            <span class="card-title">Inspection</span>
+            <span class="card-sub">Manage Type of Property, Preferred Service, and Pest Problems</span>
+        </a>
+
+        <a href="{% url 'om_service_forms' %}" class="option-btn">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <path d="M14 2v6h6"></path>
+                <path d="M8 13h8"></path>
+                <path d="M8 17h5"></path>
+            </svg>
+            <span class="card-title">Treatment</span>
+            <span class="card-sub">Manage Treatment Service options</span>
+        </a>
+
+        <a href="{% url 'om_service_forms' %}" class="option-btn">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <path d="M14 2v6h6"></path>
+                <path d="M8 13h8"></path>
+                <path d="M8 17h5"></path>
+            </svg>
+            <span class="card-title">Service Report Submission</span>
+            <span class="card-sub">Manage Service Done, Chemicals Used, and Levels of Infestation</span>
+        </a>
+
+        <a href="{% url 'om_service_forms' %}" class="option-btn">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <path d="M14 2v6h6"></path>
+                <path d="M8 13h8"></path>
+                <path d="M8 17h5"></path>
+            </svg>
+            <span class="card-title">Payment Proof Submission</span>
+            <span class="card-sub">Manage Bank Used for Payment and Payment Type</span>
+        </a>
+
+        <a href="{% url 'om_chemicals' %}" class="option-btn">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M9 3h6"></path>
+                <path d="M10 3v6.4a5 5 0 1 0 4 0V3"></path>
+                <path d="M8 13h8"></path>
+            </svg>
+            <span class="card-title">Chemicals</span>
+            <span class="card-sub">Manage ID-based chemicals for Service Report usage</span>
         </a>
 
         <a href="{% url 'om_service_items' %}" class="option-btn">
@@ -108,7 +152,7 @@
                 <path d="M8 17h5"></path>
             </svg>
             <span class="card-title">Service Items</span>
-            <span class="card-sub">View previously used service items from invoices</span>
+            <span class="card-sub">Manage ID-based billable service items for Invoice</span>
         </a>
     </div>
 </div>
