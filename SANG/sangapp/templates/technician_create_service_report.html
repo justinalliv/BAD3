@@ -545,7 +545,15 @@
         const textCancel = document.getElementById('textCancel');
         const textConfirm = document.getElementById('textConfirm');
         const chemicalChoices = JSON.parse('{{ chemical_choices_json|default:"[]"|escapejs }}');
+        const infestationChoices = JSON.parse('{{ infestation_choices_json|default:"[]"|escapejs }}');
         const chemicalUnitMap = Object.fromEntries(chemicalChoices.map(choice => [choice.value, choice.standard_unit_measure]));
+        const defaultInfestation = infestationChoices.length ? infestationChoices[0] : 'Low';
+
+        function renderInfestationOptions(selectedValue) {
+            return infestationChoices.map((choice) => (
+                `<option value="${choice}" ${selectedValue === choice ? 'selected' : ''}>${choice}</option>`
+            )).join('');
+        }
 
         let editingAreaIndex = -1;
         let editingField = '';
@@ -571,7 +579,7 @@
 
         if (!Array.isArray(treatedAreas) || treatedAreas.length === 0) {
             treatedAreas = [{
-                area_name: '', infestation_level: 'Low', spray: false, mist: false, rat_bait: false, powder: false,
+                area_name: '', infestation_level: defaultInfestation, spray: false, mist: false, rat_bait: false, powder: false,
                 remarks: '', recommendation: ''
             }];
         }
@@ -629,9 +637,7 @@
                     <td><input class="row-input" type="text" value="${(area.area_name || '').replace(/"/g, '&quot;')}" data-index="${index}" data-field="area_name"></td>
                     <td>
                         <select class="row-select infestation-box" data-index="${index}" data-field="infestation_level">
-                            <option value="Low" ${area.infestation_level === 'Low' ? 'selected' : ''}>Low</option>
-                            <option value="Medium" ${area.infestation_level === 'Medium' ? 'selected' : ''}>Medium</option>
-                            <option value="High" ${area.infestation_level === 'High' ? 'selected' : ''}>High</option>
+                            ${renderInfestationOptions(area.infestation_level || defaultInfestation)}
                         </select>
                     </td>
                     <td><div class="checkbox-group"><input class="trait-check" type="checkbox" data-index="${index}" data-field="spray" ${area.spray ? 'checked' : ''}></div></td>
@@ -670,7 +676,7 @@
                     treatedAreas.splice(index, 1);
                     if (treatedAreas.length === 0) {
                         treatedAreas.push({
-                            area_name: '', infestation_level: 'Low', spray: false, mist: false, rat_bait: false, powder: false,
+                            area_name: '', infestation_level: defaultInfestation, spray: false, mist: false, rat_bait: false, powder: false,
                             remarks: '', recommendation: ''
                         });
                     }
@@ -701,7 +707,7 @@
 
         addAreaBtn.addEventListener('click', function () {
             treatedAreas.push({
-                area_name: '', infestation_level: 'Low', spray: false, mist: false, rat_bait: false, powder: false,
+                area_name: '', infestation_level: defaultInfestation, spray: false, mist: false, rat_bait: false, powder: false,
                 remarks: '', recommendation: ''
             });
             renderAreas();

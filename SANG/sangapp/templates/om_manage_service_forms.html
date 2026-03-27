@@ -5,8 +5,8 @@
 {% block extra_css %}
     .container {
         max-width: 1120px;
-        margin: 0 auto;
-        padding: 0 24px 24px;
+        margin: 24px auto 40px;
+        padding: 0 24px;
     }
 
     .identified-top {
@@ -17,69 +17,88 @@
     }
 
     .title {
-        text-align: center;
         color: #1a2a5e;
-        font-size: clamp(2.2rem, 5vh, 3.2rem);
-        margin: 16px 0 26px;
+        text-align: center;
+        margin: 0 0 10px;
+        font-size: 2.1em;
+    }
+
+    .sub {
+        color: #555;
+        text-align: center;
+        margin-bottom: 20px;
+        font-size: 0.95em;
+    }
+
+    .sheet {
+        background: #fff;
+        border: 1px solid #ddd;
+        border-radius: 12px;
+        padding: 24px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+    }
+
+    .section-heading {
+        color: #1a2a5e;
+        font-size: 1.08em;
+        font-weight: 800;
+        margin: 18px 0 10px;
     }
 
     .actions {
-        display: flex;
-        justify-content: center;
-        gap: 18px;
-        flex-wrap: wrap;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(260px, 1fr));
+        gap: 14px;
     }
 
     .option-btn {
-        width: 300px;
-        min-height: 172px;
-        border: 1px solid #d6d6d6;
+        border: 1px solid #dfe3ee;
         border-radius: 12px;
+        min-height: 150px;
+        padding: 18px;
         font-size: 1rem;
         text-decoration: none;
         display: inline-flex;
         flex-direction: column;
-        align-items: center;
+        align-items: flex-start;
         justify-content: center;
-        gap: 10px;
-        background: #f9f9f9;
+        gap: 8px;
+        background: #f9fafc;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+        transition: border-color 0.2s ease, transform 0.15s ease, background 0.2s ease;
     }
 
     .option-btn .icon {
-        width: 56px;
-        height: 56px;
+        width: 34px;
+        height: 34px;
         color: #1a2a5e;
     }
 
     .option-btn .card-title {
         color: #1a2a5e;
-        font-size: 2em;
-        line-height: 1;
+        font-size: 1.2em;
+        line-height: 1.2;
         font-weight: 800;
-        text-align: center;
+        text-align: left;
     }
 
     .option-btn .card-sub {
         color: #2f2f2f;
-        font-size: 0.92em;
+        font-size: 0.9em;
         font-weight: 500;
-        text-align: center;
+        text-align: left;
+        line-height: 1.35;
     }
 
     .option-btn:hover {
-        border-color: #b9bfd4;
+        border-color: #bcc7e7;
         background: #fff;
+        transform: translateY(-1px);
     }
 
     @media (max-width: 900px) {
         .actions {
-            flex-direction: column;
-            align-items: center;
-        }
-
-        .option-btn {
-            width: 100%;
-            max-width: 420px;
+            grid-template-columns: 1fr;
         }
     }
 {% endblock %}
@@ -87,10 +106,13 @@
 {% block content %}
 <div class="container">
     <p class="identified-top">User Identified As: Operations Manager</p>
+    <div class="sheet">
     <h1 class="title">Service Configuration</h1>
+    <p class="sub">Configure current dropdown options used across operational forms.</p>
 
+    <div class="section-heading">Form Sections</div>
     <div class="actions">
-        <a href="{% url 'om_service_forms' %}" class="option-btn">
+        <a href="{% url 'om_service_forms' %}?section=Inspection" class="option-btn">
             <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
                 <path d="M14 2v6h6"></path>
@@ -101,7 +123,7 @@
             <span class="card-sub">Manage Type of Property, Preferred Service, and Pest Problems</span>
         </a>
 
-        <a href="{% url 'om_service_forms' %}" class="option-btn">
+        <a href="{% url 'om_service_forms' %}?section=Treatment" class="option-btn">
             <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
                 <path d="M14 2v6h6"></path>
@@ -112,7 +134,7 @@
             <span class="card-sub">Manage Treatment Service options</span>
         </a>
 
-        <a href="{% url 'om_service_forms' %}" class="option-btn">
+        <a href="{% url 'om_service_forms' %}?section=Service%20Report%20Submission" class="option-btn">
             <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
                 <path d="M14 2v6h6"></path>
@@ -123,7 +145,7 @@
             <span class="card-sub">Manage Service Done, Chemicals Used, and Levels of Infestation</span>
         </a>
 
-        <a href="{% url 'om_service_forms' %}" class="option-btn">
+        <a href="{% url 'om_service_forms' %}?section=Payment%20Proof%20Submission" class="option-btn">
             <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
                 <path d="M14 2v6h6"></path>
@@ -133,7 +155,10 @@
             <span class="card-title">Payment Proof Submission</span>
             <span class="card-sub">Manage Bank Used for Payment and Payment Type</span>
         </a>
+    </div>
 
+    <div class="section-heading">Master Lists</div>
+    <div class="actions">
         <a href="{% url 'om_chemicals' %}" class="option-btn">
             <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M9 3h6"></path>
@@ -154,6 +179,7 @@
             <span class="card-title">Service Items</span>
             <span class="card-sub">Manage ID-based billable service items for Invoice</span>
         </a>
+    </div>
     </div>
 </div>
 {% endblock %}

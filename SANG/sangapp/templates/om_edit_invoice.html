@@ -59,7 +59,7 @@
 
     .row {
         display: grid;
-        grid-template-columns: 1.2fr 0.9fr 0.9fr 140px;
+        grid-template-columns: 1.3fr 0.9fr 140px;
         gap: 12px;
         margin-bottom: 10px;
         align-items: center;
@@ -239,11 +239,10 @@
 {% block extra_js %}
 <script>
     const serviceItemChoices = JSON.parse('{{ service_item_choices_json|default:"[]"|escapejs }}');
-    const serviceItemPriceMap = Object.fromEntries(serviceItemChoices.map(choice => [choice.value, choice.default_unit_price]));
 
     let items = [];
     try { items = JSON.parse('{{ items_json|escapejs }}'); } catch (error) { items = []; }
-    if (!Array.isArray(items) || !items.length) items = [{ service_item_id: '', quantity: '', unit_price: '' }];
+    if (!Array.isArray(items) || !items.length) items = [{ service_item_id: '', quantity: '' }];
 
     const rows = document.getElementById('rows');
     const itemsJsonInput = document.getElementById('itemsJsonInput');
@@ -260,7 +259,6 @@
             row.innerHTML = `
                 <select class="field field-select" data-index="${index}" data-field="service_item_id">${options}</select>
                 <input type="number" min="1" class="field" data-index="${index}" data-field="quantity" value="${item.quantity || ''}" placeholder="Quantity">
-                <input type="number" min="0.01" step="0.01" class="field" data-index="${index}" data-field="unit_price" value="${item.unit_price || ''}" placeholder="Unit price">
                 <button type="button" class="delete-btn" data-delete-index="${index}">Delete</button>
             `;
             rows.appendChild(row);
@@ -271,10 +269,6 @@
                 const index = Number(this.dataset.index);
                 const field = this.dataset.field;
                 items[index][field] = this.value;
-                if (field === 'service_item_id' && serviceItemPriceMap[this.value]) {
-                    items[index].unit_price = serviceItemPriceMap[this.value];
-                    renderRows();
-                }
             });
             element.addEventListener('input', function () {
                 const index = Number(this.dataset.index);
@@ -287,7 +281,7 @@
             button.addEventListener('click', function () {
                 const index = Number(this.dataset.deleteIndex);
                 items.splice(index, 1);
-                if (!items.length) items.push({ service_item_id: '', quantity: '', unit_price: '' });
+                if (!items.length) items.push({ service_item_id: '', quantity: '' });
                 renderRows();
             });
         });
@@ -298,7 +292,7 @@
     }
 
     document.getElementById('addBtn').addEventListener('click', function () {
-        items.push({ service_item_id: '', quantity: '', unit_price: '' });
+        items.push({ service_item_id: '', quantity: '' });
         renderRows();
     });
 

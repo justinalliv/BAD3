@@ -5,12 +5,14 @@ from django.db.models import Case, When, IntegerField, Count, Max, Q
 from django.core.mail import send_mail
 from django.conf import settings
 from django.http import HttpResponse
+from django.urls import reverse
 from django.utils import timezone
 from decimal import Decimal, InvalidOperation
 from io import BytesIO
 import json
 import re
 from collections import defaultdict
+from urllib.parse import quote_plus
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 from .models import (
@@ -67,6 +69,184 @@ SERVICE_FORM_FIELD_CATALOG = {
     'Service Report Submission': ['Service Done', 'Chemicals Used', 'Levels of Infestation'],
     'Payment Proof Submission': ['Bank Used for Payment', 'Payment Type'],
 }
+
+
+TREATMENT_SERVICE_PREDEFINED_OPTIONS = [
+    'Termite Control',
+    'Cockroach Control',
+    'General Pest Control Treatment',
+    'Mosquito Control',
+    'Rodent Control',
+    'Bed Bug Treatment',
+]
+
+TREATMENT_SERVICE_METADATA = {
+    'Termite Control': {
+        'description': 'Targeted treatment for active termite activity.',
+        'rate': Decimal('3000.00'),
+    },
+    'Cockroach Control': {
+        'description': 'Focused control for cockroach infestations.',
+        'rate': Decimal('2000.00'),
+    },
+    'General Pest Control Treatment': {
+        'description': 'General-purpose treatment for common pests.',
+        'rate': Decimal('2500.00'),
+    },
+    'Mosquito Control': {
+        'description': 'Mosquito population reduction treatment.',
+        'rate': Decimal('1800.00'),
+    },
+    'Rodent Control': {
+        'description': 'Rodent monitoring and control treatment.',
+        'rate': Decimal('2200.00'),
+    },
+    'Bed Bug Treatment': {
+        'description': 'Specialized treatment for bed bug infestations.',
+        'rate': Decimal('2800.00'),
+    },
+}
+
+FALLBACK_CHEMICAL_NAMES = ['Temprid', 'Maxforce', 'Racumin', 'Muriatic Acid', 'Solignum']
+
+
+def _unique_preserve_order(values):
+    seen = set()
+    ordered = []
+    for value in values:
+        normalized = (value or '').strip()
+        if not normalized:
+            continue
+        key = normalized.lower()
+        if key in seen:
+            continue
+        seen.add(key)
+        ordered.append(normalized)
+    return ordered
+
+
+def _build_service_form_default_options():
+    chemical_names = list(
+        Chemical.objects.filter(is_active=True).order_by('name').values_list('name', flat=True)
+    )
+    chemical_names = _unique_preserve_order(chemical_names) or FALLBACK_CHEMICAL_NAMES
+
+    return {
+        ('Inspection', 'Type of Property'): [label for _, label in Property.PROPERTY_TYPE_CHOICES],
+        ('Inspection', 'Preferred Service'): [label for _, label in Service.PREFERRED_SERVICE_CHOICES],
+        ('Inspection', 'Pest Problems'): [label for _, label in Service.PEST_PROBLEM_CHOICES],
+        ('Treatment', 'Treatment Service'): TREATMENT_SERVICE_PREDEFINED_OPTIONS,
+        ('Service Report Submission', 'Service Done'): TREATMENT_SERVICE_PREDEFINED_OPTIONS,
+        ('Service Report Submission', 'Chemicals Used'): chemical_names,
+        ('Service Report Submission', 'Levels of Infestation'): [label for _, label in ServiceReportArea.INFESTATION_CHOICES],
+        ('Payment Proof Submission', 'Bank Used for Payment'): ['BDO', 'BPI', 'Landbank', 'Metrobank'],
+        ('Payment Proof Submission', 'Payment Type'): ['Online Bank Transfer', 'Over-the-counter Deposit', 'E-Wallet Transfer'],
+    }
+
+
+def _ensure_service_form_default_options():
+    default_options = _build_service_form_default_options()
+    for (form_section, field_name), option_values in default_options.items():
+        for option_value in option_values:
+            existing = ServiceFormOption.objects.filter(
+                form_section=form_section,
+                field_name=field_name,
+                option_value__iexact=option_value,
+            ).order_by('-is_active', 'id').first()
+
+            if existing:
+                update_fields = []
+                if existing.option_value != option_value:
+                    existing.option_value = option_value
+                    update_fields.append('option_value')
+                if not existing.is_active:
+                    existing.is_active = True
+                    update_fields.append('is_active')
+                if existing.scoped_option_id is None:
+                    last_scoped_id = ServiceFormOption.objects.filter(
+                        form_section=form_section,
+                        field_name=field_name,
+                    ).aggregate(max_id=Max('scoped_option_id')).get('max_id') or 0
+                    existing.scoped_option_id = last_scoped_id + 1
+                    update_fields.append('scoped_option_id')
+                if update_fields:
+                    update_fields.append('updated_at')
+                    existing.save(update_fields=update_fields)
+                continue
+
+            last_scoped_id = ServiceFormOption.objects.filter(
+                form_section=form_section,
+                field_name=field_name,
+            ).aggregate(max_id=Max('scoped_option_id')).get('max_id') or 0
+
+            ServiceFormOption.objects.create(
+                form_section=form_section,
+                field_name=field_name,
+                scoped_option_id=last_scoped_id + 1,
+                option_value=option_value,
+                is_active=True,
+            )
+
+    # Ensure treatment services always have description/rate metadata for table display.
+    for service_name, metadata in TREATMENT_SERVICE_METADATA.items():
+        option = ServiceFormOption.objects.filter(
+            form_section='Treatment',
+            field_name='Treatment Service',
+            option_value__iexact=service_name,
+        ).order_by('-is_active', 'id').first()
+        if not option:
+            continue
+
+        update_fields = []
+        if not option.option_description:
+            option.option_description = metadata['description']
+            update_fields.append('option_description')
+        if option.option_rate is None:
+            option.option_rate = metadata['rate']
+            update_fields.append('option_rate')
+        if update_fields:
+            update_fields.append('updated_at')
+            option.save(update_fields=update_fields)
+
+
+def _get_active_service_form_option_values(form_section, field_name, fallback_values=None, excluded_values=None):
+    values = list(
+        ServiceFormOption.objects.filter(
+            form_section=form_section,
+            field_name=field_name,
+            is_active=True,
+        ).order_by('option_value').values_list('option_value', flat=True)
+    )
+
+    if not values and fallback_values:
+        values = list(fallback_values)
+
+    values = _unique_preserve_order(values)
+    if excluded_values:
+        excluded = {value.strip().lower() for value in excluded_values if value}
+        values = [value for value in values if value.strip().lower() not in excluded]
+
+    return values
+
+
+def _get_service_form_choices(form_section, field_name, fallback_values=None, excluded_values=None):
+    values = _get_active_service_form_option_values(
+        form_section,
+        field_name,
+        fallback_values=fallback_values,
+        excluded_values=excluded_values,
+    )
+    return [(value, value) for value in values]
+
+
+def _get_treatment_service_names():
+    names = _get_active_service_form_option_values(
+        'Treatment',
+        'Treatment Service',
+        fallback_values=TREATMENT_SERVICE_PREDEFINED_OPTIONS,
+        excluded_values={'Other'},
+    )
+    return set(name.strip().lower() for name in names if name)
 
 def home(request):
     """Public home page."""
@@ -631,6 +811,18 @@ def book_inspection(request):
     if not properties.exists():
         messages.error(request, 'You need to register a property before booking an inspection.')
         return redirect('register_property')
+
+    _ensure_service_form_default_options()
+    service_choices = _get_service_form_choices(
+        'Inspection',
+        'Preferred Service',
+        fallback_values=[label for _, label in Service.PREFERRED_SERVICE_CHOICES],
+    )
+    pest_choices = _get_service_form_choices(
+        'Inspection',
+        'Pest Problems',
+        fallback_values=[label for _, label in Service.PEST_PROBLEM_CHOICES],
+    )
     
     if request.method == 'POST':
         property_id = request.POST.get('property_id', '').strip()
@@ -664,8 +856,8 @@ def book_inspection(request):
                 'properties': properties,
                 'errors': errors,
                 'form_data': request.POST,
-                'service_choices': Service.PREFERRED_SERVICE_CHOICES,
-                'pest_choices': Service.PEST_PROBLEM_CHOICES,
+                'service_choices': service_choices,
+                'pest_choices': pest_choices,
                 'time_slot_choices': Service.TIME_SLOT_CHOICES,
                 'today': date.today().isoformat(),
             })
@@ -680,8 +872,8 @@ def book_inspection(request):
                 'properties': properties,
                 'errors': errors,
                 'form_data': request.POST,
-                'service_choices': Service.PREFERRED_SERVICE_CHOICES,
-                'pest_choices': Service.PEST_PROBLEM_CHOICES,
+                'service_choices': service_choices,
+                'pest_choices': pest_choices,
                 'time_slot_choices': Service.TIME_SLOT_CHOICES,
                 'today': date.today().isoformat(),
             })
@@ -717,8 +909,8 @@ def book_inspection(request):
                 'properties': properties,
                 'errors': errors,
                 'form_data': request.POST,
-                'service_choices': Service.PREFERRED_SERVICE_CHOICES,
-                'pest_choices': Service.PEST_PROBLEM_CHOICES,
+                'service_choices': service_choices,
+                'pest_choices': pest_choices,
                 'time_slot_choices': Service.TIME_SLOT_CHOICES,
                 'today': date.today().isoformat(),
             })
@@ -727,8 +919,8 @@ def book_inspection(request):
     return render(request, 'book_inspection.html', {
         'customer': customer,
         'properties': properties,
-        'service_choices': Service.PREFERRED_SERVICE_CHOICES,
-        'pest_choices': Service.PEST_PROBLEM_CHOICES,
+        'service_choices': service_choices,
+        'pest_choices': pest_choices,
         'time_slot_choices': Service.TIME_SLOT_CHOICES,
         'form_data': {},
         'today': date.today().isoformat(),
@@ -1199,10 +1391,14 @@ def om_edit_invoice(request, invoice_id):
     existing_item_ids = list(
         invoice.items.exclude(service_item_id__isnull=True).values_list('service_item_id', flat=True)
     )
-    service_item_options = InvoiceItemOption.objects.filter(
-        Q(is_active=True) | Q(id__in=existing_item_ids)
-    ).order_by('name')
+    treatment_names = _get_treatment_service_names()
+    service_item_options = [
+        option
+        for option in InvoiceItemOption.objects.filter(Q(is_active=True) | Q(id__in=existing_item_ids)).order_by('name')
+        if option.id in existing_item_ids or option.name.strip().lower() not in treatment_names
+    ]
     allowed_item_map = {option.id: option.name for option in service_item_options}
+    allowed_item_price_map = {option.id: option.default_unit_price for option in service_item_options}
     service_item_choices = [
         {
             'value': str(option.id),
@@ -1218,7 +1414,11 @@ def om_edit_invoice(request, invoice_id):
             return redirect('om_invoices')
 
         raw_items = _parse_invoice_items(request.POST.get('items_json'))
-        items, has_invalid = _clean_invoice_items(raw_items, allowed_item_map=allowed_item_map)
+        items, has_invalid = _clean_invoice_items(
+            raw_items,
+            allowed_item_map=allowed_item_map,
+            allowed_item_price_map=allowed_item_price_map,
+        )
         errors = {}
 
         if not service_item_choices:
@@ -1231,7 +1431,7 @@ def om_edit_invoice(request, invoice_id):
             return render(request, 'om_edit_invoice.html', {
                 'invoice': invoice,
                 'errors': errors,
-                'items_json': json.dumps(raw_items if raw_items else [{'service_item_id': '', 'quantity': '', 'unit_price': ''}]),
+                'items_json': json.dumps(raw_items if raw_items else [{'service_item_id': '', 'quantity': ''}]),
                 'service_item_choices_json': json.dumps(service_item_choices),
             })
 
@@ -1258,7 +1458,6 @@ def om_edit_invoice(request, invoice_id):
             {
                 'service_item_id': str(item.service_item_id) if item.service_item_id else '',
                 'quantity': item.quantity,
-                'unit_price': str(item.unit_price),
             }
             for item in invoice.items.all()
         ]),
@@ -1342,10 +1541,11 @@ def _parse_invoice_items(raw_payload):
         return []
 
 
-def _clean_invoice_items(raw_items, allowed_item_map=None):
+def _clean_invoice_items(raw_items, allowed_item_map=None, allowed_item_price_map=None):
     cleaned_items = []
     has_invalid = False
     allowed_map = allowed_item_map or {}
+    allowed_price_map = allowed_item_price_map or {}
 
     for item in raw_items:
         if not isinstance(item, dict):
@@ -1353,12 +1553,11 @@ def _clean_invoice_items(raw_items, allowed_item_map=None):
 
         service_item_id_raw = str(item.get('service_item_id') or '').strip()
         quantity_raw = str(item.get('quantity') or '').strip()
-        unit_price_raw = str(item.get('unit_price') or '').strip()
 
-        if not (service_item_id_raw or quantity_raw or unit_price_raw):
+        if not (service_item_id_raw or quantity_raw):
             continue
 
-        if not service_item_id_raw or not quantity_raw or not unit_price_raw:
+        if not service_item_id_raw or not quantity_raw:
             has_invalid = True
             continue
 
@@ -1372,6 +1571,11 @@ def _clean_invoice_items(raw_items, allowed_item_map=None):
             has_invalid = True
             continue
 
+        unit_price = allowed_price_map.get(service_item_id)
+        if unit_price is None:
+            has_invalid = True
+            continue
+
         try:
             quantity = int(quantity_raw)
             if quantity <= 0:
@@ -1381,12 +1585,7 @@ def _clean_invoice_items(raw_items, allowed_item_map=None):
             has_invalid = True
             continue
 
-        try:
-            unit_price = Decimal(unit_price_raw)
-            if unit_price <= 0:
-                has_invalid = True
-                continue
-        except (InvalidOperation, TypeError, ValueError):
+        if unit_price <= 0:
             has_invalid = True
             continue
 
@@ -1481,8 +1680,14 @@ def om_create_invoice(request):
 
     service_candidates = _get_invoice_eligible_services_queryset()
     selectable_services = _filter_invoice_eligible_services(service_candidates)
-    service_item_options = InvoiceItemOption.objects.filter(is_active=True).order_by('name')
+    treatment_names = _get_treatment_service_names()
+    service_item_options = [
+        option
+        for option in InvoiceItemOption.objects.filter(is_active=True).order_by('name')
+        if option.name.strip().lower() not in treatment_names
+    ]
     allowed_item_map = {option.id: option.name for option in service_item_options}
+    allowed_item_price_map = {option.id: option.default_unit_price for option in service_item_options}
     service_item_choices = [
         {
             'value': str(option.id),
@@ -1499,7 +1704,11 @@ def om_create_invoice(request):
 
         selected_service_id = request.POST.get('selected_service_id', '').strip()
         raw_items = _parse_invoice_items(request.POST.get('items_json'))
-        cleaned_items, has_invalid = _clean_invoice_items(raw_items, allowed_item_map=allowed_item_map)
+        cleaned_items, has_invalid = _clean_invoice_items(
+            raw_items,
+            allowed_item_map=allowed_item_map,
+            allowed_item_price_map=allowed_item_price_map,
+        )
 
         selected_service = next(
             (service for service in selectable_services if str(service.id) == selected_service_id),
@@ -1524,7 +1733,7 @@ def om_create_invoice(request):
                 'services': selectable_services,
                 'selected_service_id': selected_service_id,
                 'errors': errors,
-                'items_json': json.dumps(raw_items if raw_items else [{'service_item_id': '', 'quantity': '', 'unit_price': ''}]),
+                'items_json': json.dumps(raw_items if raw_items else [{'service_item_id': '', 'quantity': ''}]),
                 'service_item_choices_json': json.dumps(service_item_choices),
             })
 
@@ -1572,7 +1781,7 @@ def om_create_invoice(request):
         'services': selectable_services,
         'selected_service_id': '',
         'errors': {},
-        'items_json': json.dumps([{'service_item_id': '', 'quantity': '', 'unit_price': ''}]),
+        'items_json': json.dumps([{'service_item_id': '', 'quantity': ''}]),
         'service_item_choices_json': json.dumps(service_item_choices),
     })
 
@@ -1739,18 +1948,67 @@ def om_service_forms(request):
         request.session.flush()
         return redirect('login')
 
+    _ensure_service_form_default_options()
+
+    selected_section = request.GET.get('section', '').strip()
+    if selected_section and selected_section not in SERVICE_FORM_FIELD_CATALOG:
+        selected_section = ''
+
+    inspection_filter = request.GET.get('inspection_filter', '').strip()
+    inspection_filter_options = SERVICE_FORM_FIELD_CATALOG.get('Inspection', [])
+    if selected_section != 'Inspection':
+        inspection_filter = ''
+    elif inspection_filter and inspection_filter not in inspection_filter_options:
+        inspection_filter = ''
+
+    def _build_forms_redirect_url():
+        query = []
+        if selected_section:
+            query.append(f"section={selected_section}")
+        if selected_section == 'Inspection' and inspection_filter:
+            query.append(f"inspection_filter={quote_plus(inspection_filter)}")
+        if query:
+            return f"{request.path}?{'&'.join(query)}"
+        return reverse('om_service_forms')
+
+    def redirect_forms():
+        return redirect(_build_forms_redirect_url())
+
     if request.method == 'POST':
         action = request.POST.get('action', '').strip()
         option_id = request.POST.get('option_id', '').strip()
         form_section = request.POST.get('form_section', '').strip()
         field_name = request.POST.get('field_name', '').strip()
         option_value = request.POST.get('option_value', '').strip()
+        option_description = request.POST.get('option_description', '').strip()
+        option_rate_raw = request.POST.get('option_rate', '').strip()
+        is_active = request.POST.get('is_active') == 'on'
+
+        is_treatment_service = form_section == 'Treatment' and field_name == 'Treatment Service'
+        is_inspection_option = form_section == 'Inspection' and field_name in SERVICE_FORM_FIELD_CATALOG.get('Inspection', [])
+        option_rate = None
 
         valid_field_names = SERVICE_FORM_FIELD_CATALOG.get(form_section, [])
         if action in {'create', 'update'}:
             if not form_section or field_name not in valid_field_names or not option_value:
                 messages.error(request, 'Required fields must be filled in.')
-                return redirect('om_service_forms')
+                return redirect_forms()
+
+            if is_treatment_service and option_value.strip().lower() == 'other':
+                messages.error(request, '"Other" is not allowed for Treatment Service right now.')
+                return redirect_forms()
+
+            if is_treatment_service:
+                if not option_description or not option_rate_raw:
+                    messages.error(request, 'Treatment Description and Treatment Rate are required.')
+                    return redirect_forms()
+                try:
+                    option_rate = Decimal(option_rate_raw)
+                    if option_rate <= 0:
+                        raise InvalidOperation
+                except (InvalidOperation, TypeError, ValueError):
+                    messages.error(request, 'Treatment Rate must be a valid positive amount.')
+                    return redirect_forms()
 
         if action == 'create':
             existing = ServiceFormOption.objects.filter(
@@ -1761,33 +2019,49 @@ def om_service_forms(request):
 
             if existing and existing.is_active:
                 messages.error(request, 'Entered option already exists.')
-                return redirect('om_service_forms')
+                return redirect_forms()
 
             if existing and not existing.is_active:
                 existing.option_value = option_value
                 existing.is_active = True
-                existing.save(update_fields=['option_value', 'is_active', 'updated_at'])
+                existing.option_description = option_description if is_treatment_service else ''
+                existing.option_rate = option_rate if is_treatment_service else None
+                if existing.scoped_option_id is None:
+                    last_scoped_id = ServiceFormOption.objects.filter(
+                        form_section=form_section,
+                        field_name=field_name,
+                    ).aggregate(max_id=Max('scoped_option_id')).get('max_id') or 0
+                    existing.scoped_option_id = last_scoped_id + 1
+                existing.save(update_fields=['option_value', 'is_active', 'option_description', 'option_rate', 'scoped_option_id', 'updated_at'])
                 messages.success(request, 'Field option restored successfully.')
-                return redirect('om_service_forms')
+                return redirect_forms()
+
+            last_scoped_id = ServiceFormOption.objects.filter(
+                form_section=form_section,
+                field_name=field_name,
+            ).aggregate(max_id=Max('scoped_option_id')).get('max_id') or 0
 
             ServiceFormOption.objects.create(
                 form_section=form_section,
                 field_name=field_name,
+                scoped_option_id=last_scoped_id + 1,
                 option_value=option_value,
+                option_description=option_description if is_treatment_service else '',
+                option_rate=option_rate if is_treatment_service else None,
                 is_active=True,
             )
             messages.success(request, 'Field option added successfully.')
-            return redirect('om_service_forms')
+            return redirect_forms()
 
         if action == 'update':
             if not option_id.isdigit():
                 messages.error(request, 'Invalid field option.')
-                return redirect('om_service_forms')
+                return redirect_forms()
 
             option = ServiceFormOption.objects.filter(id=int(option_id)).first()
             if not option:
                 messages.error(request, 'Field option not found.')
-                return redirect('om_service_forms')
+                return redirect_forms()
 
             duplicate = ServiceFormOption.objects.filter(
                 form_section=form_section,
@@ -1798,50 +2072,90 @@ def om_service_forms(request):
 
             if duplicate:
                 messages.error(request, 'Entered option already exists.')
-                return redirect('om_service_forms')
+                return redirect_forms()
 
             option.form_section = form_section
             option.field_name = field_name
             option.option_value = option_value
-            option.save(update_fields=['form_section', 'field_name', 'option_value', 'updated_at'])
+            option.option_description = option_description if is_treatment_service else ''
+            option.option_rate = option_rate if is_treatment_service else None
+            update_fields = ['form_section', 'field_name', 'option_value', 'option_description', 'option_rate', 'updated_at']
+            if is_treatment_service or is_inspection_option:
+                option.is_active = is_active
+                update_fields.insert(-1, 'is_active')
+            option.save(update_fields=update_fields)
             messages.success(request, 'Field option updated successfully.')
-            return redirect('om_service_forms')
+            return redirect_forms()
 
         if action == 'delete':
             if not option_id.isdigit():
                 messages.error(request, 'Invalid field option.')
-                return redirect('om_service_forms')
+                return redirect_forms()
 
             option = ServiceFormOption.objects.filter(id=int(option_id)).first()
             if not option:
                 messages.error(request, 'Field option not found.')
-                return redirect('om_service_forms')
+                return redirect_forms()
 
             if not option.is_active:
                 messages.info(request, 'Field option is already inactive.')
-                return redirect('om_service_forms')
+                return redirect_forms()
 
             option.is_active = False
             option.save(update_fields=['is_active', 'updated_at'])
             messages.success(request, 'Field option deleted successfully.')
-            return redirect('om_service_forms')
+            return redirect_forms()
 
         messages.error(request, 'Unsupported action.')
-        return redirect('om_service_forms')
+        return redirect_forms()
 
-    active_options = ServiceFormOption.objects.filter(is_active=True).order_by(
-        'form_section', 'field_name', 'option_value'
+    options_qs = ServiceFormOption.objects.all()
+    options_qs = options_qs.exclude(
+        form_section='Treatment',
+        field_name='Treatment Service',
+        option_value__iexact='Other',
     )
+    if selected_section == 'Treatment':
+        options_qs = options_qs.filter(form_section='Treatment')
+    elif selected_section == 'Inspection':
+        options_qs = options_qs.filter(form_section='Inspection')
+        if inspection_filter:
+            options_qs = options_qs.filter(field_name=inspection_filter)
+    else:
+        options_qs = options_qs.filter(is_active=True)
+        if selected_section:
+            options_qs = options_qs.filter(form_section=selected_section)
+
+    active_options = options_qs.order_by('form_section', 'field_name', 'scoped_option_id', 'option_value')
 
     grouped_options = defaultdict(lambda: defaultdict(list))
+    option_rows = []
     for option in active_options:
         grouped_options[option.form_section][option.field_name].append(option)
+        option_rows.append({
+            'id': option.id,
+            'scoped_option_id': option.scoped_option_id,
+            'form_section': option.form_section,
+            'field_name': option.field_name,
+            'option_value': option.option_value,
+            'option_description': option.option_description,
+            'option_rate': option.option_rate,
+            'is_active': option.is_active,
+        })
+
+    if selected_section == 'Treatment':
+        for index, row in enumerate(option_rows, start=1):
+            row['treatment_display_id'] = index
 
     return render(request, 'om_service_forms.html', {
         'om': om,
         'field_catalog': SERVICE_FORM_FIELD_CATALOG,
         'field_catalog_json': json.dumps(SERVICE_FORM_FIELD_CATALOG),
         'grouped_options': dict(grouped_options),
+        'option_rows': option_rows,
+        'selected_section': selected_section,
+        'inspection_filter': inspection_filter,
+        'inspection_filter_options': inspection_filter_options,
     })
 
 
@@ -1855,18 +2169,23 @@ def om_service_items(request):
         request.session.flush()
         return redirect('login')
 
+    treatment_names = _get_treatment_service_names()
+
     if request.method == 'POST':
         action = request.POST.get('action', '').strip()
         item_id = request.POST.get('item_id', '').strip()
 
         if action in {'create', 'update'}:
             name = request.POST.get('name', '').strip()
-            description = request.POST.get('description', '').strip()
             default_unit_price_raw = request.POST.get('default_unit_price', '').strip()
             is_active = request.POST.get('is_active') == 'on'
 
             if not name:
                 messages.error(request, 'Service item name is required.')
+                return redirect('om_service_items')
+
+            if name.strip().lower() in treatment_names:
+                messages.error(request, 'This is a Treatment Service option. Manage it under Service Forms > Treatment.')
                 return redirect('om_service_items')
 
             if default_unit_price_raw:
@@ -1887,15 +2206,13 @@ def om_service_items(request):
                     return redirect('om_service_items')
                 if existing_item and not existing_item.is_active:
                     existing_item.name = name
-                    existing_item.description = description
                     existing_item.default_unit_price = default_unit_price
                     existing_item.is_active = True
-                    existing_item.save(update_fields=['name', 'description', 'default_unit_price', 'is_active'])
+                    existing_item.save(update_fields=['name', 'default_unit_price', 'is_active'])
                     messages.success(request, 'Service item restored successfully.')
                     return redirect('om_service_items')
                 InvoiceItemOption.objects.create(
                     name=name,
-                    description=description,
                     default_unit_price=default_unit_price,
                     is_active=True,
                 )
@@ -1917,58 +2234,28 @@ def om_service_items(request):
                 return redirect('om_service_items')
 
             service_item.name = name
-            service_item.description = description
             service_item.default_unit_price = default_unit_price
             service_item.is_active = is_active
-            service_item.save(update_fields=['name', 'description', 'default_unit_price', 'is_active'])
+            service_item.save(update_fields=['name', 'default_unit_price', 'is_active'])
             messages.success(request, 'Service item updated successfully.')
-            return redirect('om_service_items')
-
-        if action == 'delete':
-            if not item_id.isdigit():
-                messages.error(request, 'Invalid service item.')
-                return redirect('om_service_items')
-            service_item = InvoiceItemOption.objects.filter(id=int(item_id)).first()
-            if not service_item:
-                messages.error(request, 'Service item not found.')
-                return redirect('om_service_items')
-
-            if not service_item.is_active:
-                messages.info(request, 'Service item is already inactive.')
-                return redirect('om_service_items')
-
-            service_item.is_active = False
-            service_item.save(update_fields=['is_active'])
-            messages.success(request, 'Service item deactivated successfully.')
             return redirect('om_service_items')
 
         messages.error(request, 'Unsupported action.')
         return redirect('om_service_items')
 
-    service_items = list(InvoiceItemOption.objects.order_by('name'))
-    usage_rows = InvoiceItem.objects.values('item_type').annotate(
-        usage_count=Count('id'),
-        last_used_unit_price=Max('unit_price'),
-    )
-    usage_map = {
-        row['item_type']: {
-            'usage_count': row['usage_count'],
-            'last_used_unit_price': row['last_used_unit_price'],
-        }
-        for row in usage_rows
-    }
+    service_items = [
+        item
+        for item in InvoiceItemOption.objects.order_by('name')
+        if item.name.strip().lower() not in treatment_names
+    ]
 
     service_item_rows = []
     for item in service_items:
-        usage = usage_map.get(item.name, {})
         service_item_rows.append({
             'id': item.id,
             'name': item.name,
-            'description': item.description,
             'default_unit_price': item.default_unit_price,
             'is_active': item.is_active,
-            'usage_count': usage.get('usage_count', 0),
-            'last_used_unit_price': usage.get('last_used_unit_price'),
         })
 
     return render(request, 'om_invoice_items.html', {
@@ -2417,7 +2704,23 @@ def technician_edit_booking(request, service_id):
 
     customer_properties = Property.objects.filter(customer=service.customer)
     is_treatment = service.status == 'For Treatment'
-    treatment_service_choices = [choice for choice in Service.PREFERRED_SERVICE_CHOICES if choice[0] != 'Other']
+    _ensure_service_form_default_options()
+    treatment_service_choices = _get_service_form_choices(
+        'Treatment',
+        'Treatment Service',
+        fallback_values=TREATMENT_SERVICE_PREDEFINED_OPTIONS,
+        excluded_values={'Other'},
+    )
+    service_choices = _get_service_form_choices(
+        'Inspection',
+        'Preferred Service',
+        fallback_values=[label for _, label in Service.PREFERRED_SERVICE_CHOICES],
+    )
+    pest_choices = _get_service_form_choices(
+        'Inspection',
+        'Pest Problems',
+        fallback_values=[label for _, label in Service.PEST_PROBLEM_CHOICES],
+    )
 
     if request.method == 'POST':
         if request.POST.get('action') == 'cancel':
@@ -2436,6 +2739,8 @@ def technician_edit_booking(request, service_id):
             treatment_service = request.POST.get('treatment_service', '').strip()
             if not treatment_service:
                 errors['treatment_service'] = 'Required fields must be filled in.'
+            elif treatment_service not in {value for value, _ in treatment_service_choices}:
+                errors['treatment_service'] = 'Invalid treatment service selected.'
         else:
             property_id = request.POST.get('property_id', '').strip()
             preferred_service = request.POST.get('preferred_service', '').strip()
@@ -2447,6 +2752,10 @@ def technician_edit_booking(request, service_id):
                 errors['preferred_service'] = 'Required fields must be filled in.'
             if not pest_problem:
                 errors['pest_problem'] = 'Required fields must be filled in.'
+            if preferred_service and preferred_service not in {value for value, _ in service_choices}:
+                errors['preferred_service'] = 'Invalid preferred service selected.'
+            if pest_problem and pest_problem not in {value for value, _ in pest_choices}:
+                errors['pest_problem'] = 'Invalid pest problem selected.'
 
             property_obj = None
             if property_id:
@@ -2464,8 +2773,8 @@ def technician_edit_booking(request, service_id):
                 'errors': errors,
                 'form_data': request.POST,
                 'time_slot_choices': Service.TIME_SLOT_CHOICES,
-                'service_choices': Service.PREFERRED_SERVICE_CHOICES,
-                'pest_choices': Service.PEST_PROBLEM_CHOICES,
+                'service_choices': service_choices,
+                'pest_choices': pest_choices,
                 'today': date_cls.today().isoformat(),
             })
 
@@ -2527,8 +2836,8 @@ def technician_edit_booking(request, service_id):
         'treatment_service_choices': treatment_service_choices,
         'form_data': form_data,
         'time_slot_choices': Service.TIME_SLOT_CHOICES,
-        'service_choices': Service.PREFERRED_SERVICE_CHOICES,
-        'pest_choices': Service.PEST_PROBLEM_CHOICES,
+        'service_choices': service_choices,
+        'pest_choices': pest_choices,
         'today': date_cls.today().isoformat(),
     })
 
@@ -2641,10 +2950,10 @@ def _clean_chemical_rows(raw_rows, chemical_map=None):
     return cleaned_rows, has_invalid
 
 
-def _clean_area_rows(raw_rows):
+def _clean_area_rows(raw_rows, infestation_values=None):
     cleaned_rows = []
     has_invalid = False
-    infestation_values = {'Low', 'Medium', 'High'}
+    valid_infestation_values = set(infestation_values or {'Low', 'Medium', 'High'})
 
     for row in raw_rows:
         if not isinstance(row, dict):
@@ -2673,7 +2982,7 @@ def _clean_area_rows(raw_rows):
         if not has_any_input:
             continue
 
-        if not area_name or infestation_level not in infestation_values:
+        if not area_name or infestation_level not in valid_infestation_values:
             has_invalid = True
             continue
 
@@ -2703,6 +3012,12 @@ def technician_create_service_report(request):
 
     draft = request.session.get('tech_service_report_draft', {})
     selected_service_id = draft.get('service_id')
+    _ensure_service_form_default_options()
+    infestation_choices = _get_active_service_form_option_values(
+        'Service Report Submission',
+        'Levels of Infestation',
+        fallback_values=[label for _, label in ServiceReportArea.INFESTATION_CHOICES],
+    )
     active_chemicals = list(Chemical.objects.filter(is_active=True).order_by('name'))
     chemical_map = {
         chemical.id: {
@@ -2726,7 +3041,7 @@ def technician_create_service_report(request):
     default_areas = draft.get('treated_areas') or [
         {
             'area_name': '',
-            'infestation_level': 'Low',
+            'infestation_level': infestation_choices[0] if infestation_choices else 'Low',
             'spray': False,
             'mist': False,
             'rat_bait': False,
@@ -2759,6 +3074,7 @@ def technician_create_service_report(request):
             'chemicals_json': json.dumps(chemicals if chemicals is not None else default_chemicals),
             'treated_areas_json': json.dumps(treated_areas if treated_areas is not None else default_areas),
             'chemical_choices_json': json.dumps(chemical_choices),
+            'infestation_choices_json': json.dumps(infestation_choices),
         })
 
     if request.method == 'POST':
@@ -2781,7 +3097,7 @@ def technician_create_service_report(request):
                     default_chemicals = [{'chemical_id': '', 'amount': ''}]
                     default_areas = [{
                         'area_name': '',
-                        'infestation_level': 'Low',
+                        'infestation_level': infestation_choices[0] if infestation_choices else 'Low',
                         'spray': False,
                         'mist': False,
                         'rat_bait': False,
@@ -2825,7 +3141,7 @@ def technician_create_service_report(request):
             if action == 'submit':
                 errors = {}
                 chemicals, chemical_has_invalid = _clean_chemical_rows(raw_chemicals, chemical_map=chemical_map)
-                treated_areas, area_has_invalid = _clean_area_rows(raw_areas)
+                treated_areas, area_has_invalid = _clean_area_rows(raw_areas, infestation_values=infestation_choices)
 
                 if not chemicals:
                     errors['chemicals'] = 'At least one chemical used must be filled in.'
@@ -2927,6 +3243,13 @@ def edit_service_report(request, report_id):
         'service__customer', 'service__property'
     ).prefetch_related('chemicals', 'treated_areas').filter(id=report_id).first()
 
+    _ensure_service_form_default_options()
+    infestation_choices = _get_active_service_form_option_values(
+        'Service Report Submission',
+        'Levels of Infestation',
+        fallback_values=[label for _, label in ServiceReportArea.INFESTATION_CHOICES],
+    )
+
     active_chemicals = list(Chemical.objects.filter(is_active=True).order_by('name'))
     chemical_map = {
         chemical.id: {
@@ -2957,7 +3280,7 @@ def edit_service_report(request, report_id):
 
         errors = {}
         chemicals, chemical_has_invalid = _clean_chemical_rows(raw_chemicals, chemical_map=chemical_map)
-        treated_areas, area_has_invalid = _clean_area_rows(raw_areas)
+        treated_areas, area_has_invalid = _clean_area_rows(raw_areas, infestation_values=infestation_choices)
 
         if not chemicals:
             errors['chemicals'] = 'At least one chemical used must be filled in.'
@@ -2976,6 +3299,7 @@ def edit_service_report(request, report_id):
                 'chemicals_json': json.dumps(raw_chemicals),
                 'treated_areas_json': json.dumps(raw_areas),
                 'chemical_choices_json': json.dumps(chemical_choices),
+                'infestation_choices_json': json.dumps(infestation_choices),
                 'back_url_name': _service_report_redirect_name(request),
             })
 
@@ -3037,6 +3361,7 @@ def edit_service_report(request, report_id):
         ]),
         'back_url_name': _service_report_redirect_name(request),
         'chemical_choices_json': json.dumps(chemical_choices),
+        'infestation_choices_json': json.dumps(infestation_choices),
     })
 
 
@@ -3243,7 +3568,23 @@ def om_edit_booking(request, service_id):
 
     customer_properties = Property.objects.filter(customer=service.customer)
     is_treatment = service.status in {'For Treatment', 'For Booking'}
-    treatment_service_choices = [choice for choice in Service.PREFERRED_SERVICE_CHOICES if choice[0] != 'Other']
+    _ensure_service_form_default_options()
+    treatment_service_choices = _get_service_form_choices(
+        'Treatment',
+        'Treatment Service',
+        fallback_values=TREATMENT_SERVICE_PREDEFINED_OPTIONS,
+        excluded_values={'Other'},
+    )
+    service_choices = _get_service_form_choices(
+        'Inspection',
+        'Preferred Service',
+        fallback_values=[label for _, label in Service.PREFERRED_SERVICE_CHOICES],
+    )
+    pest_choices = _get_service_form_choices(
+        'Inspection',
+        'Pest Problems',
+        fallback_values=[label for _, label in Service.PEST_PROBLEM_CHOICES],
+    )
 
     if request.method == 'POST':
         if request.POST.get('action') == 'cancel':
@@ -3262,6 +3603,8 @@ def om_edit_booking(request, service_id):
             treatment_service = request.POST.get('treatment_service', '').strip()
             if not treatment_service:
                 errors['treatment_service'] = 'Required fields must be filled in.'
+            elif treatment_service not in {value for value, _ in treatment_service_choices}:
+                errors['treatment_service'] = 'Invalid treatment service selected.'
         else:
             property_id = request.POST.get('property_id', '').strip()
             preferred_service = request.POST.get('preferred_service', '').strip()
@@ -3273,6 +3616,10 @@ def om_edit_booking(request, service_id):
                 errors['preferred_service'] = 'Required fields must be filled in.'
             if not pest_problem:
                 errors['pest_problem'] = 'Required fields must be filled in.'
+            if preferred_service and preferred_service not in {value for value, _ in service_choices}:
+                errors['preferred_service'] = 'Invalid preferred service selected.'
+            if pest_problem and pest_problem not in {value for value, _ in pest_choices}:
+                errors['pest_problem'] = 'Invalid pest problem selected.'
 
             property_obj = None
             if property_id:
@@ -3290,8 +3637,8 @@ def om_edit_booking(request, service_id):
                 'errors': errors,
                 'form_data': request.POST,
                 'time_slot_choices': Service.TIME_SLOT_CHOICES,
-                'service_choices': Service.PREFERRED_SERVICE_CHOICES,
-                'pest_choices': Service.PEST_PROBLEM_CHOICES,
+                'service_choices': service_choices,
+                'pest_choices': pest_choices,
                 'today': date_cls.today().isoformat(),
             })
 
@@ -3358,8 +3705,8 @@ def om_edit_booking(request, service_id):
         'treatment_service_choices': treatment_service_choices,
         'form_data': form_data,
         'time_slot_choices': Service.TIME_SLOT_CHOICES,
-        'service_choices': Service.PREFERRED_SERVICE_CHOICES,
-        'pest_choices': Service.PEST_PROBLEM_CHOICES,
+        'service_choices': service_choices,
+        'pest_choices': pest_choices,
         'today': date_cls.today().isoformat(),
     })
 
@@ -3434,9 +3781,14 @@ def om_book_treatment(request, service_id):
         messages.error(request, 'Book Treatment is only available for services with For Booking status.')
         return redirect('om_service_status')
 
-    treatment_service_choices = [
-        choice for choice in Service.PREFERRED_SERVICE_CHOICES if choice[0] != 'Other'
-    ]
+    _ensure_service_form_default_options()
+    treatment_service_choices = _get_service_form_choices(
+        'Treatment',
+        'Treatment Service',
+        fallback_values=TREATMENT_SERVICE_PREDEFINED_OPTIONS,
+        excluded_values={'Other'},
+    )
+    allowed_treatment_values = {value for value, _ in treatment_service_choices}
 
     if request.method == 'POST':
         if request.POST.get('action') == 'cancel':
@@ -3453,6 +3805,8 @@ def om_book_treatment(request, service_id):
         errors = {}
         if not selected_treatment_services:
             errors['treatment_service'] = 'Required fields must be filled in.'
+        elif any(value not in allowed_treatment_values for value in selected_treatment_services):
+            errors['treatment_service'] = 'Invalid treatment service selected.'
         if not booking_date:
             errors['date'] = 'Required fields must be filled in.'
         if not time_slot:

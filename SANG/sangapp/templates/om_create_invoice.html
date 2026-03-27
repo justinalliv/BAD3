@@ -111,7 +111,7 @@
 
     .invoice-row {
         display: grid;
-        grid-template-columns: 1.2fr 0.9fr 0.9fr 140px;
+        grid-template-columns: 1.3fr 0.9fr 140px;
         gap: 12px;
         margin-bottom: 10px;
         align-items: center;
@@ -336,7 +336,6 @@
 {% block extra_js %}
 <script>
     const serviceItemChoices = JSON.parse('{{ service_item_choices_json|default:"[]"|escapejs }}');
-    const serviceItemPriceMap = Object.fromEntries(serviceItemChoices.map(choice => [choice.value, choice.default_unit_price]));
 
     let invoiceItems = [];
     try {
@@ -346,7 +345,7 @@
     }
 
     if (!Array.isArray(invoiceItems) || invoiceItems.length === 0) {
-        invoiceItems = [{ service_item_id: '', quantity: '', unit_price: '' }];
+        invoiceItems = [{ service_item_id: '', quantity: '' }];
     }
 
     const invoiceRows = document.getElementById('invoiceRows');
@@ -367,7 +366,6 @@
             row.innerHTML = `
                 <select class="field field-select" data-index="${index}" data-field="service_item_id">${options}</select>
                 <input type="number" min="1" class="field" data-index="${index}" data-field="quantity" placeholder="Enter quantity" value="${item.quantity || ''}">
-                <input type="number" min="0.01" step="0.01" class="field" data-index="${index}" data-field="unit_price" placeholder="Unit price" value="${item.unit_price || ''}">
                 <button type="button" class="delete-btn" data-delete-index="${index}">Delete</button>
             `;
             invoiceRows.appendChild(row);
@@ -378,10 +376,6 @@
                 const index = Number(this.dataset.index);
                 const field = this.dataset.field;
                 invoiceItems[index][field] = this.value;
-                if (field === 'service_item_id' && serviceItemPriceMap[this.value]) {
-                    invoiceItems[index].unit_price = serviceItemPriceMap[this.value];
-                    renderRows();
-                }
             });
             element.addEventListener('input', function () {
                 const index = Number(this.dataset.index);
@@ -395,7 +389,7 @@
                 const index = Number(this.dataset.deleteIndex);
                 invoiceItems.splice(index, 1);
                 if (invoiceItems.length === 0) {
-                    invoiceItems.push({ service_item_id: '', quantity: '', unit_price: '' });
+                    invoiceItems.push({ service_item_id: '', quantity: '' });
                 }
                 renderRows();
             });
@@ -406,13 +400,12 @@
         itemsJsonInput.value = JSON.stringify(invoiceItems.map(item => ({
             service_item_id: item.service_item_id || '',
             quantity: item.quantity || '',
-            unit_price: item.unit_price || '',
         })));
     }
 
     if (addItemBtn) {
         addItemBtn.addEventListener('click', function () {
-            invoiceItems.push({ service_item_id: '', quantity: '', unit_price: '' });
+            invoiceItems.push({ service_item_id: '', quantity: '' });
             renderRows();
         });
     }

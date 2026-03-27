@@ -295,7 +295,10 @@ class InvoiceItemOption(models.Model):
 class ServiceFormOption(models.Model):
     form_section = models.CharField(max_length=100)
     field_name = models.CharField(max_length=100)
+    scoped_option_id = models.PositiveIntegerField(null=True, blank=True)
     option_value = models.CharField(max_length=255)
+    option_description = models.TextField(blank=True)
+    option_rate = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

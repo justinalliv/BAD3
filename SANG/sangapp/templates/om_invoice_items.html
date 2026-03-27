@@ -55,7 +55,7 @@
 
     .create-grid {
         display: grid;
-        grid-template-columns: 1.1fr 1.3fr 0.9fr 170px;
+        grid-template-columns: 1.4fr 0.9fr 170px;
         gap: 10px;
         align-items: center;
     }
@@ -198,8 +198,7 @@
             <input type="hidden" name="action" value="create">
             <div class="create-title">Create Service Item</div>
             <div class="create-grid">
-                <input type="text" name="name" class="field" placeholder="Service item name (e.g., Baygon)" required>
-                <input type="text" name="description" class="field" placeholder="Item description (optional)">
+                <input type="text" name="name" class="field" placeholder="Service item name (e.g., Follow-up labor)" required>
                 <input type="number" name="default_unit_price" class="field" min="0.01" step="0.01" placeholder="Default price (optional)">
                 <button type="submit" class="btn btn-primary">Create</button>
             </div>
@@ -210,13 +209,10 @@
                 <tr>
                     <th style="width: 8%;">#</th>
                     <th style="width: 8%;">Item ID</th>
-                    <th style="width: 22%;">Service Item Name</th>
-                    <th style="width: 18%;">Description</th>
-                    <th style="width: 14%;">Item Rate</th>
-                    <th style="width: 10%;">Status</th>
-                    <th style="width: 10%;">Usage Count</th>
-                    <th style="width: 10%;">Last Used Price</th>
-                    <th style="width: 10%;">Actions</th>
+                    <th style="width: 42%;">Service Item Name</th>
+                    <th style="width: 18%;">Item Rate</th>
+                    <th style="width: 12%;">Status</th>
+                    <th style="width: 12%;">Actions</th>
                 </tr>
             </thead>
             <tbody>
@@ -225,21 +221,12 @@
                     <td>{{ forloop.counter }}</td>
                     <td>{{ item.id }}</td>
                     <td>{{ item.name }}</td>
-                    <td>{{ item.description|default:'-' }}</td>
                     <td>PHP {{ item.default_unit_price }}</td>
                     <td>
                         {% if item.is_active %}
                         <span class="status-pill active">Active</span>
                         {% else %}
                         <span class="status-pill inactive">Inactive</span>
-                        {% endif %}
-                    </td>
-                    <td>{{ item.usage_count }}</td>
-                    <td>
-                        {% if item.last_used_unit_price %}
-                        PHP {{ item.last_used_unit_price }}
-                        {% else %}
-                        -
                         {% endif %}
                     </td>
                     <td>
@@ -249,22 +236,15 @@
                                 class="btn-row btn-edit"
                                 data-edit-id="{{ item.id }}"
                                 data-edit-name="{{ item.name|escape }}"
-                                data-edit-description="{{ item.description|escape }}"
                                 data-edit-price="{{ item.default_unit_price }}"
                                 data-edit-active="{{ item.is_active|yesno:'true,false' }}"
                             >Edit</button>
-                            <form method="POST" style="display:inline;">
-                                {% csrf_token %}
-                                <input type="hidden" name="action" value="delete">
-                                <input type="hidden" name="item_id" value="{{ item.id }}">
-                                <button type="submit" class="btn-row btn-delete">Deactivate</button>
-                            </form>
                         </div>
                     </td>
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="8" style="text-align:center;color:#666;">No service items yet.</td>
+                    <td colspan="6" style="text-align:center;color:#666;">No service items yet. Operations Manager can add one when needed.</td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -280,9 +260,6 @@
                 <input type="hidden" name="item_id" id="editItemId">
                 <div style="margin-bottom:10px;">
                     <input type="text" class="field" id="editName" name="name" placeholder="Service item name" required>
-                </div>
-                <div style="margin-bottom:10px;">
-                    <input type="text" class="field" id="editDescription" name="description" placeholder="Description (optional)">
                 </div>
                 <div style="margin-bottom:10px;">
                     <input type="number" class="field" id="editPrice" name="default_unit_price" min="0.01" step="0.01" placeholder="Default price (optional)">
@@ -310,7 +287,6 @@
     const editModal = document.getElementById('editModal');
     const editItemId = document.getElementById('editItemId');
     const editName = document.getElementById('editName');
-    const editDescription = document.getElementById('editDescription');
     const editPrice = document.getElementById('editPrice');
     const editActive = document.getElementById('editActive');
     const closeEditModal = document.getElementById('closeEditModal');
@@ -319,7 +295,6 @@
         button.addEventListener('click', function () {
             editItemId.value = this.dataset.editId;
             editName.value = this.dataset.editName || '';
-            editDescription.value = this.dataset.editDescription || '';
             editPrice.value = this.dataset.editPrice || '';
             editActive.checked = this.dataset.editActive === 'true';
             editModal.classList.add('show');

@@ -46,6 +46,25 @@
         background: #f9fafc;
     }
 
+    .table-card {
+        border: 1px solid #dfe3ee;
+        border-radius: 10px;
+        background: #fff;
+        overflow: hidden;
+    }
+
+    .filters-card {
+        border: 1px solid #dfe3ee;
+        border-radius: 10px;
+        padding: 12px;
+        margin-bottom: 16px;
+        background: #f9fafc;
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+
     .create-title {
         color: #1a2a5e;
         font-size: 1.1em;
@@ -74,6 +93,17 @@
         outline: none;
         border-color: #1a2a5e;
         box-shadow: 0 0 0 3px rgba(26, 42, 94, 0.12);
+    }
+
+    .field-select {
+        appearance: none;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        padding-right: 42px;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='10' viewBox='0 0 14 10'%3E%3Cpath fill='none' stroke='%234a4a4a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M1 1l6 6 6-6'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 14px center;
+        background-size: 14px 10px;
     }
 
     .btn {
@@ -156,7 +186,7 @@
         text-decoration: none;
     }
 
-    @media (max-width: 1000px) {
+    @media (max-width: 900px) {
         .create-grid {
             grid-template-columns: 1fr;
         }
@@ -173,74 +203,183 @@
 
     <div class="sheet">
         <h1 class="title">Service Forms</h1>
-        <p class="sub">Manage dropdown field options used by Inspection, Treatment, Service Report Submission, and Payment Proof Submission forms.</p>
+        <p class="sub">Manage dropdown field options used by Inspection, Treatment, Service Report Submission, and Payment Proof Submission forms.{% if selected_section %} Viewing: <strong>{{ selected_section }}</strong>.{% endif %}</p>
+
+        {% if selected_section == 'Inspection' %}
+        <form method="GET" class="filters-card">
+            <input type="hidden" name="section" value="Inspection">
+            <select name="inspection_filter" class="field field-select" style="max-width:280px;min-height:38px;">
+                <option value="">All Inspection Fields</option>
+                {% for field in inspection_filter_options %}
+                <option value="{{ field }}" {% if inspection_filter == field %}selected{% endif %}>{{ field }}</option>
+                {% endfor %}
+            </select>
+            <button type="submit" class="btn btn-primary" style="min-height:38px;padding:0 14px;">Filter</button>
+            <a href="{% url 'om_service_forms' %}?section=Inspection" class="back-link" style="min-height:38px;">Clear</a>
+        </form>
+        {% endif %}
 
         <form method="POST" class="create-card">
             {% csrf_token %}
             <input type="hidden" name="action" value="create">
             <div class="create-title">Create Field Option</div>
+            {% if selected_section == 'Treatment' %}
+            <input type="hidden" name="form_section" value="Treatment">
+            <input type="hidden" name="field_name" value="Treatment Service">
+            <div class="create-grid" style="grid-template-columns: 1.2fr 1.4fr 0.9fr 170px;">
+                <input type="text" name="option_value" class="field" placeholder="Treatment name" required>
+                <input type="text" name="option_description" class="field" placeholder="Treatment description" required>
+                <input type="number" name="option_rate" class="field" min="0.01" step="0.01" placeholder="Treatment rate" required>
+                <button type="submit" class="btn btn-primary">Add Treatment</button>
+            </div>
+            {% else %}
             <div class="create-grid">
-                <select name="form_section" id="createFormSection" class="field" required>
+                <select name="form_section" id="createFormSection" class="field field-select" required>
                     <option value="">Select Form Section</option>
                     {% for section, fields in field_catalog.items %}
-                    <option value="{{ section }}">{{ section }}</option>
+                    <option value="{{ section }}" {% if selected_section == section %}selected{% endif %}>{{ section }}</option>
                     {% endfor %}
                 </select>
-                <select name="field_name" id="createFieldName" class="field" required>
+                <select name="field_name" id="createFieldName" class="field field-select" required>
                     <option value="">Select Field</option>
                 </select>
                 <input type="text" name="option_value" class="field" placeholder="Enter new option" required>
                 <button type="submit" class="btn btn-primary">Add Option</button>
             </div>
+            {% endif %}
         </form>
 
-        <table>
-            <thead>
-                <tr>
-                    <th style="width: 8%;">#</th>
-                    <th style="width: 22%;">Form Section</th>
-                    <th style="width: 20%;">Field Name</th>
-                    <th style="width: 30%;">Option Value</th>
-                    <th style="width: 20%;">Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for section, fields in grouped_options.items %}
-                {% for field_name, options in fields.items %}
-                {% for option in options %}
-                <tr>
-                    <td>{{ forloop.counter }}</td>
-                    <td>{{ section }}</td>
-                    <td>{{ field_name }}</td>
-                    <td>{{ option.option_value }}</td>
-                    <td>
-                        <div class="row-actions">
-                            <button
-                                type="button"
-                                class="btn-row btn-edit"
-                                data-edit-id="{{ option.id }}"
-                                data-edit-section="{{ option.form_section|escape }}"
-                                data-edit-field="{{ option.field_name|escape }}"
-                                data-edit-value="{{ option.option_value|escape }}"
-                            >Edit</button>
-                            <form method="POST" style="display:inline;">
-                                {% csrf_token %}
-                                <input type="hidden" name="action" value="delete">
-                                <input type="hidden" name="option_id" value="{{ option.id }}">
-                                <button type="submit" class="btn-row btn-delete">Delete</button>
-                            </form>
-                        </div>
-                    </td>
-                </tr>
-                {% endfor %}
-                {% endfor %}
-                {% empty %}
-                <tr>
-                    <td colspan="5" style="text-align:center;color:#666;">No service form options available.</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+        <div class="table-card">
+            <table>
+                {% if selected_section == 'Treatment' %}
+                <thead>
+                    <tr>
+                        <th style="width: 10%;">Treatment ID</th>
+                        <th style="width: 22%;">Treatment Name</th>
+                        <th style="width: 30%;">Treatment Description</th>
+                        <th style="width: 14%;">Treatment Rate</th>
+                        <th style="width: 10%;">Status</th>
+                        <th style="width: 14%;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for option in option_rows %}
+                    <tr>
+                        <td>{{ option.treatment_display_id|default:option.scoped_option_id|default:option.id }}</td>
+                        <td>{{ option.option_value }}</td>
+                        <td>{{ option.option_description|default:'-' }}</td>
+                        <td>{% if option.option_rate %}PHP {{ option.option_rate }}{% else %}-{% endif %}</td>
+                        <td>{% if option.is_active %}Active{% else %}Inactive{% endif %}</td>
+                        <td>
+                            <div class="row-actions">
+                                <button
+                                    type="button"
+                                    class="btn-row btn-edit"
+                                    data-edit-id="{{ option.id }}"
+                                    data-edit-section="{{ option.form_section|escape }}"
+                                    data-edit-field="{{ option.field_name|escape }}"
+                                    data-edit-value="{{ option.option_value|escape }}"
+                                    data-edit-description="{{ option.option_description|escape }}"
+                                    data-edit-rate="{{ option.option_rate|default:'' }}"
+                                    data-edit-active="{{ option.is_active|yesno:'true,false' }}"
+                                >Edit</button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" style="text-align:center;color:#666;">No treatment services available.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                {% else %}
+                {% if selected_section == 'Inspection' %}
+                <thead>
+                    <tr>
+                        <th style="width: 12%;">Inspection ID</th>
+                        <th style="width: 28%;">Field Name</th>
+                        <th style="width: 30%;">Option Value</th>
+                        <th style="width: 12%;">Status</th>
+                        <th style="width: 18%;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for option in option_rows %}
+                    <tr>
+                        <td>{{ option.scoped_option_id|default:option.id }}</td>
+                        <td>{{ option.field_name }}</td>
+                        <td>{{ option.option_value }}</td>
+                        <td>{% if option.is_active %}Active{% else %}Inactive{% endif %}</td>
+                        <td>
+                            <div class="row-actions">
+                                <button
+                                    type="button"
+                                    class="btn-row btn-edit"
+                                    data-edit-id="{{ option.id }}"
+                                    data-edit-section="{{ option.form_section|escape }}"
+                                    data-edit-field="{{ option.field_name|escape }}"
+                                    data-edit-value="{{ option.option_value|escape }}"
+                                    data-edit-description="{{ option.option_description|escape }}"
+                                    data-edit-rate="{{ option.option_rate|default:'' }}"
+                                    data-edit-active="{{ option.is_active|yesno:'true,false' }}"
+                                >Edit</button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" style="text-align:center;color:#666;">No inspection options available.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                {% else %}
+                <thead>
+                    <tr>
+                        <th style="width: 8%;">Option ID</th>
+                        <th style="width: 22%;">Form Section</th>
+                        <th style="width: 20%;">Field Name</th>
+                        <th style="width: 30%;">Option Value</th>
+                        <th style="width: 20%;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for option in option_rows %}
+                    <tr>
+                        <td>{{ option.scoped_option_id|default:option.id }}</td>
+                        <td>{{ option.form_section }}</td>
+                        <td>{{ option.field_name }}</td>
+                        <td>{{ option.option_value }}</td>
+                        <td>
+                            <div class="row-actions">
+                                <button
+                                    type="button"
+                                    class="btn-row btn-edit"
+                                    data-edit-id="{{ option.id }}"
+                                    data-edit-section="{{ option.form_section|escape }}"
+                                    data-edit-field="{{ option.field_name|escape }}"
+                                    data-edit-value="{{ option.option_value|escape }}"
+                                    data-edit-description="{{ option.option_description|escape }}"
+                                    data-edit-rate="{{ option.option_rate|default:'' }}"
+                                >Edit</button>
+                                <form method="POST" style="display:inline;">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="action" value="delete">
+                                    <input type="hidden" name="option_id" value="{{ option.id }}">
+                                    <button type="submit" class="btn-row btn-delete">Delete</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" style="text-align:center;color:#666;">No service form options available.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                {% endif %}
+                {% endif %}
+            </table>
+        </div>
     </div>
 
     <div id="editModal" class="modal">
@@ -250,22 +389,52 @@
                 {% csrf_token %}
                 <input type="hidden" name="action" value="update">
                 <input type="hidden" name="option_id" id="editOptionId">
+                {% if selected_section == 'Treatment' %}
+                <input type="hidden" name="form_section" value="Treatment">
+                <input type="hidden" name="field_name" value="Treatment Service">
                 <div style="margin-bottom:10px;">
-                    <select name="form_section" id="editFormSection" class="field" required>
+                    <input type="text" name="option_value" id="editOptionValue" class="field" placeholder="Treatment name" required>
+                </div>
+                <div style="margin-bottom:10px;">
+                    <input type="text" name="option_description" id="editOptionDescription" class="field" placeholder="Treatment description" required>
+                </div>
+                <div style="margin-bottom:14px;">
+                    <input type="number" name="option_rate" id="editOptionRate" class="field" min="0.01" step="0.01" placeholder="Treatment rate" required>
+                </div>
+                <label style="display:flex;align-items:center;gap:8px;margin-bottom:14px;font-size:0.92em;color:#333;">
+                    <input type="checkbox" id="editOptionActive" name="is_active" checked>
+                    Active treatment service
+                </label>
+                {% elif selected_section == 'Inspection' %}
+                <input type="hidden" name="form_section" value="Inspection">
+                <div style="margin-bottom:10px;">
+                    <select name="field_name" id="editFieldName" class="field field-select" required></select>
+                </div>
+                <div style="margin-bottom:14px;">
+                    <input type="text" name="option_value" id="editOptionValue" class="field" placeholder="Inspection option value" required>
+                </div>
+                <label style="display:flex;align-items:center;gap:8px;margin-bottom:14px;font-size:0.92em;color:#333;">
+                    <input type="checkbox" id="editOptionActive" name="is_active" checked>
+                    Active inspection option
+                </label>
+                {% else %}
+                <div style="margin-bottom:10px;">
+                    <select name="form_section" id="editFormSection" class="field field-select" required>
                         {% for section, fields in field_catalog.items %}
                         <option value="{{ section }}">{{ section }}</option>
                         {% endfor %}
                     </select>
                 </div>
                 <div style="margin-bottom:10px;">
-                    <select name="field_name" id="editFieldName" class="field" required></select>
+                    <select name="field_name" id="editFieldName" class="field field-select" required></select>
                 </div>
                 <div style="margin-bottom:14px;">
                     <input type="text" name="option_value" id="editOptionValue" class="field" placeholder="Option value" required>
                 </div>
+                {% endif %}
                 <div class="modal-buttons">
                     <button type="button" class="modal-btn modal-btn-cancel" id="closeEditModal">Cancel</button>
-                    <button type="submit" class="modal-btn modal-btn-confirm">Save Changes</button>
+                    <button type="submit" class="modal-btn modal-btn-confirm">Save</button>
                 </div>
             </form>
         </div>
@@ -307,6 +476,7 @@
     const createFormSection = document.getElementById('createFormSection');
     const createFieldName = document.getElementById('createFieldName');
     if (createFormSection && createFieldName) {
+        fillFieldSelect(createFormSection, createFieldName);
         createFormSection.addEventListener('change', function () {
             fillFieldSelect(createFormSection, createFieldName);
         });
@@ -317,14 +487,40 @@
     const editFormSection = document.getElementById('editFormSection');
     const editFieldName = document.getElementById('editFieldName');
     const editOptionValue = document.getElementById('editOptionValue');
+    const editOptionDescription = document.getElementById('editOptionDescription');
+    const editOptionRate = document.getElementById('editOptionRate');
+    const editOptionActive = document.getElementById('editOptionActive');
     const closeEditModal = document.getElementById('closeEditModal');
 
     document.querySelectorAll('[data-edit-id]').forEach((button) => {
         button.addEventListener('click', function () {
             editOptionId.value = this.dataset.editId;
-            editFormSection.value = this.dataset.editSection || '';
-            fillFieldSelect(editFormSection, editFieldName, this.dataset.editField || '');
+            if (editFormSection && editFieldName) {
+                editFormSection.value = this.dataset.editSection || '';
+                fillFieldSelect(editFormSection, editFieldName, this.dataset.editField || '');
+            } else if (!editFormSection && editFieldName) {
+                const inspectionFields = fieldCatalog.Inspection || [];
+                editFieldName.innerHTML = '';
+                inspectionFields.forEach((field) => {
+                    const option = document.createElement('option');
+                    option.value = field;
+                    option.textContent = field;
+                    if ((this.dataset.editField || '') === field) {
+                        option.selected = true;
+                    }
+                    editFieldName.appendChild(option);
+                });
+            }
             editOptionValue.value = this.dataset.editValue || '';
+            if (editOptionDescription) {
+                editOptionDescription.value = this.dataset.editDescription || '';
+            }
+            if (editOptionRate) {
+                editOptionRate.value = this.dataset.editRate || '';
+            }
+            if (editOptionActive) {
+                editOptionActive.checked = this.dataset.editActive !== 'false';
+            }
             editModal.classList.add('show');
         });
     });
