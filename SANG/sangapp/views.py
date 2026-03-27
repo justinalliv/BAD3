@@ -26,6 +26,7 @@ from .models import (
     EstimatedBillItem,
     Invoice,
     InvoiceItem,
+    InvoiceItemOption,
 )
 from .forms import CustomerRegistrationForm
 
@@ -1184,13 +1185,27 @@ def om_edit_invoice(request, invoice_id):
         messages.error(request, 'Invoice not found.')
         return redirect('om_invoices')
 
+    service_item_options = InvoiceItemOption.objects.filter(is_active=True).order_by('name')
+    allowed_item_names = [option.name for option in service_item_options]
+    service_item_choices = [
+        {
+            'value': option.name,
+            'label': option.name,
+            'default_unit_price': str(option.default_unit_price),
+        }
+        for option in service_item_options
+    ]
+
     if request.method == 'POST':
         if request.POST.get('action') == 'cancel':
             return redirect('om_invoices')
 
         raw_items = _parse_invoice_items(request.POST.get('items_json'))
-        items, has_invalid = _clean_invoice_items(raw_items)
+        items, has_invalid = _clean_invoice_items(raw_items, allowed_item_names=allowed_item_names)
         errors = {}
+
+        if not service_item_choices:
+            errors['general'] = 'Please create at least one Service Item in Service Configuration first.'
 
         if not items or has_invalid:
             errors['general'] = 'Required fields must be filled in.'
@@ -1200,6 +1215,7 @@ def om_edit_invoice(request, invoice_id):
                 'invoice': invoice,
                 'errors': errors,
                 'items_json': json.dumps(raw_items if raw_items else [{'item_type': '', 'quantity': '', 'unit_price': ''}]),
+                'service_item_choices_json': json.dumps(service_item_choices),
             })
 
         with transaction.atomic():
@@ -1228,6 +1244,7 @@ def om_edit_invoice(request, invoice_id):
             }
             for item in invoice.items.all()
         ]),
+        'service_item_choices_json': json.dumps(service_item_choices),
     })
 
 
@@ -1307,9 +1324,10 @@ def _parse_invoice_items(raw_payload):
         return []
 
 
-def _clean_invoice_items(raw_items):
+def _clean_invoice_items(raw_items, allowed_item_names=None):
     cleaned_items = []
     has_invalid = False
+    allowed_set = set(allowed_item_names or [])
 
     for item in raw_items:
         if not isinstance(item, dict):
@@ -1323,6 +1341,10 @@ def _clean_invoice_items(raw_items):
             continue
 
         if not item_type or not quantity_raw or not unit_price_raw:
+            has_invalid = True
+            continue
+
+        if allowed_set and item_type not in allowed_set:
             has_invalid = True
             continue
 
@@ -1434,6 +1456,16 @@ def om_create_invoice(request):
 
     service_candidates = _get_invoice_eligible_services_queryset()
     selectable_services = _filter_invoice_eligible_services(service_candidates)
+    service_item_options = InvoiceItemOption.objects.filter(is_active=True).order_by('name')
+    allowed_item_names = [option.name for option in service_item_options]
+    service_item_choices = [
+        {
+            'value': option.name,
+            'label': option.name,
+            'default_unit_price': str(option.default_unit_price),
+        }
+        for option in service_item_options
+    ]
 
     if request.method == 'POST':
         if request.POST.get('action') == 'cancel':
@@ -1441,7 +1473,7 @@ def om_create_invoice(request):
 
         selected_service_id = request.POST.get('selected_service_id', '').strip()
         raw_items = _parse_invoice_items(request.POST.get('items_json'))
-        cleaned_items, has_invalid = _clean_invoice_items(raw_items)
+        cleaned_items, has_invalid = _clean_invoice_items(raw_items, allowed_item_names=allowed_item_names)
 
         selected_service = next(
             (service for service in selectable_services if str(service.id) == selected_service_id),
@@ -1451,6 +1483,9 @@ def om_create_invoice(request):
 
         if not selected_service:
             errors['general'] = 'Required fields must be filled in.'
+
+        if not service_item_choices:
+            errors['general'] = 'Please create at least one Service Item in Service Configuration first.'
 
         if not cleaned_items:
             errors['general'] = 'Required fields must be filled in.'
@@ -1464,6 +1499,7 @@ def om_create_invoice(request):
                 'selected_service_id': selected_service_id,
                 'errors': errors,
                 'items_json': json.dumps(raw_items if raw_items else [{'item_type': '', 'quantity': '', 'unit_price': ''}]),
+                'service_item_choices_json': json.dumps(service_item_choices),
             })
 
         with transaction.atomic():
@@ -1510,6 +1546,7 @@ def om_create_invoice(request):
         'selected_service_id': '',
         'errors': {},
         'items_json': json.dumps([{'item_type': '', 'quantity': '', 'unit_price': ''}]),
+        'service_item_choices_json': json.dumps(service_item_choices),
     })
 
 
@@ -1691,14 +1728,105 @@ def om_service_items(request):
         request.session.flush()
         return redirect('login')
 
-    service_items = InvoiceItem.objects.values('item_type').annotate(
+    if request.method == 'POST':
+        action = request.POST.get('action', '').strip()
+        item_id = request.POST.get('item_id', '').strip()
+
+        if action in {'create', 'update'}:
+            name = request.POST.get('name', '').strip()
+            default_unit_price_raw = request.POST.get('default_unit_price', '').strip()
+            is_active = request.POST.get('is_active') == 'on'
+
+            if not name:
+                messages.error(request, 'Service item name is required.')
+                return redirect('om_service_items')
+
+            if default_unit_price_raw:
+                try:
+                    default_unit_price = Decimal(default_unit_price_raw)
+                    if default_unit_price <= 0:
+                        raise InvalidOperation
+                except (InvalidOperation, TypeError, ValueError):
+                    messages.error(request, 'Default price must be a positive amount.')
+                    return redirect('om_service_items')
+            else:
+                default_unit_price = Decimal('1500.00')
+
+            if action == 'create':
+                if InvoiceItemOption.objects.filter(name__iexact=name).exists():
+                    messages.error(request, 'A service item with this name already exists.')
+                    return redirect('om_service_items')
+                InvoiceItemOption.objects.create(
+                    name=name,
+                    default_unit_price=default_unit_price,
+                    is_active=True,
+                )
+                messages.success(request, 'Service item created successfully.')
+                return redirect('om_service_items')
+
+            if not item_id.isdigit():
+                messages.error(request, 'Invalid service item.')
+                return redirect('om_service_items')
+
+            service_item = InvoiceItemOption.objects.filter(id=int(item_id)).first()
+            if not service_item:
+                messages.error(request, 'Service item not found.')
+                return redirect('om_service_items')
+
+            duplicate = InvoiceItemOption.objects.filter(name__iexact=name).exclude(id=service_item.id).exists()
+            if duplicate:
+                messages.error(request, 'A service item with this name already exists.')
+                return redirect('om_service_items')
+
+            service_item.name = name
+            service_item.default_unit_price = default_unit_price
+            service_item.is_active = is_active
+            service_item.save(update_fields=['name', 'default_unit_price', 'is_active'])
+            messages.success(request, 'Service item updated successfully.')
+            return redirect('om_service_items')
+
+        if action == 'delete':
+            if not item_id.isdigit():
+                messages.error(request, 'Invalid service item.')
+                return redirect('om_service_items')
+            deleted_count, _ = InvoiceItemOption.objects.filter(id=int(item_id)).delete()
+            if deleted_count:
+                messages.success(request, 'Service item deleted successfully.')
+            else:
+                messages.error(request, 'Service item not found.')
+            return redirect('om_service_items')
+
+        messages.error(request, 'Unsupported action.')
+        return redirect('om_service_items')
+
+    service_items = list(InvoiceItemOption.objects.order_by('name'))
+    usage_rows = InvoiceItem.objects.values('item_type').annotate(
         usage_count=Count('id'),
-        suggested_unit_price=Max('unit_price'),
-    ).order_by('item_type')
+        last_used_unit_price=Max('unit_price'),
+    )
+    usage_map = {
+        row['item_type']: {
+            'usage_count': row['usage_count'],
+            'last_used_unit_price': row['last_used_unit_price'],
+        }
+        for row in usage_rows
+    }
+
+    service_item_rows = []
+    for item in service_items:
+        usage = usage_map.get(item.name, {})
+        service_item_rows.append({
+            'id': item.id,
+            'name': item.name,
+            'default_unit_price': item.default_unit_price,
+            'is_active': item.is_active,
+            'usage_count': usage.get('usage_count', 0),
+            'last_used_unit_price': usage.get('last_used_unit_price'),
+        })
 
     return render(request, 'om_invoice_items.html', {
         'om': om,
-        'service_items': service_items,
+        'service_items': service_item_rows,
     })
 
 

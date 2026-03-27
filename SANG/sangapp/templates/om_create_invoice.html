@@ -66,40 +66,42 @@
 
     .table-wrap {
         border: 1px solid #e0e0e0;
-        border-top: none;
         max-height: 220px;
         overflow-y: auto;
         background: #fff;
+        border-radius: 10px;
     }
 
-    table {
+    .service-table {
         width: 100%;
         border-collapse: collapse;
+        table-layout: fixed;
         background: #fff;
     }
 
-    th, td {
+    .service-table th,
+    .service-table td {
         padding: 15px;
         text-align: left;
         color: #333;
         font-size: 0.95em;
     }
 
-    th {
+    .service-table th {
         background: #1a2a5e;
         color: #fff;
         font-size: 0.95em;
         font-weight: 600;
-        border-right: none;
+        position: sticky;
+        top: 0;
+        z-index: 1;
     }
 
-    #serviceTable td {
+    .service-table td {
         border-bottom: 1px solid #e0e0e0;
-        border-right: none;
-        border-left: none;
     }
 
-    #serviceTable tbody tr:last-child td {
+    .service-table tbody tr:last-child td {
         border-bottom: none;
     }
 
@@ -135,6 +137,17 @@
         outline: none;
         border-color: #1a2a5e;
         box-shadow: 0 0 0 3px rgba(26, 42, 94, 0.12);
+    }
+
+    .field-select {
+        appearance: none;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        padding-right: 42px;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='10' viewBox='0 0 14 10'%3E%3Cpath fill='none' stroke='%234a4a4a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M1 1l6 6 6-6'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 14px center;
+        background-size: 14px 10px;
     }
 
     .delete-btn {
@@ -242,21 +255,26 @@
                     <input type="text" id="searchBox" class="search-box" placeholder="Search">
                 </div>
             </div>
-
-            <table>
-                <thead>
-                    <tr>
-                        <th class="center" style="width:12%;">Select</th>
-                        <th style="width:15%;">Service ID</th>
-                        <th style="width:18%;">Customer Name</th>
-                        <th style="width:23%;">Address</th>
-                        <th style="width:16%;">Service Type</th>
-                        <th style="width:16%;">Treatment Date</th>
-                    </tr>
-                </thead>
-            </table>
             <div class="table-wrap">
-                <table id="serviceTable">
+                <table id="serviceTable" class="service-table">
+                    <colgroup>
+                        <col style="width:12%;">
+                        <col style="width:15%;">
+                        <col style="width:18%;">
+                        <col style="width:23%;">
+                        <col style="width:16%;">
+                        <col style="width:16%;">
+                    </colgroup>
+                    <thead>
+                        <tr>
+                            <th class="center">Select</th>
+                            <th>Service ID</th>
+                            <th>Customer Name</th>
+                            <th>Address</th>
+                            <th>Service Type</th>
+                            <th>Treatment Date</th>
+                        </tr>
+                    </thead>
                     <tbody>
                         {% for service in services %}
                         <tr>
@@ -317,6 +335,9 @@
 
 {% block extra_js %}
 <script>
+    const serviceItemChoices = JSON.parse('{{ service_item_choices_json|default:"[]"|escapejs }}');
+    const serviceItemPriceMap = Object.fromEntries(serviceItemChoices.map(choice => [choice.value, choice.default_unit_price]));
+
     let invoiceItems = [];
     try {
         invoiceItems = JSON.parse('{{ items_json|default:"[]"|escapejs }}');
@@ -337,10 +358,14 @@
         invoiceRows.innerHTML = '';
 
         invoiceItems.forEach((item, index) => {
+            const options = ['<option value="">Select a service item</option>'].concat(
+                serviceItemChoices.map(choice => `<option value="${choice.value}" ${item.item_type === choice.value ? 'selected' : ''}>${choice.label}</option>`)
+            ).join('');
+
             const row = document.createElement('div');
             row.className = 'invoice-row';
             row.innerHTML = `
-                <input type="text" class="field" data-index="${index}" data-field="item_type" placeholder="Service item name" value="${item.item_type || ''}">
+                <select class="field field-select" data-index="${index}" data-field="item_type">${options}</select>
                 <input type="number" min="1" class="field" data-index="${index}" data-field="quantity" placeholder="Enter quantity" value="${item.quantity || ''}">
                 <input type="number" min="0.01" step="0.01" class="field" data-index="${index}" data-field="unit_price" placeholder="Unit price" value="${item.unit_price || ''}">
                 <button type="button" class="delete-btn" data-delete-index="${index}">Delete</button>
@@ -353,6 +378,10 @@
                 const index = Number(this.dataset.index);
                 const field = this.dataset.field;
                 invoiceItems[index][field] = this.value;
+                if (field === 'item_type' && serviceItemPriceMap[this.value]) {
+                    invoiceItems[index].unit_price = serviceItemPriceMap[this.value];
+                    renderRows();
+                }
             });
             element.addEventListener('input', function () {
                 const index = Number(this.dataset.index);
@@ -386,6 +415,10 @@
             invoiceItems.push({ item_type: '', quantity: '', unit_price: '' });
             renderRows();
         });
+    }
+
+    if (!serviceItemChoices.length) {
+        addItemBtn.disabled = true;
     }
 
     if (searchBox && serviceTable) {

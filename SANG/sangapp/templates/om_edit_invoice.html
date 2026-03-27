@@ -87,6 +87,17 @@
         box-shadow: 0 0 0 3px rgba(26, 42, 94, 0.12);
     }
 
+    .field-select {
+        appearance: none;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        padding-right: 42px;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='10' viewBox='0 0 14 10'%3E%3Cpath fill='none' stroke='%234a4a4a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M1 1l6 6 6-6'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 14px center;
+        background-size: 14px 10px;
+    }
+
     .delete-btn {
         min-width: 128px;
         min-height: 34px;
@@ -227,6 +238,9 @@
 
 {% block extra_js %}
 <script>
+    const serviceItemChoices = JSON.parse('{{ service_item_choices_json|default:"[]"|escapejs }}');
+    const serviceItemPriceMap = Object.fromEntries(serviceItemChoices.map(choice => [choice.value, choice.default_unit_price]));
+
     let items = [];
     try { items = JSON.parse('{{ items_json|escapejs }}'); } catch (error) { items = []; }
     if (!Array.isArray(items) || !items.length) items = [{ item_type: '', quantity: '', unit_price: '' }];
@@ -237,10 +251,14 @@
     function renderRows() {
         rows.innerHTML = '';
         items.forEach((item, index) => {
+            const options = ['<option value="">Select a service item</option>'].concat(
+                serviceItemChoices.map(choice => `<option value="${choice.value}" ${item.item_type === choice.value ? 'selected' : ''}>${choice.label}</option>`)
+            ).join('');
+
             const row = document.createElement('div');
             row.className = 'row';
             row.innerHTML = `
-                <input type="text" class="field" data-index="${index}" data-field="item_type" value="${item.item_type || ''}" placeholder="Service item name">
+                <select class="field field-select" data-index="${index}" data-field="item_type">${options}</select>
                 <input type="number" min="1" class="field" data-index="${index}" data-field="quantity" value="${item.quantity || ''}" placeholder="Quantity">
                 <input type="number" min="0.01" step="0.01" class="field" data-index="${index}" data-field="unit_price" value="${item.unit_price || ''}" placeholder="Unit price">
                 <button type="button" class="delete-btn" data-delete-index="${index}">Delete</button>
@@ -253,6 +271,10 @@
                 const index = Number(this.dataset.index);
                 const field = this.dataset.field;
                 items[index][field] = this.value;
+                if (field === 'item_type' && serviceItemPriceMap[this.value]) {
+                    items[index].unit_price = serviceItemPriceMap[this.value];
+                    renderRows();
+                }
             });
             element.addEventListener('input', function () {
                 const index = Number(this.dataset.index);
@@ -279,6 +301,10 @@
         items.push({ item_type: '', quantity: '', unit_price: '' });
         renderRows();
     });
+
+    if (!serviceItemChoices.length) {
+        document.getElementById('addBtn').disabled = true;
+    }
 
     const openConfirmModal = document.getElementById('openConfirmModal');
     const confirmModal = document.getElementById('confirmModal');
