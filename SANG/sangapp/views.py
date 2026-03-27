@@ -26,6 +26,7 @@ from .models import (
     EstimatedBillItem,
     Invoice,
     InvoiceItem,
+    InvoiceItemOption,
 )
 from .forms import CustomerRegistrationForm
 
@@ -1184,7 +1185,7 @@ def om_edit_invoice(request, invoice_id):
         messages.error(request, 'Invoice not found.')
         return redirect('om_invoices')
 
-    invoice_item_choices = [('Item1', 'Item1'), ('Item2', 'Item2'), ('Item3', 'Item3'), ('Item4', 'Item4')]
+    invoice_item_choices, configured_price_map = _get_invoice_item_choice_data()
 
     if request.method == 'POST':
         if request.POST.get('action') == 'cancel':
@@ -1208,10 +1209,12 @@ def om_edit_invoice(request, invoice_id):
                 ]),
             })
 
-        source_price_map = {item.item_type: item.unit_price for item in invoice.items.all()}
+        source_price_map = dict(configured_price_map)
         if invoice.service.estimated_bill:
             for item in invoice.service.estimated_bill.items.all():
                 source_price_map.setdefault(item.service_type, item.unit_price)
+        for item in invoice.items.all():
+            source_price_map[item.item_type] = item.unit_price
 
         with transaction.atomic():
             invoice.items.all().delete()
@@ -1405,6 +1408,63 @@ def _render_simple_pdf(title, header_lines, table_headers, table_rows, total_lin
     return buffer.getvalue()
 
 
+def _get_invoice_item_choice_data():
+    option_rows = list(
+        InvoiceItemOption.objects.filter(is_active=True)
+        .order_by('name')
+        .values('name', 'default_unit_price')
+    )
+
+    if option_rows:
+        choices = [(row['name'], row['name']) for row in option_rows]
+        price_map = {
+            row['name']: row['default_unit_price']
+            for row in option_rows
+        }
+        return choices, price_map
+
+    fallback_choices = [
+        ('General Pest Control Treatment', 'General Pest Control Treatment'),
+        ('Termite Control', 'Termite Control'),
+        ('Rodent Control', 'Rodent Control'),
+        ('Mosquito Control', 'Mosquito Control'),
+        ('Bed Bug Treatment', 'Bed Bug Treatment'),
+        ('Cockroach Control', 'Cockroach Control'),
+        ('Other', 'Other'),
+    ]
+
+    fallback_price_map = {
+        'General Pest Control Treatment': Decimal('2500.00'),
+        'Termite Control': Decimal('3000.00'),
+        'Rodent Control': Decimal('2200.00'),
+        'Mosquito Control': Decimal('1800.00'),
+        'Bed Bug Treatment': Decimal('2800.00'),
+        'Cockroach Control': Decimal('2000.00'),
+        'Other': Decimal('1500.00'),
+    }
+    return fallback_choices, fallback_price_map
+
+
+def _get_invoice_eligible_services_queryset():
+    return Service.objects.filter(
+        status__in=['Ongoing Treatment', 'Pending Payment'],
+        estimated_bill__isnull=False,
+    ).select_related('customer', 'property', 'estimated_bill').prefetch_related(
+        'estimated_bill__items',
+        'invoices__items',
+    ).order_by('-treatment_confirmed_date', '-confirmed_date', '-date', '-created_at')
+
+
+def _filter_invoice_eligible_services(services):
+    eligible_services = []
+    for service in services:
+        has_previous_invoice = service.invoices.exists()
+        if service.status == 'Pending Payment' and not has_previous_invoice:
+            continue
+        eligible_services.append(service)
+    return eligible_services
+
+
 def om_create_invoice(request):
     if 'om_id' not in request.session:
         return redirect('login')
@@ -1415,19 +1475,13 @@ def om_create_invoice(request):
         request.session.flush()
         return redirect('login')
 
-    selectable_services = Service.objects.filter(
-        status__in=['Ongoing Treatment', 'Pending Payment'],
-        estimated_bill__isnull=False,
-    ).select_related('customer', 'property', 'estimated_bill').order_by('-confirmed_date', '-date', '-created_at')
+    service_candidates = _get_invoice_eligible_services_queryset()
+    selectable_services = _filter_invoice_eligible_services(service_candidates)
 
-    invoice_item_choices = [
-        ('Item1', 'Item1'),
-        ('Item2', 'Item2'),
-        ('Item3', 'Item3'),
-        ('Item4', 'Item4'),
-    ]
+    invoice_item_choices, configured_price_map = _get_invoice_item_choice_data()
 
     service_seed_map = {}
+    service_meta_map = {}
     for service in selectable_services:
         latest_invoice = service.invoices.order_by('-created_at').first()
 
@@ -1454,6 +1508,10 @@ def om_create_invoice(request):
             seed_items = [{'item_type': '', 'quantity': '', 'unit_price': '1500.00'}]
 
         service_seed_map[str(service.id)] = seed_items
+        service_meta_map[str(service.id)] = {
+            'service_type': service.preferred_service,
+            'quantity': str(sum(item.get('quantity', 0) or 0 for item in seed_items if isinstance(item, dict))),
+        }
 
     if request.method == 'POST':
         if request.POST.get('action') == 'cancel':
@@ -1463,7 +1521,10 @@ def om_create_invoice(request):
         raw_items = _parse_invoice_items(request.POST.get('items_json'))
         cleaned_items, has_invalid = _clean_invoice_items(raw_items)
 
-        selected_service = selectable_services.filter(id=selected_service_id).first()
+        selected_service = next(
+            (service for service in selectable_services if str(service.id) == selected_service_id),
+            None,
+        )
         errors = {}
 
         if not selected_service:
@@ -1486,9 +1547,10 @@ def om_create_invoice(request):
                     for value, label in invoice_item_choices
                 ]),
                 'service_seed_map_json': json.dumps(service_seed_map),
+                'service_meta_map_json': json.dumps(service_meta_map),
             })
 
-        source_price_map = {}
+        source_price_map = dict(configured_price_map)
         latest_invoice = selected_service.invoices.order_by('-created_at').first()
         if latest_invoice:
             for item in latest_invoice.items.all():
@@ -1546,6 +1608,7 @@ def om_create_invoice(request):
             for value, label in invoice_item_choices
         ]),
         'service_seed_map_json': json.dumps(service_seed_map),
+        'service_meta_map_json': json.dumps(service_meta_map),
     })
 
 
@@ -1689,7 +1752,50 @@ def om_remittance_records(request):
 
 
 def om_manage_service_forms(request):
-    return om_placeholder(request, 'Manage Service Forms')
+    if 'om_id' not in request.session:
+        return redirect('login')
+
+    try:
+        om = OperationsManager.objects.get(id=request.session['om_id'])
+    except OperationsManager.DoesNotExist:
+        request.session.flush()
+        return redirect('login')
+
+    return render(request, 'om_manage_service_forms.html', {'om': om})
+
+
+def om_service_forms(request):
+    if 'om_id' not in request.session:
+        return redirect('login')
+
+    try:
+        om = OperationsManager.objects.get(id=request.session['om_id'])
+    except OperationsManager.DoesNotExist:
+        request.session.flush()
+        return redirect('login')
+
+    return render(request, 'om_service_forms.html', {
+        'om': om,
+        'service_type_choices': Service.PREFERRED_SERVICE_CHOICES,
+    })
+
+
+def om_invoice_items(request):
+    if 'om_id' not in request.session:
+        return redirect('login')
+
+    try:
+        om = OperationsManager.objects.get(id=request.session['om_id'])
+    except OperationsManager.DoesNotExist:
+        request.session.flush()
+        return redirect('login')
+
+    invoice_item_options = InvoiceItemOption.objects.order_by('name')
+
+    return render(request, 'om_invoice_items.html', {
+        'om': om,
+        'invoice_item_options': invoice_item_options,
+    })
 
 
 def om_manage_accounts(request):

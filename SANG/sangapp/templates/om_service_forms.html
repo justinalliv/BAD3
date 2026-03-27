@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+
+{% block title %}Service Forms - Supreme Biotech Solutions{% endblock %}
+
+{% block extra_css %}
+    .container {
+        max-width: 980px;
+        margin: 24px auto 40px;
+        padding: 0 24px;
+    }
+
+    .identified-top {
+        text-align: right;
+        color: #333;
+        margin: 10px 0 8px;
+        font-size: 0.9em;
+    }
+
+    .sheet {
+        background: #fff;
+        border: 1px solid #ddd;
+        border-radius: 12px;
+        padding: 24px;
+    }
+
+    .title {
+        color: #1a2a5e;
+        text-align: center;
+        margin: 0 0 14px;
+        font-size: 2.1em;
+    }
+
+    .sub {
+        color: #555;
+        text-align: center;
+        margin-bottom: 16px;
+        font-size: 0.95em;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    th,
+    td {
+        padding: 12px 14px;
+        border-bottom: 1px solid #e9ebf1;
+        text-align: left;
+    }
+
+    th {
+        background: #1a2a5e;
+        color: #fff;
+    }
+
+    .back-row {
+        margin-top: 14px;
+        display: flex;
+        justify-content: center;
+    }
+
+    .back-link {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 38px;
+        padding: 0 16px;
+        border-radius: 8px;
+        border: 1px solid #cfd3df;
+        background: #fff;
+        color: #1a2a5e;
+        text-decoration: none;
+    }
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <p class="identified-top">User Identified As: Operations Manager</p>
+
+    <div class="sheet">
+        <h1 class="title">Service Forms</h1>
+        <p class="sub">Current options used in service form treatment fields.</p>
+
+        <table>
+            <thead>
+                <tr>
+                    <th style="width: 14%;">#</th>
+                    <th>Service Form Option</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for value, label in service_type_choices %}
+                <tr>
+                    <td>{{ forloop.counter }}</td>
+                    <td>{{ label }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="2" style="text-align:center;color:#666;">No service form options available.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="back-row">
+        <a href="{% url 'om_manage_service_forms' %}" class="back-link">Back</a>
+    </div>
+</div>
+{% endblock %}

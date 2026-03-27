@@ -228,6 +228,26 @@
         color: #fff;
     }
 
+    .autofill-grid {
+        display: grid;
+        grid-template-columns: 1fr 220px;
+        gap: 12px;
+        margin-bottom: 12px;
+    }
+
+    .autofill-note {
+        margin-top: 8px;
+        color: #666;
+        font-size: 0.86em;
+    }
+
+    @media (max-width: 900px) {
+        .invoice-row,
+        .autofill-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
 {% endblock %}
 
 {% block content %}
@@ -242,7 +262,7 @@
 
         <div class="section-card">
             <div class="section-header">
-                <h2 class="section-label">Select Service Record</h2>
+                <h2 class="section-label">Select service record</h2>
                 <div class="search-wrap">
                     <input type="text" id="searchBox" class="search-box" placeholder="Search">
                 </div>
@@ -285,8 +305,15 @@
             <div class="section-header" style="margin-bottom:12px;">
                 <h2 class="section-label">Invoice Items</h2>
             </div>
+
+            <div class="autofill-grid">
+                <input type="text" class="field" id="autofillServiceType" placeholder="Service Type" readonly>
+                <input type="number" class="field" id="autofillQuantity" placeholder="Quantity" readonly>
+            </div>
+
             <div id="invoiceRows"></div>
             <button type="button" class="add-btn" id="addItemBtn">+ Add an item</button>
+            <p class="autofill-note">Service Type and Quantity are autofilled from the selected estimated bill or previous invoice.</p>
 
             {% if errors.general %}<p class="error">{{ errors.general }}</p>{% endif %}
         </div>
@@ -306,6 +333,16 @@
             </div>
         </div>
     </div>
+
+    <div id="selectServiceModal" class="modal">
+        <div class="modal-content">
+            <h2>Service ID Required</h2>
+            <p>Please click a Service ID first before submitting.</p>
+            <div class="modal-buttons">
+                <button type="button" class="modal-btn modal-btn-confirm" id="closeSelectServiceModal">OK</button>
+            </div>
+        </div>
+    </div>
 </div>
 {% endblock %}
 
@@ -313,6 +350,7 @@
 <script>
     const invoiceItemChoices = JSON.parse('{{ invoice_item_choices_json|default:"[]"|escapejs }}');
     const serviceSeedMap = JSON.parse('{{ service_seed_map_json|default:"{}"|escapejs }}');
+    const serviceMetaMap = JSON.parse('{{ service_meta_map_json|default:"{}"|escapejs }}');
 
     let invoiceItems = [];
     try {
@@ -330,6 +368,8 @@
     const addItemBtn = document.getElementById('addItemBtn');
     const searchBox = document.getElementById('searchBox');
     const serviceTable = document.getElementById('serviceTable');
+    const autofillServiceType = document.getElementById('autofillServiceType');
+    const autofillQuantity = document.getElementById('autofillQuantity');
 
     function buildOptions(selectedValue) {
         return ['<option value="">Select an item</option>']
@@ -392,6 +432,15 @@
             item_type: item.item_type || '',
             quantity: item.quantity || '',
         }));
+
+        const meta = serviceMetaMap[String(serviceId)] || {};
+        if (autofillServiceType) {
+            autofillServiceType.value = meta.service_type || '';
+        }
+        if (autofillQuantity) {
+            autofillQuantity.value = meta.quantity || '';
+        }
+
         renderRows();
     }
 
@@ -429,9 +478,17 @@
     const continueEditing = document.getElementById('continueEditing');
     const confirmSubmit = document.getElementById('confirmSubmit');
     const createInvoiceForm = document.getElementById('createInvoiceForm');
+    const selectServiceModal = document.getElementById('selectServiceModal');
+    const closeSelectServiceModal = document.getElementById('closeSelectServiceModal');
 
     if (openConfirmModal && confirmModal && continueEditing && confirmSubmit && createInvoiceForm) {
         openConfirmModal.addEventListener('click', function () {
+            const selectedService = createInvoiceForm.querySelector('input[name="selected_service_id"]:checked');
+            if (!selectedService && selectServiceModal) {
+                selectServiceModal.classList.add('show');
+                return;
+            }
+
             document.getElementById('formAction').value = 'submit';
             confirmModal.classList.add('show');
         });
@@ -446,8 +503,21 @@
             createInvoiceForm.submit();
         });
 
-        createInvoiceForm.addEventListener('submit', function () {
+        createInvoiceForm.addEventListener('submit', function (event) {
+            const action = document.getElementById('formAction').value;
+            const selectedService = createInvoiceForm.querySelector('input[name="selected_service_id"]:checked');
+            if (action !== 'cancel' && !selectedService && selectServiceModal) {
+                event.preventDefault();
+                selectServiceModal.classList.add('show');
+                return;
+            }
             serializeItems();
+        });
+    }
+
+    if (closeSelectServiceModal && selectServiceModal) {
+        closeSelectServiceModal.addEventListener('click', function () {
+            selectServiceModal.classList.remove('show');
         });
     }
 </script>

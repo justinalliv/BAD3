@@ -198,9 +198,10 @@
                 <tr>
                     <th>Service ID</th>
                     <th>Customer Name</th>
-                    <th>Address</th>
+                    <th>Property Address</th>
                     <th>Service Type</th>
                     <th>Invoice ID</th>
+                    <th>Invoice Link</th>
                     <th>Action</th>
                 </tr>
             </thead>
@@ -215,6 +216,7 @@
                         <td>{{ invoice.service.property.street_number }} {{ invoice.service.property.street }}, {{ invoice.service.property.city }}</td>
                         <td>{{ invoice.service.preferred_service }}</td>
                         <td>INV{{ invoice.id|stringformat:'04d' }}</td>
+                        <td><a href="{% url 'om_view_invoice' invoice.id %}" class="file-link">View Invoice</a></td>
                         <td>
                             <div style="display:flex;gap:6px;flex-wrap:wrap;">
                                 <a href="{% url 'om_view_invoice' invoice.id %}" class="action-chip">View</a>
@@ -228,7 +230,7 @@
                         </td>
                     </tr>
                     {% empty %}
-                    <tr><td colspan="6" class="empty">No invoices available.</td></tr>
+                    <tr><td colspan="7" class="empty">No invoices available.</td></tr>
                     {% endfor %}
                 </tbody>
             </table>

@@ -262,6 +262,20 @@ class Invoice(models.Model):
         ordering = ['-created_at']
 
 
+class InvoiceItemOption(models.Model):
+    name = models.CharField(max_length=255, unique=True)
+    default_unit_price = models.DecimalField(max_digits=12, decimal_places=2, default=1500)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        db_table = 'invoice_item_options'
+        ordering = ['name']
+
+
 class InvoiceItem(models.Model):
     invoice = models.ForeignKey(Invoice, on_delete=models.CASCADE, related_name='items')
     item_type = models.CharField(max_length=255)
