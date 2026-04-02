@@ -138,33 +138,7 @@
         padding: 28px 0;
     }
 
-    .success-banner {
-        background: #1a2a5e;
-        color: #fff;
-        padding: 10px 16px 10px 36px;
-        font-size: 0.86em;
-        font-weight: 600;
-        margin-bottom: 10px;
-        display: inline-block;
-        position: relative;
-    }
 
-    .success-banner::before {
-        content: '!';
-        position: absolute;
-        left: 10px;
-        top: 50%;
-        transform: translateY(-50%);
-        width: 18px;
-        height: 18px;
-        border-radius: 50%;
-        background: #fff;
-        color: #1a2a5e;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: 800;
-    }
 {% endblock %}
 
 {% block content %}
@@ -180,14 +154,6 @@
         </a>
     </div>
 
-    {% if messages %}
-        {% for message in messages %}
-            {% if message.tags == 'success' %}
-                <div class="success-banner">{{ message }}</div>
-            {% endif %}
-        {% endfor %}
-    {% endif %}
-
     <div class="list-shell">
         <div class="toolbar">
             <input type="text" id="searchBox" class="search-box" placeholder="Search">
@@ -195,15 +161,14 @@
 
         <table>
             <thead>
-                <tr>
-                    <th>Service ID</th>
-                    <th>Customer Name</th>
-                    <th>Property Address</th>
-                    <th>Service Type</th>
-                    <th>Invoice ID</th>
-                    <th>Invoice Link</th>
-                    <th>Action</th>
-                </tr>
+                    <tr>
+                        <th>Service ID</th>
+                        <th>Customer Name</th>
+                        <th>Property Address</th>
+                        <th>Service Type</th>
+                        <th>Invoice ID</th>
+                        <th>Action</th>
+                    </tr>
             </thead>
         </table>
         <div class="table-wrap">
@@ -214,14 +179,12 @@
                         <td>{{ invoice.service.id|stringformat:'07d' }}</td>
                         <td>{{ invoice.service.customer.first_name }} {{ invoice.service.customer.last_name }}</td>
                         <td>{{ invoice.service.property.street_number }} {{ invoice.service.property.street }}, {{ invoice.service.property.city }}</td>
-                        <td>{{ invoice.service.preferred_service }}</td>
+                        <td>{{ invoice.service.treatment_summary }}</td>
                         <td>INV{{ invoice.id|stringformat:'04d' }}</td>
-                        <td><a href="{% url 'om_view_invoice' invoice.id %}" class="file-link">View Invoice</a></td>
                         <td>
                             <div style="display:flex;gap:6px;flex-wrap:wrap;">
                                 <a href="{% url 'om_view_invoice' invoice.id %}" class="action-chip">View</a>
                                 <a href="{% url 'om_edit_invoice' invoice.id %}" class="action-chip" style="background:#6c7293;">Edit</a>
-                                <a href="{% url 'om_download_invoice_pdf' invoice.id %}" class="action-chip" style="background:#2b7a4b;">Download PDF</a>
                                 <form method="POST" action="{% url 'om_delete_invoice' invoice.id %}" style="margin:0;" onsubmit="return confirm('Delete this invoice?');">
                                     {% csrf_token %}
                                     <button type="submit" class="action-chip" style="background:#d9534f;">Delete</button>
@@ -230,7 +193,7 @@
                         </td>
                     </tr>
                     {% empty %}
-                    <tr><td colspan="7" class="empty">No invoices available.</td></tr>
+                    <tr><td colspan="6" class="empty">No invoices available.</td></tr>
                     {% endfor %}
                 </tbody>
             </table>

@@ -132,65 +132,20 @@
         border-color: #e74c3c;
     }
 
-    .success-container {
-        text-align: center;
-        padding: 40px 28px;
-        background-color: white;
-        border-radius: 14px;
-        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
-    }
-
-    .success-icon {
-        width: 60px;
-        height: 60px;
-        background-color: #28a745;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin: 0 auto 20px;
-        color: white;
-        font-size: 2em;
-    }
-
-    .success-text {
-        color: #1a2a5e;
-        font-size: 1.1em;
-        line-height: 1.6;
-        margin: 0 auto 30px;
-        max-width: 480px;
-    }
-
-    .success-container .btn {
-        min-width: 200px;
-        min-height: 46px;
-        border-radius: 12px;
-        font-size: 0.96em;
-        font-weight: 700;
-    }
 {% endblock %}
 
 {% block content %}
     <!-- Main Content -->
     <div class="form-container">
         <div class="form-card">
-            {% if success %}
-                <!-- Success State -->
-                <div class="success-container">
-                    <div class="success-icon">✓</div>
-                    <p class="success-text">You have successfully registered a property. You may now proceed to booking an inspection.</p>
-                    <a href="{% url 'property_list' %}" class="btn btn-primary">Back to Properties</a>
-                </div>
-            {% else %}
-                <!-- Form -->
-                <h1>Register Property</h1>
+            <h1>Register Property</h1>
 
-                <form id="propertyForm" method="POST">
-                    {% csrf_token %}
+            <form id="propertyForm" method="POST">
+                {% csrf_token %}
 
-                    {% if errors.general %}
-                        <div style="color: #e74c3c; margin-bottom: 20px; text-align: center;">{{ errors.general }}</div>
-                    {% endif %}
+                {% if errors.general %}
+                    <div style="color: #e74c3c; margin-bottom: 20px; text-align: center;">{{ errors.general }}</div>
+                {% endif %}
 
                     <!-- Property Name -->
                     <div class="form-group form-row full">
@@ -260,7 +215,7 @@
                         </div>
                     </div>
 
-                    <div class="form-row">
+                    <div class="form-group form-row full">
                         <div>
                             <label for="zip_code">Zip Code</label>
                             <input 
@@ -271,17 +226,6 @@
                                 {% if errors.zip_code %}class="error"{% endif %}
                             >
                             {% if errors.zip_code %}<span class="error-message">{{ errors.zip_code }}</span>{% endif %}
-                        </div>
-                        <div>
-                            <label for="country">Country</label>
-                            <input 
-                                type="text" 
-                                id="country" 
-                                name="country"
-                                value="{{ form_data.country }}"
-                                {% if errors.country %}class="error"{% endif %}
-                            >
-                            {% if errors.country %}<span class="error-message">{{ errors.country }}</span>{% endif %}
                         </div>
                     </div>
 
@@ -330,7 +274,6 @@
                         <button type="button" class="btn btn-primary" onclick="openConfirmModal()">Confirm Registration</button>
                     </div>
                 </form>
-            {% endif %}
         </div>
     </div>
 

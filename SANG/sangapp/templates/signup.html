@@ -262,22 +262,6 @@
 {% block base_nav %}{% endblock %}
 
 {% block content %}
-    {% if success %}
-    <div class="container success-container">
-        <div class="logo-section">
-            <div class="logo">
-                <img src="{% static 'images/12_logo.png' %}" alt="Supreme Biotech Solutions logo">
-            </div>
-        </div>
-
-        <div class="form-section success-section">
-            <div class="success-text">
-                You have successfully created an account. You may now login.
-            </div>
-            <a href="{% url 'login' %}" class="login-btn">Login</a>
-        </div>
-    </div>
-    {% else %}
     <div class="container">
         <div class="logo-section">
             <div class="logo">
@@ -359,5 +343,4 @@
             </div>
         </div>
     </div>
-    {% endif %}
 {% endblock %}

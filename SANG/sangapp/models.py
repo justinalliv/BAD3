@@ -1,4 +1,5 @@
 from django.db import models
+import builtins
 
 
 class OperationsManager(models.Model):
@@ -44,6 +45,20 @@ class Customer(models.Model):
         db_table = 'customers'
 
 
+class SalesRepresentative(models.Model):
+    first_name = models.CharField(max_length=100, default='Sales')
+    last_name = models.CharField(max_length=100, default='Representative')
+    email = models.EmailField(unique=True)
+    password = models.CharField(max_length=255)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.first_name} {self.last_name} ({self.email})"
+
+    class Meta:
+        db_table = 'sales_representatives'
+
+
 class Property(models.Model):
     PROPERTY_TYPE_CHOICES = [
         ('Residential', 'Residential'),
@@ -59,7 +74,6 @@ class Property(models.Model):
     street = models.CharField(max_length=255)
     city = models.CharField(max_length=100)
     province = models.CharField(max_length=100)
-    country = models.CharField(max_length=100)
     zip_code = models.CharField(max_length=20)
     property_type = models.CharField(max_length=50, choices=PROPERTY_TYPE_CHOICES)
     floor_area = models.DecimalField(max_digits=10, decimal_places=2)
@@ -140,6 +154,42 @@ class Service(models.Model):
 
     def __str__(self):
         return f"Service #{self.id} - {self.customer.first_name} {self.customer.last_name} ({self.status})"
+
+    @builtins.property
+    def treatment_summary(self):
+        estimated_bill = getattr(self, 'estimated_bill', None)
+        if estimated_bill:
+            names = [item.service_type for item in estimated_bill.items.all() if item.service_type]
+            if names:
+                ordered = []
+                seen = set()
+                for name in names:
+                    normalized = name.strip().lower()
+                    if normalized in seen:
+                        continue
+                    seen.add(normalized)
+                    ordered.append(name)
+                return ', '.join(ordered)
+
+        invoice = self.invoices.order_by('-created_at').first()
+        if invoice:
+            names = [item.item_type for item in invoice.items.all() if item.item_type]
+            if names:
+                ordered = []
+                seen = set()
+                for name in names:
+                    normalized = name.strip().lower()
+                    if normalized in seen:
+                        continue
+                    seen.add(normalized)
+                    ordered.append(name)
+                return ', '.join(ordered)
+
+        latest_booking = self.treatment_bookings.order_by('-created_at').first()
+        if latest_booking and latest_booking.treatment_service:
+            return latest_booking.treatment_service
+
+        return self.preferred_service or '-'
 
     class Meta:
         db_table = 'services'
@@ -299,6 +349,13 @@ class ServiceFormOption(models.Model):
     option_value = models.CharField(max_length=255)
     option_description = models.TextField(blank=True)
     option_rate = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
+    problem_text = models.TextField(blank=True)
+    recommendation_text = models.TextField(blank=True)
+    target_pest = models.CharField(max_length=255, blank=True)
+    application_method = models.CharField(max_length=255, blank=True)
+    additional_information = models.TextField(blank=True)
+    dilution_rate = models.CharField(max_length=255, blank=True)
+    account_number = models.CharField(max_length=100, blank=True)
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -328,3 +385,52 @@ class InvoiceItem(models.Model):
 
     class Meta:
         db_table = 'invoice_items'
+
+
+class PaymentProof(models.Model):
+    STATUS_FOR_VALIDATION = 'For Validation'
+    STATUS_VALIDATED = 'Validated'
+    STATUS_REJECTED = 'Rejected'
+
+    STATUS_CHOICES = [
+        (STATUS_FOR_VALIDATION, STATUS_FOR_VALIDATION),
+        (STATUS_VALIDATED, STATUS_VALIDATED),
+        (STATUS_REJECTED, STATUS_REJECTED),
+    ]
+
+    service = models.OneToOneField(Service, on_delete=models.CASCADE, related_name='payment_proof')
+    invoice = models.ForeignKey(Invoice, on_delete=models.SET_NULL, null=True, blank=True, related_name='payment_proofs')
+    customer = models.ForeignKey(Customer, on_delete=models.CASCADE, related_name='payment_proofs')
+    payment_type = models.CharField(max_length=100)
+    bank_used = models.CharField(max_length=255)
+    account_number = models.CharField(max_length=100, blank=True)
+    reference_number = models.CharField(max_length=255)
+    amount_paid = models.DecimalField(max_digits=12, decimal_places=2)
+    proof_file = models.FileField(upload_to='payment_proofs/')
+    status = models.CharField(max_length=50, choices=STATUS_CHOICES, default=STATUS_FOR_VALIDATION)
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+    validated_at = models.DateTimeField(blank=True, null=True)
+    validated_by = models.ForeignKey(SalesRepresentative, on_delete=models.SET_NULL, null=True, blank=True, related_name='validated_payment_proofs')
+    rejection_reason = models.TextField(blank=True)
+
+    def __str__(self):
+        return f"Payment Proof #{self.id} for Service #{self.service_id}"
+
+    class Meta:
+        db_table = 'payment_proofs'
+        ordering = ['-uploaded_at']
+
+
+class RemittanceRecord(models.Model):
+    payment_proof = models.OneToOneField(PaymentProof, on_delete=models.CASCADE, related_name='remittance_record')
+    service = models.ForeignKey(Service, on_delete=models.CASCADE, related_name='remittance_records')
+    invoice = models.ForeignKey(Invoice, on_delete=models.SET_NULL, null=True, blank=True, related_name='remittance_records')
+    confirmed_by = models.ForeignKey(SalesRepresentative, on_delete=models.SET_NULL, null=True, blank=True, related_name='remittance_records')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Remittance Record #{self.id} for Service #{self.service_id}"
+
+    class Meta:
+        db_table = 'remittance_records'
+        ordering = ['-created_at']

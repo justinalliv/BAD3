@@ -115,10 +115,9 @@ Use this section as an Input/Output guide for manual testing.
 
 These pages/features currently exist but are not fully implemented with complete business logic/data persistence:
 
-- `pending_payment` page is currently display-only.
-- `submit_payment_proof` validates fields/files but has TODO for database save.
-- OM placeholder modules: `Service History`, `Remittance Records`, `Manage Service Forms`.
-- Technician `Service History` currently uses placeholder page.
+- OM `Service History` currently uses a placeholder page.
+- Technician `Service History` currently uses a placeholder page.
+- Sales Representative account passwords are currently stored in plain text (same pattern as other role accounts in this project).
 
 ## 6) Notes for Test Execution
 

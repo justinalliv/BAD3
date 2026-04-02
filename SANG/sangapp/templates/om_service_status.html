@@ -202,12 +202,6 @@
     <p class="identified">User Identified As: Operations Manager</p>
     <h1>Service Status</h1>
 
-    {% if messages %}
-        {% for message in messages %}
-            <div class="flash">{{ message }}</div>
-        {% endfor %}
-    {% endif %}
-
     <div class="table-wrap">
         <div class="top-actions">
             <form method="GET" style="margin:0;display:flex;align-items:center;gap:8px;">
@@ -225,6 +219,7 @@
                 <tr>
                     <th>Service ID</th>
                     <th>Customer Name</th>
+                    <th>Service Type</th>
                     <th>Confirmed Inspection Date</th>
                     <th>Confirmed Treatment Date</th>
                     <th>Created At</th>
@@ -237,6 +232,7 @@
                 <tr>
                     <td>{{ service.id|stringformat:"07d" }}</td>
                     <td>{{ service.customer.first_name }} {{ service.customer.last_name }}</td>
+                    <td>{{ service.treatment_summary }}</td>
                     <td>{% if service.inspection_confirmed_date %}{{ service.inspection_confirmed_date|date:'M d, Y' }}{% else %}-{% endif %}</td>
                     <td>{% if service.treatment_confirmed_date %}{{ service.treatment_confirmed_date|date:'M d, Y' }}{% else %}-{% endif %}</td>
                     <td>{{ service.created_at|date:'M d, Y h:i A' }}</td>

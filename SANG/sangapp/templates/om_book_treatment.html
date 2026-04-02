@@ -144,12 +144,6 @@
         <h1>Book a treatment</h1>
     </div>
 
-    {% if success %}
-        <div class="success-message">You have successfully booked a treatment.</div>
-        <div class="button-row">
-            <a href="{% url 'om_service_status' %}" class="btn btn-confirm" style="text-decoration:none;display:inline-flex;align-items:center;justify-content:center;">Back to Service Status</a>
-        </div>
-    {% else %}
     <form method="POST" id="bookTreatmentForm">
         {% csrf_token %}
 
@@ -222,7 +216,6 @@
             </div>
         </div>
     </div>
-    {% endif %}
 </div>
 {% endblock %}
 

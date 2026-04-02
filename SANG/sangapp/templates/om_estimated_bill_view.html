@@ -55,6 +55,7 @@
         padding: 12px 14px;
         font-size: 0.9em;
         text-align: left;
+        vertical-align: top;
     }
 
     th {
@@ -72,10 +73,6 @@
         border-bottom: none;
     }
 
-    tbody tr:hover {
-        background: #f8f9fc;
-    }
-
     .num-col {
         text-align: right;
         white-space: nowrap;
@@ -88,24 +85,10 @@
         color: #222;
     }
 
-    .confirm-btn {
-        border: none;
-        background: #1a2a5e;
-        color: #fff;
-        min-height: 38px;
-        padding: 0 16px;
-        border-radius: 8px;
-        font-size: 0.96em;
-        font-weight: 700;
-        cursor: pointer;
-    }
-
     .back-row {
         margin-top: 14px;
         display: flex;
         justify-content: center;
-        align-items: center;
-        gap: 10px;
     }
 
     .back-link {
@@ -121,14 +104,28 @@
         text-decoration: none;
     }
 
+    .detail-note {
+        margin-top: 12px;
+        background: #f9fafc;
+        border: 1px solid #dfe3ee;
+        border-radius: 12px;
+        padding: 14px 16px;
+    }
+
+    .detail-note h3 {
+        color: #1a2a5e;
+        margin-bottom: 6px;
+        font-size: 1em;
+    }
+
+    .detail-note p {
+        color: #495057;
+        font-size: 0.92em;
+    }
+
     @media (max-width: 760px) {
         .meta {
             grid-template-columns: 1fr;
-        }
-
-        .back-row {
-            flex-direction: column;
-            align-items: center;
         }
     }
 {% endblock %}
@@ -148,26 +145,36 @@
             <div><strong>Customer Name:</strong> {{ estimated_bill.service.customer.first_name }} {{ estimated_bill.service.customer.last_name }}</div>
             <div><strong>Address:</strong> {{ estimated_bill.service.property.street_number }} {{ estimated_bill.service.property.street }}, {{ estimated_bill.service.property.city }}</div>
             <div><strong>Date Created:</strong> {{ estimated_bill.created_at|date:'m/d/Y' }}</div>
-            <div><strong>Service Date:</strong> {{ estimated_bill.service.date|date:'m/d/Y' }}</div>
+            <div><strong>Service Type:</strong> {{ service_type_display }}</div>
         </div>
 
         <div class="bill-table-wrap">
             <table>
                 <thead>
                     <tr>
-                        <th>Service Type</th>
+                        <th>Treatment</th>
                         <th class="num-col">Quantity</th>
                         <th class="num-col">Unit Price</th>
                         <th class="num-col">Line Total</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {% for item in estimated_bill.items.all %}
+                    {% for item in treatment_rows %}
                     <tr>
                         <td>{{ item.service_type }}</td>
                         <td class="num-col">{{ item.quantity }}</td>
                         <td class="num-col">₱ {{ item.unit_price }}</td>
                         <td class="num-col">₱ {{ item.line_total }}</td>
+                    </tr>
+                    <tr>
+                        <td colspan="4">
+                            <div class="detail-note">
+                                <h3>Problem</h3>
+                                <p>{{ item.problem_text|default:'-' }}</p>
+                                <h3 style="margin-top:10px;">Recommendation</h3>
+                                <p>{{ item.recommendation_text|default:'-' }}</p>
+                            </div>
+                        </td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -175,58 +182,10 @@
         </div>
 
         <p class="total">Total Estimated Amount: ₱ {{ estimated_bill.total_amount }}</p>
-
     </div>
 
     <div class="back-row">
-        <a href="{% url back_url_name|default:'om_estimated_bills' %}" class="back-link">Back</a>
-        {% if allow_confirm %}
-            <form method="POST" id="confirmEstimatedBillForm" style="margin:0;">
-                {% csrf_token %}
-                <button type="button" id="openConfirmModal" class="confirm-btn">Confirm</button>
-                <input type="hidden" name="action" value="confirm">
-            </form>
-        {% endif %}
+        <a href="{{ back_url|default:'#' }}" class="back-link">Back</a>
     </div>
-
-    {% if allow_confirm %}
-    <div id="confirmModal" class="modal">
-        <div class="modal-content">
-            <h2>Confirm estimated bill</h2>
-            <p>Are you sure you want to confirm this estimated bill?</p>
-            <div class="modal-buttons">
-                <button type="button" class="modal-btn modal-btn-cancel" id="continueEditing">Continue Editing</button>
-                <button type="button" class="modal-btn modal-btn-confirm" id="confirmSubmit">Confirm</button>
-            </div>
-        </div>
-    </div>
-    {% endif %}
 </div>
-{% endblock %}
-
-{% block extra_js %}
-{% if allow_confirm %}
-<script>
-    const openConfirmModal = document.getElementById('openConfirmModal');
-    const confirmModal = document.getElementById('confirmModal');
-    const continueEditing = document.getElementById('continueEditing');
-    const confirmSubmit = document.getElementById('confirmSubmit');
-    const confirmEstimatedBillForm = document.getElementById('confirmEstimatedBillForm');
-
-    if (openConfirmModal && confirmModal && continueEditing && confirmSubmit && confirmEstimatedBillForm) {
-        openConfirmModal.addEventListener('click', function () {
-            confirmModal.classList.add('show');
-        });
-
-        continueEditing.addEventListener('click', function () {
-            confirmModal.classList.remove('show');
-        });
-
-        confirmSubmit.addEventListener('click', function () {
-            confirmModal.classList.remove('show');
-            confirmEstimatedBillForm.submit();
-        });
-    }
-</script>
-{% endif %}
 {% endblock %}

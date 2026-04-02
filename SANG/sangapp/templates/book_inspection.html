@@ -143,66 +143,11 @@
         box-shadow: 0 0 0 3px rgba(26, 42, 94, 0.2);
     }
 
-    .success-container {
-        text-align: center;
-        padding: 40px 20px;
-    }
-
-    .success-icon {
-        width: 60px;
-        height: 60px;
-        background-color: #28a745;
-        border-radius: 50%;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        margin: 0 auto 20px;
-        color: white;
-        font-size: 2em;
-        font-weight: bold;
-    }
-
-    .success-icon::before {
-        content: "✓";
-    }
-
-    .success-container h2 {
-        color: #1a2a5e;
-        margin-bottom: 15px;
-        font-size: 1.5em;
-    }
-
-    .success-container p {
-        color: #333;
-        font-size: 1em;
-        line-height: 1.6;
-        margin-bottom: 10px;
-    }
-
-    .service-id {
-        font-size: 1.5rem;
-        font-weight: bold;
-        color: #1a2a5e;
-        margin: 1rem 0 2rem 0;
-    }
 {% endblock %}
 
 {% block content %}
     <!-- Main Content -->
     <div class="main-content">
-        {% if success %}
-        <!-- Success State -->
-        <div class="section">
-            <div class="success-container">
-                <div class="success-icon"></div>
-                <h2>Booking Successful!</h2>
-                <p>You have successfully booked a site inspection.</p>
-                <p>Your booking is now in <strong>For Confirmation</strong> status. Please wait for a confirmation call from the Operations Manager.</p>
-                <p class="service-id">Service ID: {{ service_id }}</p>
-                <a href="{% url 'service_status' %}" class="btn btn-primary">View Service Status</a>
-            </div>
-        </div>
-        {% else %}
         <!-- Form -->
         <div class="section">
             <div class="page-header">
@@ -226,7 +171,10 @@
                         </option>
                         {% endfor %}
                     </select>
-                    {% if errors.property_id %}
+                    {% if errors.property_id and errors.property_id != 'You need to register a property before booking an inspection.' %}
+                    <div class="error">{{ errors.property_id }}</div>
+                    {% endif %}
+                    {% if errors.property_id == 'You need to register a property before booking an inspection.' %}
                     <div class="error">{{ errors.property_id }}</div>
                     {% endif %}
                 </div>
@@ -328,7 +276,6 @@
                 </div>
             </form>
         </div>
-        {% endif %}
     </div>
 
     <!-- Confirmation Modal -->

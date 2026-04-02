@@ -189,9 +189,7 @@
                     <tr>
                         <td>{{ service.id|stringformat:"07d" }}</td>
                         <td>{{ service.property.street_number }} {{ service.property.street }}, {{ service.property.city }}</td>
-                        <td>
-                            {{ service.preferred_service|default:'-' }}
-                        </td>
+                        <td>{{ service.treatment_summary }}</td>
                         <td>{{ service.date|date:'M d, Y' }}</td>
                         <td>{% if service.inspection_confirmed_date %}{{ service.inspection_confirmed_date|date:'M d, Y' }}{% else %}-{% endif %}</td>
                         <td>{% if service.treatment_confirmed_date %}{{ service.treatment_confirmed_date|date:'M d, Y' }}{% else %}-{% endif %}</td>
@@ -206,6 +204,17 @@
                                     <span style="font-size:0.86em;color:#666;">Submitted {{ service.created_at|date:'M d, Y h:i A' }}. Please wait for OM call.</span>
                                 {% elif service.estimated_bill %}
                                     <a href="{% url 'customer_view_estimated_bill' service.id %}" class="action-btn">View Estimated Bill</a>
+                                {% endif %}
+
+                                {% if service.status == 'Pending Payment' or service.payment_proof %}
+                                    <a href="{% url 'customer_view_invoice' service.id %}" class="action-btn">View Invoice</a>
+                                    {% if service.can_submit_payment_proof %}
+                                        <a href="{% url 'submit_payment_proof' %}?service_id={{ service.id }}" class="action-btn">Submit Proof</a>
+                                    {% elif service.payment_proof_status == 'For Validation' %}
+                                        <span style="font-size:0.86em;color:#6b5000;">Proof submitted. Awaiting validation.</span>
+                                    {% elif service.payment_proof_status == 'Validated' %}
+                                        <span style="font-size:0.86em;color:#1e5f39;">Payment confirmed.</span>
+                                    {% endif %}
                                 {% endif %}
 
                                 {% if service.service_report %}

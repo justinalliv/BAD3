@@ -20,6 +20,7 @@ from .models import (
     Property,
     Service,
     OperationsManager,
+    SalesRepresentative,
     TreatmentBooking,
     Technician,
     ServiceReport,
@@ -31,6 +32,8 @@ from .models import (
     Invoice,
     InvoiceItem,
     InvoiceItemOption,
+    PaymentProof,
+    RemittanceRecord,
     ServiceFormOption,
 )
 from .forms import CustomerRegistrationForm
@@ -53,12 +56,12 @@ OM_STATUS_WORKFLOW = [
 OM_STATUS_TRANSITIONS = {
     'For Confirmation': ['For Inspection'],
     'For Inspection': ['Ongoing Inspection'],
-    'Ongoing Inspection': ['Estimated Bill Created', 'Ongoing Inspection'],
-    'Estimated Bill Created': ['For Treatment Booking', 'Ongoing Inspection'],
+    'Ongoing Inspection': [],
+    'Estimated Bill Created': ['For Treatment Booking'],
     'For Treatment Booking': ['For Treatment'],
     'For Treatment': ['Ongoing Treatment'],
-    'Ongoing Treatment': ['Pending Payment', 'For Treatment'],
-    'Pending Payment': ['Payment Confirmed',],
+    'Ongoing Treatment': [],
+    'Pending Payment': ['Ongoing Treatment', 'Payment Confirmed',],
     'Payment Confirmed': ['Completed'],
 }
 
@@ -84,30 +87,72 @@ TREATMENT_SERVICE_METADATA = {
     'Termite Control': {
         'description': 'Targeted treatment for active termite activity.',
         'rate': Decimal('3000.00'),
+        'problem_text': 'Active termite presence or suspected colony activity.',
+        'recommendation_text': 'Apply targeted termiticide treatment and monitor affected areas.',
+        'target_pest': 'Termites',
+        'application_method': 'Injection and perimeter application',
+        'additional_information': 'Inspect wall voids and timber contact points.',
+        'dilution_rate': '1:10',
     },
     'Cockroach Control': {
         'description': 'Focused control for cockroach infestations.',
         'rate': Decimal('2000.00'),
+        'problem_text': 'Cockroach sightings in kitchens, drains, and storage areas.',
+        'recommendation_text': 'Use residual spray and gel baiting for sustained control.',
+        'target_pest': 'Cockroaches',
+        'application_method': 'Residual spray and bait placement',
+        'additional_information': 'Treat cracks, crevices, and harborage points.',
+        'dilution_rate': '1:20',
     },
     'General Pest Control Treatment': {
         'description': 'General-purpose treatment for common pests.',
         'rate': Decimal('2500.00'),
+        'problem_text': 'General pest activity across common entry and harboring areas.',
+        'recommendation_text': 'Apply a broad-spectrum treatment with follow-up inspection.',
+        'target_pest': 'General Pests',
+        'application_method': 'Surface spray and barrier treatment',
+        'additional_information': 'Covers common pest pressure in occupied areas.',
+        'dilution_rate': '1:15',
     },
     'Mosquito Control': {
         'description': 'Mosquito population reduction treatment.',
         'rate': Decimal('1800.00'),
+        'problem_text': 'Mosquito breeding or resting activity near the property.',
+        'recommendation_text': 'Treat breeding sites and perimeter vegetation.',
+        'target_pest': 'Mosquitoes',
+        'application_method': 'Fogging and residual surface treatment',
+        'additional_information': 'Inspect stagnant water and shaded outdoor zones.',
+        'dilution_rate': '1:25',
     },
     'Rodent Control': {
         'description': 'Rodent monitoring and control treatment.',
         'rate': Decimal('2200.00'),
+        'problem_text': 'Rodent droppings, gnaw marks, or live rodent activity.',
+        'recommendation_text': 'Install bait stations and seal entry points.',
+        'target_pest': 'Rodents',
+        'application_method': 'Baiting and trapping',
+        'additional_information': 'Review rooflines, utility penetrations, and storage spaces.',
+        'dilution_rate': 'N/A',
     },
     'Bed Bug Treatment': {
         'description': 'Specialized treatment for bed bug infestations.',
         'rate': Decimal('2800.00'),
+        'problem_text': 'Bed bug bites, spotting, or infestation in sleeping areas.',
+        'recommendation_text': 'Treat mattresses, bed frames, and adjacent furnishings.',
+        'target_pest': 'Bed Bugs',
+        'application_method': 'Residual spray and targeted crack treatment',
+        'additional_information': 'Encourage laundering and heat treatment where appropriate.',
+        'dilution_rate': '1:20',
     },
 }
 
 FALLBACK_CHEMICAL_NAMES = ['Temprid', 'Maxforce', 'Racumin', 'Muriatic Acid', 'Solignum']
+PAYMENT_BANK_DEFAULTS = [
+    ('BDO', '0000-0000-0000'),
+    ('BPI', '0000-1111-2222'),
+    ('Landbank', '0000-2222-3333'),
+    ('Metrobank', '0000-3333-4444'),
+]
 
 
 def _unique_preserve_order(values):
@@ -133,13 +178,13 @@ def _build_service_form_default_options():
 
     return {
         ('Inspection', 'Type of Property'): [label for _, label in Property.PROPERTY_TYPE_CHOICES],
-        ('Inspection', 'Preferred Service'): [label for _, label in Service.PREFERRED_SERVICE_CHOICES],
+        ('Inspection', 'Preferred Service'): TREATMENT_SERVICE_PREDEFINED_OPTIONS,
         ('Inspection', 'Pest Problems'): [label for _, label in Service.PEST_PROBLEM_CHOICES],
         ('Treatment', 'Treatment Service'): TREATMENT_SERVICE_PREDEFINED_OPTIONS,
         ('Service Report Submission', 'Service Done'): TREATMENT_SERVICE_PREDEFINED_OPTIONS,
         ('Service Report Submission', 'Chemicals Used'): chemical_names,
         ('Service Report Submission', 'Levels of Infestation'): [label for _, label in ServiceReportArea.INFESTATION_CHOICES],
-        ('Payment Proof Submission', 'Bank Used for Payment'): ['BDO', 'BPI', 'Landbank', 'Metrobank'],
+        ('Payment Proof Submission', 'Bank Used for Payment'): [name for name, _ in PAYMENT_BANK_DEFAULTS],
         ('Payment Proof Submission', 'Payment Type'): ['Online Bank Transfer', 'Over-the-counter Deposit', 'E-Wallet Transfer'],
     }
 
@@ -204,6 +249,40 @@ def _ensure_service_form_default_options():
         if option.option_rate is None:
             option.option_rate = metadata['rate']
             update_fields.append('option_rate')
+        if not option.problem_text:
+            option.problem_text = metadata['problem_text']
+            update_fields.append('problem_text')
+        if not option.recommendation_text:
+            option.recommendation_text = metadata['recommendation_text']
+            update_fields.append('recommendation_text')
+        if not option.target_pest:
+            option.target_pest = metadata['target_pest']
+            update_fields.append('target_pest')
+        if not option.application_method:
+            option.application_method = metadata['application_method']
+            update_fields.append('application_method')
+        if not option.additional_information:
+            option.additional_information = metadata['additional_information']
+            update_fields.append('additional_information')
+        if not option.dilution_rate:
+            option.dilution_rate = metadata['dilution_rate']
+            update_fields.append('dilution_rate')
+        if update_fields:
+            update_fields.append('updated_at')
+            option.save(update_fields=update_fields)
+
+    for bank_name, account_number in PAYMENT_BANK_DEFAULTS:
+        option = ServiceFormOption.objects.filter(
+            form_section='Payment Proof Submission',
+            field_name='Bank Used for Payment',
+            option_value__iexact=bank_name,
+        ).order_by('-is_active', 'id').first()
+        if not option:
+            continue
+        update_fields = []
+        if not option.account_number:
+            option.account_number = account_number
+            update_fields.append('account_number')
         if update_fields:
             update_fields.append('updated_at')
             option.save(update_fields=update_fields)
@@ -239,6 +318,68 @@ def _get_service_form_choices(form_section, field_name, fallback_values=None, ex
     return [(value, value) for value in values]
 
 
+def _get_service_form_option_map(form_section, field_name):
+    options = ServiceFormOption.objects.filter(
+        form_section=form_section,
+        field_name=field_name,
+        is_active=True,
+    ).order_by('option_value')
+    return {option.option_value: option for option in options}
+
+
+def _resolve_back_url(request, default_name, *, fallback_query_param='back'):
+    back_url = request.GET.get(fallback_query_param, '').strip()
+    if back_url.startswith('/'):
+        return back_url
+    if back_url.startswith('http://') or back_url.startswith('https://'):
+        return reverse(default_name)
+    return reverse(default_name)
+
+
+def _service_display_treatments(service):
+    bill = getattr(service, 'estimated_bill', None)
+    if bill:
+        names = [item.service_type for item in bill.items.all() if item.service_type]
+        if names:
+            return ', '.join(names)
+
+    invoice = service.invoices.order_by('-created_at').first() if hasattr(service, 'invoices') else None
+    if invoice:
+        names = [item.item_type for item in invoice.items.all() if item.item_type]
+        if names:
+            return ', '.join(names)
+
+    bookings = getattr(service, 'treatment_bookings', None)
+    if bookings:
+        names = [booking.treatment_service for booking in bookings.all() if booking.treatment_service]
+        if names:
+            return ', '.join(_unique_preserve_order(names))
+
+    return service.preferred_service or '-'
+
+
+def _get_treatment_option_by_name(option_name):
+    if not option_name:
+        return None
+    return ServiceFormOption.objects.filter(
+        form_section='Treatment',
+        field_name='Treatment Service',
+        option_value__iexact=option_name.strip(),
+        is_active=True,
+    ).order_by('-updated_at', '-id').first()
+
+
+def _get_bank_option_by_name(bank_name):
+    if not bank_name:
+        return None
+    return ServiceFormOption.objects.filter(
+        form_section='Payment Proof Submission',
+        field_name='Bank Used for Payment',
+        option_value__iexact=bank_name.strip(),
+        is_active=True,
+    ).order_by('-updated_at', '-id').first()
+
+
 def _get_treatment_service_names():
     names = _get_active_service_form_option_values(
         'Treatment',
@@ -254,6 +395,8 @@ def home(request):
         return redirect('om_home')
     if request.session.get('technician_id'):
         return redirect('technician_home')
+    if request.session.get('sales_representative_id'):
+        return redirect('sales_representative_home')
     return render(request, 'home.html')
 
 
@@ -276,6 +419,13 @@ def login(request):
             request.session['technician_name'] = f"{technician.first_name} {technician.last_name}"
             return redirect('technician_home')
 
+        sales_representative = SalesRepresentative.objects.filter(email__iexact=email).only('id', 'password', 'first_name', 'last_name').first()
+        if sales_representative and sales_representative.password == password:
+            request.session.flush()
+            request.session['sales_representative_id'] = sales_representative.id
+            request.session['sales_representative_name'] = f"{sales_representative.first_name} {sales_representative.last_name}"
+            return redirect('sales_representative_home')
+
         customer = Customer.objects.filter(email=email).only('id', 'password', 'first_name', 'last_name').first()
         if customer and customer.password == password:
             request.session.flush()
@@ -283,8 +433,10 @@ def login(request):
             request.session['customer_name'] = f"{customer.first_name} {customer.last_name}"
             return redirect('home')
 
-        messages.error(request, 'Invalid email or password.')
-        return render(request, 'login.html', status=401)
+        return render(request, 'login.html', {
+            'error_message': 'Invalid email or password.',
+            'form_data': {'email': email},
+        }, status=401)
     
     return render(request, 'login.html')
 
@@ -320,11 +472,7 @@ def signup(request):
             request.session['customer_id'] = customer.id
             request.session['customer_name'] = f"{customer.first_name} {customer.last_name}"
             
-            # Store success message and redirect to success page
-            return render(request, 'signup.html', {
-                'success': True,
-                'customer_name': f"{customer.first_name} {customer.last_name}"
-            })
+            return redirect('login')
         else:
             # Form has validation errors, re-render with errors
             return render(request, 'signup.html', {'form': form})
@@ -352,7 +500,12 @@ def profile(request):
         customer=customer
     ).exclude(
         status__in=['Completed', 'Cancelled']
-    ).select_related('property').order_by('-created_at')
+    ).select_related('property', 'estimated_bill', 'service_report', 'payment_proof').order_by('-created_at')
+
+    for service in services:
+        proof = getattr(service, 'payment_proof', None)
+        service.payment_proof_status = proof.status if proof else ''
+        service.can_submit_payment_proof = (not proof) or proof.status == PaymentProof.STATUS_REJECTED
     
     return render(request, 'profile.html', {
         'customer': customer,
@@ -448,10 +601,7 @@ def change_password(request):
         if not errors:
             customer.password = new_password
             customer.save(update_fields=['password'])
-            return render(request, 'change_password.html', {
-                'customer': customer,
-                'success': True,
-            })
+            return redirect('profile')
 
         return render(request, 'change_password.html', {
             'customer': customer,
@@ -467,9 +617,19 @@ def pending_payment(request):
     if 'customer_id' not in request.session:
         return redirect('login')
     
-    # For now, show empty pending payments
-    # TODO: Fetch actual pending payments from database
-    return render(request, 'pending_payment.html')
+    services = Service.objects.filter(
+        customer=Customer.objects.get(id=request.session['customer_id']),
+        status='Pending Payment',
+    ).select_related('property', 'payment_proof').order_by('-created_at')
+
+    for service in services:
+        proof = getattr(service, 'payment_proof', None)
+        service.payment_proof_status = proof.status if proof else ''
+        service.can_submit_payment_proof = (not proof) or proof.status == PaymentProof.STATUS_REJECTED
+
+    return render(request, 'pending_payment.html', {
+        'pending_payments': services,
+    })
 
 
 def payment_instructions(request):
@@ -490,9 +650,11 @@ def submit_payment_proof(request):
     if request.method == 'POST':
         payment_type = request.POST.get('payment_type', '').strip()
         bank_used = request.POST.get('bank_used', '').strip()
+        account_number = request.POST.get('account_number', '').strip()
         reference_number = request.POST.get('reference_number', '').strip()
         amount_paid = request.POST.get('amount_paid', '').strip()
         proof_file = request.FILES.get('proof_file')
+        service_id = request.POST.get('service_id', '').strip()
         
         # Validate all fields
         errors = {}
@@ -500,6 +662,8 @@ def submit_payment_proof(request):
             errors['payment_type'] = 'Payment type is required'
         if not bank_used:
             errors['bank_used'] = 'Bank is required'
+        if not account_number:
+            errors['account_number'] = 'Account number is required'
         if not reference_number:
             errors['reference_number'] = 'Reference number is required'
         if not amount_paid:
@@ -510,23 +674,134 @@ def submit_payment_proof(request):
         # Validate file format and size
         if proof_file:
             allowed_extensions = ['jpg', 'jpeg', 'png', 'pdf']
-            max_size = 5 * 1024 * 1024  # 5 MB
+            max_size = 10 * 1024 * 1024  # 10 MB
             
             file_ext = proof_file.name.split('.')[-1].lower()
             if file_ext not in allowed_extensions:
                 errors['file'] = 'File format not allowed. Only JPG, PNG, or PDF are accepted.'
             
             if proof_file.size > max_size:
-                errors['file'] = 'File size exceeds 5 MB limit.'
+                errors['file'] = 'File size exceeds 10 MB limit.'
         
         if errors:
-            return render(request, 'submit_payment_proof.html', {'errors': errors})
-        
-        # TODO: Save payment proof to database
-        # For now, payment submission is successful
-        return render(request, 'submit_payment_proof.html', {'success': True})
-    
-    return render(request, 'submit_payment_proof.html')
+            return render(request, 'submit_payment_proof.html', {
+                'errors': errors,
+                'form_data': request.POST,
+                'back_url': _resolve_back_url(request, 'pending_payment'),
+            })
+
+        service = None
+        invoice = None
+        if service_id:
+            service = Service.objects.filter(id=service_id, customer_id=request.session['customer_id']).first()
+            if service:
+                invoice = service.invoices.order_by('-created_at').first()
+
+        if not service:
+            errors['service_id'] = 'A valid pending payment service is required.'
+            return render(request, 'submit_payment_proof.html', {
+                'errors': errors,
+                'form_data': request.POST,
+                'back_url': _resolve_back_url(request, 'pending_payment'),
+            })
+
+        existing_proof = PaymentProof.objects.filter(service=service).first()
+        if existing_proof and existing_proof.status in {
+            PaymentProof.STATUS_FOR_VALIDATION,
+            PaymentProof.STATUS_VALIDATED,
+        }:
+            errors['service_id'] = 'Payment proof has already been submitted for this service.'
+            return render(request, 'submit_payment_proof.html', {
+                'errors': errors,
+                'form_data': request.POST,
+                'service': service,
+                'invoice': invoice,
+                'bank_options': list(ServiceFormOption.objects.filter(
+                    form_section='Payment Proof Submission',
+                    field_name='Bank Used for Payment',
+                    is_active=True,
+                ).order_by('option_value')),
+                'payment_type_options': list(ServiceFormOption.objects.filter(
+                    form_section='Payment Proof Submission',
+                    field_name='Payment Type',
+                    is_active=True,
+                ).order_by('option_value')),
+                'back_url': _resolve_back_url(request, 'pending_payment'),
+            })
+
+        if existing_proof and existing_proof.status == PaymentProof.STATUS_REJECTED:
+            existing_proof.invoice = invoice
+            existing_proof.payment_type = payment_type
+            existing_proof.bank_used = bank_used
+            existing_proof.account_number = account_number
+            existing_proof.reference_number = reference_number
+            existing_proof.amount_paid = amount_paid
+            existing_proof.proof_file = proof_file
+            existing_proof.status = PaymentProof.STATUS_FOR_VALIDATION
+            existing_proof.validated_at = None
+            existing_proof.validated_by = None
+            existing_proof.rejection_reason = ''
+            existing_proof.save(update_fields=[
+                'invoice',
+                'payment_type',
+                'bank_used',
+                'account_number',
+                'reference_number',
+                'amount_paid',
+                'proof_file',
+                'status',
+                'validated_at',
+                'validated_by',
+                'rejection_reason',
+            ])
+            return redirect('pending_payment')
+
+        PaymentProof.objects.create(
+            service=service,
+            invoice=invoice,
+            customer_id=request.session['customer_id'],
+            payment_type=payment_type,
+            bank_used=bank_used,
+            account_number=account_number,
+            reference_number=reference_number,
+            amount_paid=amount_paid,
+            proof_file=proof_file,
+        )
+
+        return redirect('pending_payment')
+
+    service_id = request.GET.get('service_id', '').strip()
+    service = None
+    invoice = None
+    if service_id:
+        service = Service.objects.filter(id=service_id, customer_id=request.session['customer_id']).select_related('property').first()
+        if service:
+            invoice = service.invoices.order_by('-created_at').first()
+
+    if not service:
+        service = Service.objects.filter(customer_id=request.session['customer_id'], status='Pending Payment').select_related('property').order_by('-created_at').first()
+        if service:
+            invoice = service.invoices.order_by('-created_at').first()
+
+    bank_options = list(ServiceFormOption.objects.filter(
+        form_section='Payment Proof Submission',
+        field_name='Bank Used for Payment',
+        is_active=True,
+    ).order_by('option_value'))
+    payment_type_options = list(ServiceFormOption.objects.filter(
+        form_section='Payment Proof Submission',
+        field_name='Payment Type',
+        is_active=True,
+    ).order_by('option_value'))
+
+    return render(request, 'submit_payment_proof.html', {
+        'service': service,
+        'invoice': invoice,
+        'bank_options': bank_options,
+        'payment_type_options': payment_type_options,
+        'form_data': {},
+        'back_url': _resolve_back_url(request, 'pending_payment'),
+    })
 
 
 def property_list(request):
@@ -566,7 +841,6 @@ def register_property(request):
         street = request.POST.get('street', '').strip()
         city = request.POST.get('city', '').strip()
         province = request.POST.get('province', '').strip()
-        country = request.POST.get('country', '').strip()
         zip_code = request.POST.get('zip_code', '').strip()
         property_type = request.POST.get('property_type', '').strip()
         floor_area = request.POST.get('floor_area', '').strip()
@@ -583,8 +857,6 @@ def register_property(request):
             errors['city'] = 'City is required'
         if not province:
             errors['province'] = 'Province is required'
-        if not country:
-            errors['country'] = 'Country is required'
         if not zip_code:
             errors['zip_code'] = 'ZIP code is required'
         if not property_type:
@@ -619,18 +891,11 @@ def register_property(request):
                 street=street,
                 city=city,
                 province=province,
-                country=country,
                 zip_code=zip_code,
                 property_type=property_type,
                 floor_area=float(floor_area)
             )
-            
-            # Show success message
-            return render(request, 'register_property.html', {
-                'customer': customer,
-                'success': True,
-                'property_name': property_name
-            })
+            return redirect('property_list')
         except Exception as e:
             errors['general'] = f'An error occurred while registering the property: {str(e)}'
             return render(request, 'register_property.html', {
@@ -665,7 +930,6 @@ def edit_property(request, property_id):
         street = request.POST.get('street', '').strip()
         city = request.POST.get('city', '').strip()
         province = request.POST.get('province', '').strip()
-        country = request.POST.get('country', '').strip()
         zip_code = request.POST.get('zip_code', '').strip()
         property_type = request.POST.get('property_type', '').strip()
         floor_area = request.POST.get('floor_area', '').strip()
@@ -682,8 +946,6 @@ def edit_property(request, property_id):
             errors['city'] = 'City is required'
         if not province:
             errors['province'] = 'Province is required'
-        if not country:
-            errors['country'] = 'Country is required'
         if not zip_code:
             errors['zip_code'] = 'ZIP code is required'
         if not property_type:
@@ -720,19 +982,11 @@ def edit_property(request, property_id):
             property_obj.street = street
             property_obj.city = city
             property_obj.province = province
-            property_obj.country = country
             property_obj.zip_code = zip_code
             property_obj.property_type = property_type
             property_obj.floor_area = float(floor_area)
             property_obj.save()
-            
-            # Show success message
-            return render(request, 'edit_property.html', {
-                'customer': customer,
-                'property': property_obj,
-                'success': True,
-                'property_name': property_name
-            })
+            return redirect('property_list')
         except Exception as e:
             errors['general'] = f'An error occurred while updating the property: {str(e)}'
             return render(request, 'edit_property.html', {
@@ -751,7 +1005,6 @@ def edit_property(request, property_id):
             'street': property_obj.street,
             'city': property_obj.city,
             'province': property_obj.province,
-            'country': property_obj.country,
             'zip_code': property_obj.zip_code,
             'property_type': property_obj.property_type,
             'floor_area': property_obj.floor_area,
@@ -809,8 +1062,16 @@ def book_inspection(request):
     
     # Check if customer has any properties
     if not properties.exists():
-        messages.error(request, 'You need to register a property before booking an inspection.')
-        return redirect('register_property')
+        return render(request, 'book_inspection.html', {
+            'customer': customer,
+            'properties': properties,
+            'errors': {'property_id': 'You need to register a property before booking an inspection.'},
+            'form_data': {},
+            'service_choices': service_choices if 'service_choices' in locals() else [],
+            'pest_choices': pest_choices if 'pest_choices' in locals() else [],
+            'time_slot_choices': Service.TIME_SLOT_CHOICES,
+            'today': date.today().isoformat(),
+        })
 
     _ensure_service_form_default_options()
     service_choices = _get_service_form_choices(
@@ -895,13 +1156,7 @@ def book_inspection(request):
                 time_slot=time_slot,
                 status='For Confirmation'
             )
-            
-            # Show success state
-            return render(request, 'book_inspection.html', {
-                'customer': customer,
-                'success': True,
-                'service_id': service.id
-            })
+            return redirect('service_status')
         except Exception as e:
             errors['general'] = f'An error occurred while booking the inspection: {str(e)}'
             return render(request, 'book_inspection.html', {
@@ -944,7 +1199,12 @@ def service_status(request):
         customer=customer
     ).exclude(
         status__in=['Completed', 'Cancelled']
-    ).select_related('property', 'estimated_bill', 'service_report').order_by('-created_at')
+    ).select_related('property', 'estimated_bill', 'service_report', 'payment_proof').order_by('-created_at')
+
+    for service in services:
+        proof = getattr(service, 'payment_proof', None)
+        service.payment_proof_status = proof.status if proof else ''
+        service.can_submit_payment_proof = (not proof) or proof.status == PaymentProof.STATUS_REJECTED
     
     return render(request, 'service_status.html', {
         'customer': customer,
@@ -993,33 +1253,26 @@ def customer_view_estimated_bill(request, service_id):
     ).first()
 
     if not estimated_bill:
-        messages.error(request, 'Estimated bill not found.')
         return redirect('service_status')
 
-    service = estimated_bill.service
-    can_confirm = service.status == 'Estimated Bill Created'
-
-    if request.method == 'POST' and request.POST.get('action') == 'confirm':
-        if not can_confirm:
-            messages.error(request, 'This estimated bill cannot be confirmed at the current service status.')
-            return redirect('service_status')
-
-        next_statuses = OM_STATUS_TRANSITIONS.get(service.status, [])
-        next_status = next_statuses[0] if next_statuses else None
-        if not next_status:
-            messages.error(request, 'No valid next status found for this service.')
-            return redirect('service_status')
-
-        service.status = next_status
-        service.save(update_fields=['status'])
-        messages.success(request, 'Estimated bill confirmed successfully.')
-        return redirect('service_status')
+    treatment_rows = []
+    for item in estimated_bill.items.all():
+        treatment_details = _get_treatment_billing_details(item.service_type)
+        treatment_rows.append({
+            'service_type': treatment_details['service_type'],
+            'quantity': item.quantity,
+            'unit_price': item.unit_price,
+            'line_total': item.line_total,
+            'problem_text': treatment_details['problem_text'],
+            'recommendation_text': treatment_details['recommendation_text'],
+        })
 
     return render(request, 'om_estimated_bill_view.html', {
         'estimated_bill': estimated_bill,
         'role': 'customer',
-        'back_url_name': 'service_status',
-        'allow_confirm': can_confirm,
+        'back_url': _resolve_back_url(request, 'service_status'),
+        'treatment_rows': treatment_rows,
+        'service_type_display': _service_display_treatments(estimated_bill.service),
     })
 
 
@@ -1047,7 +1300,7 @@ def customer_view_service_report(request, service_id):
     return render(request, 'service_report_view.html', {
         'report': report,
         'role': 'customer',
-        'back_url_name': 'service_status',
+        'back_url': _resolve_back_url(request, 'service_status'),
     })
 
 
@@ -1115,10 +1368,7 @@ def om_change_password(request):
         if not errors:
             om.password = new_password
             om.save(update_fields=['password'])
-            return render(request, 'om_change_password.html', {
-                'om': om,
-                'success': True,
-            })
+            return redirect('om_profile')
 
         return render(request, 'om_change_password.html', {
             'om': om,
@@ -1146,7 +1396,51 @@ def om_placeholder(request, page_title):
 
 
 def om_service_history(request):
-    return om_placeholder(request, 'Service History')
+    if 'om_id' not in request.session:
+        return redirect('login')
+
+    try:
+        om = OperationsManager.objects.get(id=request.session['om_id'])
+    except OperationsManager.DoesNotExist:
+        request.session.flush()
+        return redirect('login')
+
+    search = request.GET.get('q', '').strip()
+    status_filter = request.GET.get('status', '').strip()
+
+    history_statuses = ['Payment Confirmed', 'Completed', 'Cancelled']
+    services = Service.objects.select_related(
+        'customer',
+        'property',
+        'service_report',
+        'payment_proof',
+    ).prefetch_related('invoices').filter(
+        status__in=history_statuses,
+    ).order_by('-created_at')
+
+    if status_filter in history_statuses:
+        services = services.filter(status=status_filter)
+
+    if search:
+        services = services.filter(
+            Q(id__icontains=search)
+            | Q(customer__first_name__icontains=search)
+            | Q(customer__last_name__icontains=search)
+            | Q(property__property_name__icontains=search)
+            | Q(property__street__icontains=search)
+            | Q(preferred_service__icontains=search)
+        )
+
+    for service in services:
+        service.latest_invoice = service.invoices.order_by('-created_at').first()
+
+    return render(request, 'om_service_history.html', {
+        'om': om,
+        'services': services,
+        'search': search,
+        'status_filter': status_filter,
+        'status_choices': history_statuses,
+    })
 
 
 def om_billing(request):
@@ -1191,14 +1485,26 @@ def om_view_estimated_bill(request, estimated_bill_id):
     ).prefetch_related('items').filter(id=estimated_bill_id).first()
 
     if not estimated_bill:
-        messages.error(request, 'Estimated bill not found.')
         return redirect('om_estimated_bills')
+
+    treatment_rows = []
+    for item in estimated_bill.items.all():
+        treatment_details = _get_treatment_billing_details(item.service_type)
+        treatment_rows.append({
+            'service_type': treatment_details['service_type'],
+            'quantity': item.quantity,
+            'unit_price': item.unit_price,
+            'line_total': item.line_total,
+            'problem_text': treatment_details['problem_text'],
+            'recommendation_text': treatment_details['recommendation_text'],
+        })
 
     return render(request, 'om_estimated_bill_view.html', {
         'estimated_bill': estimated_bill,
         'role': 'om',
-        'back_url_name': 'om_estimated_bills',
-        'allow_confirm': False,
+        'back_url': _resolve_back_url(request, 'om_estimated_bills'),
+        'treatment_rows': treatment_rows,
+        'service_type_display': _service_display_treatments(estimated_bill.service),
     })
 
 
@@ -1210,8 +1516,13 @@ def om_edit_estimated_bill(request, estimated_bill_id):
         'service__customer', 'service__property'
     ).prefetch_related('items').filter(id=estimated_bill_id).first()
 
+    treatment_options = list(ServiceFormOption.objects.filter(
+        form_section='Treatment',
+        field_name='Treatment Service',
+        is_active=True,
+    ).order_by('option_value').values('option_value', 'option_description', 'option_rate', 'problem_text', 'recommendation_text'))
+
     if not estimated_bill:
-        messages.error(request, 'Estimated bill not found.')
         return redirect('om_estimated_bills')
 
     if request.method == 'POST':
@@ -1231,34 +1542,23 @@ def om_edit_estimated_bill(request, estimated_bill_id):
                 'errors': errors,
                 'items_json': json.dumps(raw_items if raw_items else [{'service_type': '', 'quantity': ''}]),
                 'service_type_choices_json': json.dumps([
-                    {'value': value, 'label': label}
-                    for value, label in Service.PREFERRED_SERVICE_CHOICES
+                    {'value': option['option_value'], 'label': option['option_value'], 'description': option['option_description'], 'rate': str(option['option_rate'] or '')}
+                    for option in treatment_options
                 ]),
             })
-
-        price_map = {
-            'General Pest Control Treatment': Decimal('2500.00'),
-            'Termite Control': Decimal('3000.00'),
-            'Rodent Control': Decimal('2200.00'),
-            'Mosquito Control': Decimal('1800.00'),
-            'Bed Bug Treatment': Decimal('2800.00'),
-            'Cockroach Control': Decimal('2000.00'),
-            'Other': Decimal('1500.00'),
-        }
 
         with transaction.atomic():
             estimated_bill.items.all().delete()
             EstimatedBillItem.objects.bulk_create([
                 EstimatedBillItem(
                     estimated_bill=estimated_bill,
-                    service_type=item['service_type'],
+                    service_type=_get_treatment_billing_details(item['service_type'])['service_type'],
                     quantity=item['quantity'],
-                    unit_price=price_map.get(item['service_type'], Decimal('1500.00')),
+                    unit_price=_get_treatment_billing_details(item['service_type'])['unit_price'],
                 )
                 for item in items
             ])
 
-        messages.success(request, 'Estimated bill updated successfully.')
         return redirect('om_estimated_bills')
 
     return render(request, 'om_edit_estimated_bill.html', {
@@ -1272,8 +1572,8 @@ def om_edit_estimated_bill(request, estimated_bill_id):
             for item in estimated_bill.items.all()
         ]),
         'service_type_choices_json': json.dumps([
-            {'value': value, 'label': label}
-            for value, label in Service.PREFERRED_SERVICE_CHOICES
+            {'value': option['option_value'], 'label': option['option_value'], 'description': option['option_description'], 'rate': str(option['option_rate'] or '')}
+            for option in treatment_options
         ]),
     })
 
@@ -1287,7 +1587,6 @@ def om_delete_estimated_bill(request, estimated_bill_id):
 
     estimated_bill = EstimatedBill.objects.select_related('service').filter(id=estimated_bill_id).first()
     if not estimated_bill:
-        messages.error(request, 'Estimated bill not found.')
         return redirect('om_estimated_bills')
 
     service = estimated_bill.service
@@ -1295,7 +1594,6 @@ def om_delete_estimated_bill(request, estimated_bill_id):
     service.status = 'Ongoing Inspection'
     service.save(update_fields=['status'])
 
-    messages.success(request, 'Estimated bill deleted successfully.')
     return redirect('om_estimated_bills')
 
 
@@ -1328,12 +1626,71 @@ def om_view_invoice(request, invoice_id):
     ).prefetch_related('items').filter(id=invoice_id).first()
 
     if not invoice:
-        messages.error(request, 'Invoice not found.')
         return redirect('om_invoices')
+
+    treatment_rows = []
+    for item in invoice.items.all():
+        treatment_details = _get_treatment_billing_details(item.item_type)
+        treatment_rows.append({
+            'item_type': treatment_details['service_type'] or item.item_type,
+            'quantity': item.quantity,
+            'unit_price': item.unit_price,
+            'line_total': item.line_total,
+            'target_pest': treatment_details['target_pest'],
+            'application_method': treatment_details['application_method'],
+            'additional_information': treatment_details['additional_information'],
+            'dilution_rate': treatment_details['dilution_rate'],
+        })
 
     return render(request, 'om_invoice_view.html', {
         'invoice': invoice,
-        'back_url_name': 'om_invoices',
+        'back_url': _resolve_back_url(request, 'om_invoices'),
+        'treatment_rows': treatment_rows,
+        'service_type_display': invoice.service.treatment_summary,
+    })
+
+
+def customer_view_invoice(request, service_id):
+    if 'customer_id' not in request.session:
+        return redirect('login')
+
+    try:
+        customer = Customer.objects.get(id=request.session['customer_id'])
+    except Customer.DoesNotExist:
+        request.session.flush()
+        return redirect('login')
+
+    invoice = Invoice.objects.select_related(
+        'service__customer', 'service__property', 'operations_manager'
+    ).prefetch_related('items').filter(
+        service_id=service_id,
+        service__customer=customer,
+    ).first()
+
+    if not invoice:
+        return redirect('pending_payment')
+
+    treatment_rows = []
+    for item in invoice.items.all():
+        treatment_details = _get_treatment_billing_details(item.item_type)
+        treatment_rows.append({
+            'item_type': treatment_details['service_type'] or item.item_type,
+            'quantity': item.quantity,
+            'unit_price': item.unit_price,
+            'line_total': item.line_total,
+            'target_pest': treatment_details['target_pest'],
+            'application_method': treatment_details['application_method'],
+            'additional_information': treatment_details['additional_information'],
+            'dilution_rate': treatment_details['dilution_rate'],
+        })
+
+    return render(request, 'om_invoice_view.html', {
+        'invoice': invoice,
+        'role': 'customer',
+        'back_url': _resolve_back_url(request, 'pending_payment'),
+        'treatment_rows': treatment_rows,
+        'service_type_display': invoice.service.treatment_summary,
+        'allow_customer_payment': True,
     })
 
 
@@ -1528,7 +1885,45 @@ def _clean_estimated_items(raw_items):
             'quantity': quantity,
         })
 
-    return cleaned_items, has_invalid
+    merged_items = []
+    merged_map = {}
+    for item in cleaned_items:
+        normalized_name = item['service_type'].strip().lower()
+        if normalized_name in merged_map:
+            merged_index = merged_map[normalized_name]
+            merged_items[merged_index]['quantity'] += item['quantity']
+        else:
+            merged_map[normalized_name] = len(merged_items)
+            merged_items.append(item)
+
+    return merged_items, has_invalid
+
+
+def _get_treatment_billing_details(service_type):
+    option = _get_treatment_option_by_name(service_type)
+    if option:
+        return {
+            'service_type': option.option_value,
+            'unit_price': option.option_rate or Decimal('0.00'),
+            'problem_text': option.problem_text,
+            'recommendation_text': option.recommendation_text,
+            'target_pest': option.target_pest,
+            'application_method': option.application_method,
+            'additional_information': option.additional_information,
+            'dilution_rate': option.dilution_rate,
+        }
+
+    metadata = TREATMENT_SERVICE_METADATA.get(service_type, {})
+    return {
+        'service_type': service_type,
+        'unit_price': metadata.get('rate', Decimal('0.00')),
+        'problem_text': metadata.get('problem_text', ''),
+        'recommendation_text': metadata.get('recommendation_text', ''),
+        'target_pest': metadata.get('target_pest', ''),
+        'application_method': metadata.get('application_method', ''),
+        'additional_information': metadata.get('additional_information', ''),
+        'dilution_rate': metadata.get('dilution_rate', ''),
+    }
 
 
 def _parse_invoice_items(raw_payload):
@@ -1773,7 +2168,6 @@ def om_create_invoice(request):
             fail_silently=True,
         )
 
-        messages.success(request, 'You have successfully created an invoice.')
         return redirect('om_invoices')
 
     return render(request, 'om_create_invoice.html', {
@@ -1800,6 +2194,12 @@ def om_create_estimated_bill(request):
         status='Ongoing Inspection',
         estimated_bill__isnull=True,
     ).select_related('customer', 'property').order_by('-date', '-created_at')
+
+    treatment_options = list(ServiceFormOption.objects.filter(
+        form_section='Treatment',
+        field_name='Treatment Service',
+        is_active=True,
+    ).order_by('option_value').values('option_value', 'option_description', 'option_rate', 'problem_text', 'recommendation_text'))
 
     default_items = [{'service_type': '', 'quantity': ''}]
     errors = {}
@@ -1828,26 +2228,14 @@ def om_create_estimated_bill(request):
                 'selected_service_id': selected_service_id,
                 'errors': errors,
                 'items_json': json.dumps(raw_items if raw_items else default_items),
-                'service_type_choices': Service.PREFERRED_SERVICE_CHOICES,
                 'service_type_choices_json': json.dumps([
-                    {'value': value, 'label': label}
-                    for value, label in Service.PREFERRED_SERVICE_CHOICES
+                    {'value': option['option_value'], 'label': option['option_value'], 'description': option['option_description'], 'rate': str(option['option_rate'] or '')}
+                    for option in treatment_options
                 ]),
             })
 
         if EstimatedBill.objects.filter(service=selected_service).exists():
-            messages.error(request, 'An estimated bill for this service already exists.')
             return redirect('om_estimated_bills')
-
-        price_map = {
-            'General Pest Control Treatment': Decimal('2500.00'),
-            'Termite Control': Decimal('3000.00'),
-            'Rodent Control': Decimal('2200.00'),
-            'Mosquito Control': Decimal('1800.00'),
-            'Bed Bug Treatment': Decimal('2800.00'),
-            'Cockroach Control': Decimal('2000.00'),
-            'Other': Decimal('1500.00'),
-        }
 
         with transaction.atomic():
             estimated_bill = EstimatedBill.objects.create(
@@ -1858,9 +2246,9 @@ def om_create_estimated_bill(request):
             EstimatedBillItem.objects.bulk_create([
                 EstimatedBillItem(
                     estimated_bill=estimated_bill,
-                    service_type=item['service_type'],
+                    service_type=_get_treatment_billing_details(item['service_type'])['service_type'],
                     quantity=item['quantity'],
-                    unit_price=price_map.get(item['service_type'], Decimal('1500.00')),
+                    unit_price=_get_treatment_billing_details(item['service_type'])['unit_price'],
                 )
                 for item in items
             ])
@@ -1884,7 +2272,6 @@ def om_create_estimated_bill(request):
             fail_silently=True,
         )
 
-        messages.success(request, 'You have successfully created an estimated bill.')
         return redirect('om_estimated_bills')
 
     return render(request, 'om_create_estimated_bill.html', {
@@ -1893,10 +2280,9 @@ def om_create_estimated_bill(request):
         'selected_service_id': '',
         'errors': {},
         'items_json': json.dumps(default_items),
-        'service_type_choices': Service.PREFERRED_SERVICE_CHOICES,
         'service_type_choices_json': json.dumps([
-            {'value': value, 'label': label}
-            for value, label in Service.PREFERRED_SERVICE_CHOICES
+            {'value': option['option_value'], 'label': option['option_value'], 'description': option['option_description'], 'rate': str(option['option_rate'] or '')}
+            for option in treatment_options
         ]),
     })
 
@@ -1922,7 +2308,201 @@ def om_service_reports(request):
 
 
 def om_remittance_records(request):
-    return om_placeholder(request, 'Remittance Records')
+    if 'om_id' not in request.session:
+        return redirect('login')
+
+    try:
+        om = OperationsManager.objects.get(id=request.session['om_id'])
+    except OperationsManager.DoesNotExist:
+        request.session.flush()
+        return redirect('login')
+
+    search = request.GET.get('q', '').strip()
+    status_filter = request.GET.get('status', '').strip()
+
+    records = RemittanceRecord.objects.select_related(
+        'service__customer',
+        'service__property',
+        'invoice',
+        'payment_proof',
+        'confirmed_by',
+    ).order_by('-created_at')
+
+    if search:
+        records = records.filter(
+            Q(service__customer__first_name__icontains=search)
+            | Q(service__customer__last_name__icontains=search)
+            | Q(service__property__property_name__icontains=search)
+            | Q(service__property__street__icontains=search)
+            | Q(service__id__icontains=search)
+            | Q(invoice__id__icontains=search)
+        )
+
+    if status_filter == 'validated':
+        records = records.filter(payment_proof__status=PaymentProof.STATUS_VALIDATED)
+    elif status_filter == 'pending':
+        records = records.filter(payment_proof__status=PaymentProof.STATUS_FOR_VALIDATION)
+
+    return render(request, 'om_remittance_records.html', {
+        'om': om,
+        'records': records,
+        'search': search,
+        'status_filter': status_filter,
+    })
+
+
+def sales_representative_home(request):
+    if 'sales_representative_id' not in request.session:
+        return redirect('login')
+
+    sales_representative = SalesRepresentative.objects.filter(
+        id=request.session['sales_representative_id']
+    ).first()
+    if not sales_representative:
+        request.session.flush()
+        return redirect('login')
+
+    queue_count = PaymentProof.objects.filter(status=PaymentProof.STATUS_FOR_VALIDATION).count()
+    validated_count = PaymentProof.objects.filter(status=PaymentProof.STATUS_VALIDATED).count()
+    rejected_count = PaymentProof.objects.filter(status=PaymentProof.STATUS_REJECTED).count()
+
+    recent_proofs = PaymentProof.objects.select_related(
+        'service__customer',
+        'service__property',
+        'invoice',
+    ).order_by('-uploaded_at')[:8]
+
+    return render(request, 'sales_representative_home.html', {
+        'sales_representative': sales_representative,
+        'queue_count': queue_count,
+        'validated_count': validated_count,
+        'rejected_count': rejected_count,
+        'recent_proofs': recent_proofs,
+    })
+
+
+def sales_representative_payment_proofs(request):
+    if 'sales_representative_id' not in request.session:
+        return redirect('login')
+
+    sales_representative = SalesRepresentative.objects.filter(
+        id=request.session['sales_representative_id']
+    ).first()
+    if not sales_representative:
+        request.session.flush()
+        return redirect('login')
+
+    search = request.GET.get('q', '').strip()
+    status_filter = request.GET.get('status', '').strip()
+
+    proofs = PaymentProof.objects.select_related(
+        'service__customer',
+        'service__property',
+        'invoice',
+        'validated_by',
+    ).order_by('-uploaded_at')
+
+    if search:
+        proofs = proofs.filter(
+            Q(service__id__icontains=search)
+            | Q(invoice__id__icontains=search)
+            | Q(customer__first_name__icontains=search)
+            | Q(customer__last_name__icontains=search)
+            | Q(reference_number__icontains=search)
+            | Q(bank_used__icontains=search)
+        )
+
+    valid_statuses = {
+        PaymentProof.STATUS_FOR_VALIDATION,
+        PaymentProof.STATUS_VALIDATED,
+        PaymentProof.STATUS_REJECTED,
+    }
+    if status_filter in valid_statuses:
+        proofs = proofs.filter(status=status_filter)
+
+    return render(request, 'sales_representative_payment_proofs.html', {
+        'sales_representative': sales_representative,
+        'proofs': proofs,
+        'search': search,
+        'status_filter': status_filter,
+        'status_choices': [
+            PaymentProof.STATUS_FOR_VALIDATION,
+            PaymentProof.STATUS_VALIDATED,
+            PaymentProof.STATUS_REJECTED,
+        ],
+    })
+
+
+def sales_representative_review_payment_proof(request, payment_proof_id):
+    if 'sales_representative_id' not in request.session:
+        return redirect('login')
+
+    sales_representative = SalesRepresentative.objects.filter(
+        id=request.session['sales_representative_id']
+    ).first()
+    if not sales_representative:
+        request.session.flush()
+        return redirect('login')
+
+    proof = PaymentProof.objects.select_related(
+        'service__customer',
+        'service__property',
+        'invoice',
+        'validated_by',
+    ).filter(id=payment_proof_id).first()
+    if not proof:
+        return redirect('sales_representative_payment_proofs')
+
+    errors = {}
+    if request.method == 'POST':
+        action = request.POST.get('action', '').strip()
+        rejection_reason = request.POST.get('rejection_reason', '').strip()
+
+        if action == 'validate':
+            with transaction.atomic():
+                proof.status = PaymentProof.STATUS_VALIDATED
+                proof.validated_at = timezone.now()
+                proof.validated_by = sales_representative
+                proof.rejection_reason = ''
+                proof.save(update_fields=['status', 'validated_at', 'validated_by', 'rejection_reason'])
+
+                service = proof.service
+                service.status = 'Payment Confirmed'
+                service.save(update_fields=['status'])
+
+                RemittanceRecord.objects.get_or_create(
+                    payment_proof=proof,
+                    defaults={
+                        'service': proof.service,
+                        'invoice': proof.invoice,
+                        'confirmed_by': sales_representative,
+                    },
+                )
+
+            return redirect('sales_representative_payment_proofs')
+
+        if action == 'reject':
+            if not rejection_reason:
+                errors['rejection_reason'] = 'Rejection reason is required.'
+            else:
+                with transaction.atomic():
+                    proof.status = PaymentProof.STATUS_REJECTED
+                    proof.validated_at = timezone.now()
+                    proof.validated_by = sales_representative
+                    proof.rejection_reason = rejection_reason
+                    proof.save(update_fields=['status', 'validated_at', 'validated_by', 'rejection_reason'])
+
+                    service = proof.service
+                    service.status = 'Pending Payment'
+                    service.save(update_fields=['status'])
+
+                return redirect('sales_representative_payment_proofs')
+
+    return render(request, 'sales_representative_review_payment_proof.html', {
+        'sales_representative': sales_representative,
+        'proof': proof,
+        'errors': errors,
+    })
 
 
 def om_manage_service_forms(request):
@@ -1988,6 +2568,13 @@ def om_service_forms(request):
         field_name = request.POST.get('field_name', '').strip()
         option_value = request.POST.get('option_value', '').strip()
         option_description = request.POST.get('option_description', '').strip()
+        option_problem_text = request.POST.get('problem_text', '').strip()
+        option_recommendation_text = request.POST.get('recommendation_text', '').strip()
+        option_target_pest = request.POST.get('target_pest', '').strip()
+        option_application_method = request.POST.get('application_method', '').strip()
+        option_additional_information = request.POST.get('additional_information', '').strip()
+        option_dilution_rate = request.POST.get('dilution_rate', '').strip()
+        option_account_number = request.POST.get('account_number', '').strip()
         option_rate_raw = request.POST.get('option_rate', '').strip()
         is_active = request.POST.get('is_active') == 'on'
 
@@ -1997,8 +2584,8 @@ def om_service_forms(request):
             field_name == 'Chemicals Used'
         )
         option_rate = None
-
         valid_field_names = SERVICE_FORM_FIELD_CATALOG.get(form_section, [])
+
         if action in {'create', 'update'}:
             if not form_section or field_name not in valid_field_names or not option_value:
                 messages.error(request, 'Required fields must be filled in.')
@@ -2010,7 +2597,7 @@ def om_service_forms(request):
 
             if is_treatment_service:
                 if not option_description or not option_rate_raw:
-                    messages.error(request, 'Treatment Description and Treatment Rate are required.')
+                    messages.error(request, 'Required fields must be filled in.')
                     return redirect_forms()
                 try:
                     option_rate = Decimal(option_rate_raw)
@@ -2018,6 +2605,10 @@ def om_service_forms(request):
                         raise InvalidOperation
                 except (InvalidOperation, TypeError, ValueError):
                     messages.error(request, 'Treatment Rate must be a valid positive amount.')
+                    return redirect_forms()
+            elif form_section == 'Payment Proof Submission' and field_name == 'Bank Used for Payment':
+                if not option_account_number:
+                    messages.error(request, 'Account Number is required.')
                     return redirect_forms()
 
         if action == 'create':
@@ -2040,14 +2631,20 @@ def om_service_forms(request):
                 existing.is_active = True
                 existing.option_description = option_description if is_treatment_service else ''
                 existing.option_rate = option_rate if is_treatment_service else None
+                existing.problem_text = option_problem_text if is_treatment_service else ''
+                existing.recommendation_text = option_recommendation_text if is_treatment_service else ''
+                existing.target_pest = option_target_pest if is_treatment_service else ''
+                existing.application_method = option_application_method if is_treatment_service else ''
+                existing.additional_information = option_additional_information if is_treatment_service else ''
+                existing.dilution_rate = option_dilution_rate if is_treatment_service else ''
+                existing.account_number = option_account_number if form_section == 'Payment Proof Submission' and field_name == 'Bank Used for Payment' else ''
                 if existing.scoped_option_id is None:
                     last_scoped_id = ServiceFormOption.objects.filter(
                         form_section=form_section,
                         field_name=field_name,
                     ).aggregate(max_id=Max('scoped_option_id')).get('max_id') or 0
                     existing.scoped_option_id = last_scoped_id + 1
-                existing.save(update_fields=['option_value', 'is_active', 'option_description', 'option_rate', 'scoped_option_id', 'updated_at'])
-                messages.success(request, 'Field option restored successfully.')
+                existing.save(update_fields=['option_value', 'is_active', 'option_description', 'option_rate', 'problem_text', 'recommendation_text', 'target_pest', 'application_method', 'additional_information', 'dilution_rate', 'account_number', 'scoped_option_id', 'updated_at'])
                 return redirect_forms()
 
             last_scoped_id = ServiceFormOption.objects.filter(
@@ -2062,9 +2659,15 @@ def om_service_forms(request):
                 option_value=option_value,
                 option_description=option_description if is_treatment_service else '',
                 option_rate=option_rate if is_treatment_service else None,
+                problem_text=option_problem_text if is_treatment_service else '',
+                recommendation_text=option_recommendation_text if is_treatment_service else '',
+                target_pest=option_target_pest if is_treatment_service else '',
+                application_method=option_application_method if is_treatment_service else '',
+                additional_information=option_additional_information if is_treatment_service else '',
+                dilution_rate=option_dilution_rate if is_treatment_service else '',
+                account_number=option_account_number if form_section == 'Payment Proof Submission' and field_name == 'Bank Used for Payment' else '',
                 is_active=True,
             )
-            messages.success(request, 'Field option added successfully.')
             return redirect_forms()
 
         if action == 'update':
@@ -2080,7 +2683,6 @@ def om_service_forms(request):
             if option.form_section == 'Service Report Submission' and option.field_name == 'Chemicals Used':
                 # Lock value changes for Chemicals Used; manage names in Chemicals page.
                 form_section = option.form_section
-                field_name = option.field_name
                 option_value = option.option_value
 
             duplicate = ServiceFormOption.objects.filter(
@@ -2099,10 +2701,16 @@ def om_service_forms(request):
             option.option_value = option_value
             option.option_description = option_description if is_treatment_service else ''
             option.option_rate = option_rate if is_treatment_service else None
+            option.problem_text = option_problem_text if is_treatment_service else ''
+            option.recommendation_text = option_recommendation_text if is_treatment_service else ''
+            option.target_pest = option_target_pest if is_treatment_service else ''
+            option.application_method = option_application_method if is_treatment_service else ''
+            option.additional_information = option_additional_information if is_treatment_service else ''
+            option.dilution_rate = option_dilution_rate if is_treatment_service else ''
+            option.account_number = option_account_number if form_section == 'Payment Proof Submission' and field_name == 'Bank Used for Payment' else ''
             option.is_active = is_active
-            update_fields = ['form_section', 'field_name', 'option_value', 'option_description', 'option_rate', 'is_active', 'updated_at']
+            update_fields = ['form_section', 'field_name', 'option_value', 'option_description', 'option_rate', 'problem_text', 'recommendation_text', 'target_pest', 'application_method', 'additional_information', 'dilution_rate', 'account_number', 'is_active', 'updated_at']
             option.save(update_fields=update_fields)
-            messages.success(request, 'Field option updated successfully.')
             return redirect_forms()
 
         if action == 'delete':
@@ -2171,6 +2779,13 @@ def om_service_forms(request):
             'field_name': option.field_name,
             'option_value': option.option_value,
             'option_description': option.option_description,
+            'problem_text': option.problem_text,
+            'recommendation_text': option.recommendation_text,
+            'target_pest': option.target_pest,
+            'application_method': option.application_method,
+            'additional_information': option.additional_information,
+            'dilution_rate': option.dilution_rate,
+            'account_number': option.account_number,
             'option_rate': option.option_rate,
             'is_active': option.is_active,
         })
@@ -2462,6 +3077,7 @@ def om_manage_accounts(request):
                     'errors': errors,
                     'form_data': request.POST,
                     'technicians': Technician.objects.all().order_by('technician_id'),
+                    'sales_representatives': SalesRepresentative.objects.all().order_by('created_at'),
                 })
 
             existing_ids = []
@@ -2519,10 +3135,122 @@ def om_manage_accounts(request):
             messages.success(request, f'Technician account deleted: {deleted_email}')
             return redirect('om_manage_accounts')
 
+        if action == 'create_sales_representative':
+            first_name = request.POST.get('sr_first_name', '').strip()
+            last_name = request.POST.get('sr_last_name', '').strip()
+            email = request.POST.get('sr_email', '').strip().lower()
+            password = request.POST.get('sr_password', '').strip()
+
+            errors = {}
+            if not first_name:
+                errors['sr_first_name'] = 'First name is required.'
+            if not last_name:
+                errors['sr_last_name'] = 'Last name is required.'
+            if not email:
+                errors['sr_email'] = 'Email is required.'
+            elif SalesRepresentative.objects.filter(email__iexact=email).exists():
+                errors['sr_email'] = 'Email already exists.'
+            if not password:
+                errors['sr_password'] = 'Password is required.'
+
+            if errors:
+                return render(request, 'om_manage_accounts.html', {
+                    'om': om,
+                    'errors': errors,
+                    'form_data': request.POST,
+                    'technicians': Technician.objects.all().order_by('technician_id'),
+                    'sales_representatives': SalesRepresentative.objects.all().order_by('created_at'),
+                })
+
+            SalesRepresentative.objects.create(
+                first_name=first_name,
+                last_name=last_name,
+                email=email,
+                password=password,
+            )
+            return redirect('om_manage_accounts')
+
+        if action == 'delete_sales_representative':
+            sales_representative_pk = request.POST.get('sales_representative_pk', '').strip()
+            if not sales_representative_pk:
+                return redirect('om_manage_accounts')
+
+            sales_representative = SalesRepresentative.objects.filter(id=sales_representative_pk).first()
+            if not sales_representative:
+                return redirect('om_manage_accounts')
+
+            sales_representative.delete()
+            return redirect('om_manage_accounts')
+
     return render(request, 'om_manage_accounts.html', {
         'om': om,
         'technicians': Technician.objects.all().order_by('technician_id'),
+        'sales_representatives': SalesRepresentative.objects.all().order_by('created_at'),
         'form_data': {},
+    })
+
+
+def om_edit_sales_representative_account(request, sales_representative_pk):
+    if 'om_id' not in request.session:
+        return redirect('login')
+
+    try:
+        om = OperationsManager.objects.get(id=request.session['om_id'])
+    except OperationsManager.DoesNotExist:
+        request.session.flush()
+        return redirect('login')
+
+    sales_representative = SalesRepresentative.objects.filter(id=sales_representative_pk).first()
+    if not sales_representative:
+        return redirect('om_manage_accounts')
+
+    if request.method == 'POST':
+        if request.POST.get('action') == 'cancel':
+            return redirect('om_manage_accounts')
+
+        first_name = request.POST.get('first_name', '').strip()
+        last_name = request.POST.get('last_name', '').strip()
+        email = request.POST.get('email', '').strip().lower()
+        new_password = request.POST.get('password', '').strip()
+
+        errors = {}
+        if not first_name:
+            errors['first_name'] = 'First name is required.'
+        if not last_name:
+            errors['last_name'] = 'Last name is required.'
+        if not email:
+            errors['email'] = 'Email is required.'
+        elif SalesRepresentative.objects.filter(email__iexact=email).exclude(id=sales_representative.id).exists():
+            errors['email'] = 'Email already exists.'
+
+        if errors:
+            return render(request, 'om_edit_sales_representative_account.html', {
+                'om': om,
+                'sales_representative': sales_representative,
+                'errors': errors,
+                'form_data': request.POST,
+            })
+
+        sales_representative.first_name = first_name
+        sales_representative.last_name = last_name
+        sales_representative.email = email
+        update_fields = ['first_name', 'last_name', 'email']
+
+        if new_password:
+            sales_representative.password = new_password
+            update_fields.append('password')
+
+        sales_representative.save(update_fields=update_fields)
+        return redirect('om_manage_accounts')
+
+    return render(request, 'om_edit_sales_representative_account.html', {
+        'om': om,
+        'sales_representative': sales_representative,
+        'form_data': {
+            'first_name': sales_representative.first_name,
+            'last_name': sales_representative.last_name,
+            'email': sales_representative.email,
+        },
     })
 
 
@@ -2668,7 +3396,7 @@ def technician_view_booking(request, service_id):
         'technician': technician,
         'service': service,
         'identified_as': 'Technician',
-        'back_url_name': 'technician_service_status',
+        'back_url': _resolve_back_url(request, 'technician_service_status'),
     })
 
 
@@ -2918,7 +3646,45 @@ def technician_service_history(request):
     if 'technician_id' not in request.session:
         return redirect('login')
 
-    return render(request, 'technician_placeholder.html', {'page_title': 'Service History'})
+    try:
+        technician = Technician.objects.get(id=request.session['technician_id'])
+    except Technician.DoesNotExist:
+        request.session.flush()
+        return redirect('login')
+
+    search = request.GET.get('q', '').strip()
+    status_filter = request.GET.get('status', '').strip()
+
+    history_statuses = ['Payment Confirmed', 'Completed', 'Cancelled']
+    services = Service.objects.select_related(
+        'customer',
+        'property',
+        'service_report',
+    ).filter(
+        service_report__isnull=False,
+        status__in=history_statuses,
+    ).order_by('-created_at')
+
+    if status_filter in history_statuses:
+        services = services.filter(status=status_filter)
+
+    if search:
+        services = services.filter(
+            Q(id__icontains=search)
+            | Q(customer__first_name__icontains=search)
+            | Q(customer__last_name__icontains=search)
+            | Q(property__property_name__icontains=search)
+            | Q(property__street__icontains=search)
+            | Q(preferred_service__icontains=search)
+        )
+
+    return render(request, 'technician_service_history.html', {
+        'technician': technician,
+        'services': services,
+        'search': search,
+        'status_filter': status_filter,
+        'status_choices': history_statuses,
+    })
 
 
 def technician_service_reports(request):
@@ -3051,14 +3817,24 @@ def _clean_area_rows(raw_rows, infestation_values=None):
 
 
 def technician_create_service_report(request):
-    if 'technician_id' not in request.session:
+    if 'technician_id' not in request.session and 'om_id' not in request.session:
         return redirect('login')
 
-    try:
-        technician = Technician.objects.get(id=request.session['technician_id'])
-    except Technician.DoesNotExist:
-        request.session.flush()
-        return redirect('login')
+    technician = None
+    identified_as = 'Technician'
+    if request.session.get('technician_id'):
+        try:
+            technician = Technician.objects.get(id=request.session['technician_id'])
+        except Technician.DoesNotExist:
+            request.session.flush()
+            return redirect('login')
+    else:
+        try:
+            OperationsManager.objects.get(id=request.session['om_id'])
+            identified_as = 'Operations Manager'
+        except OperationsManager.DoesNotExist:
+            request.session.flush()
+            return redirect('login')
 
     draft = request.session.get('tech_service_report_draft', {})
     selected_service_id = draft.get('service_id')
@@ -3109,6 +3885,7 @@ def technician_create_service_report(request):
     def render_step_one(errors=None):
         return render(request, 'technician_create_service_report.html', {
             'technician': technician,
+            'identified_as': identified_as,
             'step': 'select',
             'services': selectable_services,
             'errors': errors or {},
@@ -3118,6 +3895,7 @@ def technician_create_service_report(request):
     def render_step_two(service, errors=None, chemicals=None, treated_areas=None):
         return render(request, 'technician_create_service_report.html', {
             'technician': technician,
+            'identified_as': identified_as,
             'step': 'details',
             'service': service,
             'errors': errors or {},
@@ -3208,7 +3986,6 @@ def technician_create_service_report(request):
 
                 if ServiceReport.objects.filter(service=selected_service).exists():
                     request.session.pop('tech_service_report_draft', None)
-                    messages.error(request, 'A service report for this service already exists.')
                     return redirect('technician_service_reports')
 
                 with transaction.atomic():
@@ -3244,10 +4021,7 @@ def technician_create_service_report(request):
                     ])
 
                 request.session.pop('tech_service_report_draft', None)
-                return render(request, 'technician_create_service_report.html', {
-                    'technician': technician,
-                    'step': 'success',
-                })
+                return redirect('technician_service_reports')
 
             return render_step_two(selected_service, chemicals=raw_chemicals, treated_areas=raw_areas)
 
@@ -3275,7 +4049,7 @@ def technician_view_service_report(request, report_id):
     return render(request, 'service_report_view.html', {
         'report': report,
         'role': 'technician',
-        'back_url_name': 'technician_service_reports',
+        'back_url': _resolve_back_url(request, 'technician_service_reports'),
     })
 
 
@@ -3350,7 +4124,7 @@ def edit_service_report(request, report_id):
                 'treated_areas_json': json.dumps(raw_areas),
                 'chemical_choices_json': json.dumps(chemical_choices),
                 'infestation_choices_json': json.dumps(infestation_choices),
-                'back_url_name': _service_report_redirect_name(request),
+                'back_url': _resolve_back_url(request, _service_report_redirect_name(request)),
             })
 
         with transaction.atomic():
@@ -3409,7 +4183,7 @@ def edit_service_report(request, report_id):
             }
             for area in report.treated_areas.all()
         ]),
-        'back_url_name': _service_report_redirect_name(request),
+        'back_url': _resolve_back_url(request, _service_report_redirect_name(request)),
         'chemical_choices_json': json.dumps(chemical_choices),
         'infestation_choices_json': json.dumps(infestation_choices),
     })
@@ -3451,7 +4225,7 @@ def om_view_service_report(request, report_id):
     return render(request, 'service_report_view.html', {
         'report': report,
         'role': 'om',
-        'back_url_name': 'om_service_reports',
+        'back_url': _resolve_back_url(request, 'om_service_reports'),
     })
 
 
@@ -3781,7 +4555,7 @@ def om_view_booking(request, service_id):
         'om': om,
         'service': service,
         'identified_as': 'Operations Manager',
-        'back_url_name': 'om_service_status',
+        'back_url': _resolve_back_url(request, 'om_service_status'),
     })
 
 
@@ -3878,15 +4652,7 @@ def om_book_treatment(request, service_id):
             service.treatment_confirmed_date = booking_date
             service.save(update_fields=['preferred_service', 'status', 'confirmed_date', 'treatment_confirmed_date'])
 
-            return render(request, 'om_book_treatment.html', {
-                'om': om,
-                'service': service,
-                'success': True,
-                'selected_treatments': selected_treatment_services,
-                'treatment_service_choices': treatment_service_choices,
-                'time_slot_choices': Service.TIME_SLOT_CHOICES,
-                'today': date_cls.today().isoformat(),
-            })
+            return redirect('om_service_status')
 
         return render(request, 'om_book_treatment.html', {
             'om': om,

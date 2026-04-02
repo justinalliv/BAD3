@@ -55,6 +55,7 @@
         padding: 12px 14px;
         font-size: 0.9em;
         text-align: left;
+        vertical-align: top;
     }
 
     th {
@@ -72,10 +73,6 @@
         border-bottom: none;
     }
 
-    tbody tr:hover {
-        background: #f8f9fc;
-    }
-
     .num-col {
         text-align: right;
         white-space: nowrap;
@@ -88,61 +85,71 @@
         color: #222;
     }
 
-    .download-btn {
-        border: none;
-        background: #1a2a5e;
-        color: #fff;
-        min-height: 38px;
-        padding: 0 16px;
-        border-radius: 8px;
-        font-size: 0.96em;
-        font-weight: 700;
-        text-decoration: none;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-    .download-btn:hover {
-        background: #0d1535;
-    }
-
-    .actions-row {
+    .back-row {
         margin-top: 14px;
         display: flex;
         justify-content: center;
-        align-items: center;
         gap: 10px;
+        flex-wrap: wrap;
     }
 
-    .back-link {
+    .back-link,
+    .action-link {
         display: inline-flex;
         align-items: center;
         justify-content: center;
         min-height: 38px;
         padding: 0 16px;
         border-radius: 8px;
+        text-decoration: none;
+        font-weight: 700;
+    }
+
+    .back-link {
         border: 1px solid #cfd3df;
         background: #fff;
         color: #1a2a5e;
-        text-decoration: none;
+    }
+
+    .action-link {
+        border: none;
+        background: #1a2a5e;
+        color: #fff;
+    }
+
+    .detail-note {
+        margin-top: 12px;
+        background: #f9fafc;
+        border: 1px solid #dfe3ee;
+        border-radius: 12px;
+        padding: 14px 16px;
+    }
+
+    .detail-note h3 {
+        color: #1a2a5e;
+        margin-bottom: 6px;
+        font-size: 1em;
+    }
+
+    .detail-note p {
+        color: #495057;
+        font-size: 0.92em;
     }
 
     @media (max-width: 760px) {
         .meta {
             grid-template-columns: 1fr;
         }
-
-        .actions-row {
-            flex-direction: column;
-            align-items: center;
-        }
     }
 {% endblock %}
 
 {% block content %}
 <div class="container">
-    <p class="identified-top">User Identified As: Operations Manager</p>
+    {% if role == 'om' %}
+        <p class="identified-top">User Identified As: Operations Manager</p>
+    {% elif role == 'customer' %}
+        <p class="identified-top">User Identified As: Customer</p>
+    {% endif %}
 
     <div class="sheet">
         <h1 class="title">Invoice</h1>
@@ -153,26 +160,40 @@
             <div><strong>Customer Name:</strong> {{ invoice.service.customer.first_name }} {{ invoice.service.customer.last_name }}</div>
             <div><strong>Address:</strong> {{ invoice.service.property.street_number }} {{ invoice.service.property.street }}, {{ invoice.service.property.city }}</div>
             <div><strong>Date Created:</strong> {{ invoice.created_at|date:'m/d/Y' }}</div>
-            <div><strong>Service Date:</strong> {{ invoice.service.date|date:'m/d/Y' }}</div>
+            <div><strong>Service Type:</strong> {{ service_type_display }}</div>
         </div>
 
         <div class="bill-table-wrap">
             <table>
                 <thead>
                     <tr>
-                        <th>Service Type</th>
+                        <th>Treatment / Item</th>
                         <th class="num-col">Quantity</th>
                         <th class="num-col">Unit Price</th>
                         <th class="num-col">Line Total</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {% for item in invoice.items.all %}
+                    {% for item in treatment_rows %}
                     <tr>
                         <td>{{ item.item_type }}</td>
                         <td class="num-col">{{ item.quantity }}</td>
                         <td class="num-col">₱ {{ item.unit_price }}</td>
                         <td class="num-col">₱ {{ item.line_total }}</td>
+                    </tr>
+                    <tr>
+                        <td colspan="4">
+                            <div class="detail-note">
+                                <h3>Target Pest</h3>
+                                <p>{{ item.target_pest|default:'-' }}</p>
+                                <h3 style="margin-top:10px;">Application Method</h3>
+                                <p>{{ item.application_method|default:'-' }}</p>
+                                <h3 style="margin-top:10px;">Additional Information</h3>
+                                <p>{{ item.additional_information|default:'-' }}</p>
+                                <h3 style="margin-top:10px;">Dilution Rate</h3>
+                                <p>{{ item.dilution_rate|default:'-' }}</p>
+                            </div>
+                        </td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -182,9 +203,11 @@
         <p class="total">Total Amount: ₱ {{ invoice.total_amount }}</p>
     </div>
 
-    <div class="actions-row">
-        <a href="{% url back_url_name|default:'om_invoices' %}" class="back-link">Back</a>
-        <a href="{% url 'om_download_invoice_pdf' invoice.id %}" class="download-btn">Download PDF</a>
+    <div class="back-row">
+        <a href="{{ back_url|default:'#' }}" class="back-link">Back</a>
+        {% if role == 'customer' %}
+            <a href="{% url 'submit_payment_proof' %}?service_id={{ invoice.service.id }}" class="action-link">Submit Proof of Payment</a>
+        {% endif %}
     </div>
 </div>
 {% endblock %}

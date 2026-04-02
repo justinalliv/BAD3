@@ -214,12 +214,6 @@
         </a>
     </div>
 
-    {% if messages %}
-        {% for message in messages %}
-            <div class="flash">{{ message }}</div>
-        {% endfor %}
-    {% endif %}
-
     <div class="list-shell">
         <div class="toolbar">
             <input type="text" id="searchBox" class="search-box" placeholder="Search">
@@ -243,7 +237,7 @@
                         <td>{{ bill.service.id|stringformat:'07d' }}</td>
                         <td>{{ bill.service.customer.first_name }} {{ bill.service.customer.last_name }}</td>
                         <td>{{ bill.service.property.street_number }} {{ bill.service.property.street }}, {{ bill.service.property.city }}</td>
-                        <td>{{ bill.service.preferred_service }}</td>
+                        <td>{{ bill.service.treatment_summary }}</td>
                         <td>{{ bill.id|stringformat:'07d' }}</td>
                         <td>
                             <div class="action-stack">

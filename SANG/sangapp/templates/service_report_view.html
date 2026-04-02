@@ -285,7 +285,7 @@
     </div>
 
     <div class="back-row">
-        <a href="{% url back_url_name|default:'om_service_reports' %}" class="back-link">Back</a>
+        <a href="{{ back_url|default:'#' }}" class="back-link">Back</a>
     </div>
 </div>
 {% endblock %}

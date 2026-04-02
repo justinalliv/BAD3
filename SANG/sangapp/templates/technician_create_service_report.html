@@ -288,14 +288,9 @@
 
 {% block content %}
 <div class="container">
-    <p class="identified-top">User Identified As: Technician</p>
+    <p class="identified-top">User Identified As: {{ identified_as|default:'Technician' }}</p>
 
-    {% if step == 'success' %}
-        <div class="success-wrap">
-            <h2>You have successfully added a new service report.</h2>
-            <a href="{% url 'technician_service_reports' %}" class="main-btn btn-submit" style="display:inline-flex;align-items:center;justify-content:center;text-decoration:none;">Back to Service Reports</a>
-        </div>
-    {% elif step == 'select' %}
+    {% if step == 'select' %}
         <h1 class="title">Service Report Submission</h1>
         <div class="form-shell">
             <div class="section-header">

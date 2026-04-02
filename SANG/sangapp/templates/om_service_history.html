@@ -1,0 +1,178 @@
+{% extends 'base.html' %}
+
+{% block title %}Service History - Supreme Biotech Solutions{% endblock %}
+
+{% block extra_css %}
+    .container {
+        max-width: 1200px;
+        margin: 28px auto 48px;
+        padding: 0 24px;
+    }
+
+    .identified {
+        text-align: right;
+        color: #333;
+        margin-bottom: 14px;
+        font-size: 0.95em;
+    }
+
+    h1 {
+        color: #1a2a5e;
+        font-size: 2.4em;
+        margin-bottom: 18px;
+        text-align: center;
+    }
+
+    .sheet {
+        background: #fff;
+        border: 1px solid #ddd;
+        border-radius: 12px;
+        padding: 18px;
+    }
+
+    .toolbar {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 12px;
+        flex-wrap: wrap;
+    }
+
+    .search-box,
+    .filter-box {
+        min-height: 40px;
+        border: 1px solid #d6d6d6;
+        border-radius: 8px;
+        padding: 0 12px;
+        font-size: 0.92em;
+    }
+
+    .search-box {
+        width: 300px;
+    }
+
+    .filter-box {
+        width: 200px;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    th,
+    td {
+        border-bottom: 1px solid #ececec;
+        padding: 10px 8px;
+        text-align: left;
+        font-size: 0.92em;
+        vertical-align: top;
+    }
+
+    th {
+        color: #1a2a5e;
+        font-size: 0.88em;
+    }
+
+    .status-chip {
+        display: inline-flex;
+        align-items: center;
+        border-radius: 999px;
+        padding: 4px 10px;
+        font-size: 0.8em;
+        font-weight: 700;
+    }
+
+    .status-completed {
+        background: #d9f2e4;
+        color: #1e5f39;
+    }
+
+    .status-cancelled {
+        background: #fde1e1;
+        color: #8a2a2a;
+    }
+
+    .status-payment-confirmed {
+        background: #e3ebff;
+        color: #1a2a5e;
+    }
+
+    .action-link {
+        color: #1a2a5e;
+        font-weight: 700;
+        text-decoration: none;
+        margin-right: 10px;
+        white-space: nowrap;
+    }
+
+    .action-link:hover {
+        text-decoration: underline;
+    }
+
+    .empty {
+        text-align: center;
+        color: #666;
+        font-size: 0.95em;
+        padding: 20px 0;
+    }
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <p class="identified">User Identified As: Operations Manager</p>
+    <h1>Service History</h1>
+
+    <div class="sheet">
+        <form method="GET" class="toolbar">
+            <input type="text" class="search-box" name="q" value="{{ search }}" placeholder="Search">
+            <select name="status" class="filter-box" onchange="this.form.submit()">
+                <option value="">All Statuses</option>
+                {% for status in status_choices %}
+                <option value="{{ status }}" {% if status_filter == status %}selected{% endif %}>{{ status }}</option>
+                {% endfor %}
+            </select>
+        </form>
+
+        {% if services %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Service ID</th>
+                    <th>Customer Name</th>
+                    <th>Property Address</th>
+                    <th>Service Type</th>
+                    <th>Status</th>
+                    <th>Created At</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for service in services %}
+                <tr>
+                    <td>{{ service.id|stringformat:'07d' }}</td>
+                    <td>{{ service.customer.first_name }} {{ service.customer.last_name }}</td>
+                    <td>{{ service.property.street_number }} {{ service.property.street }}, {{ service.property.city }}</td>
+                    <td>{{ service.treatment_summary }}</td>
+                    <td>
+                        <span class="status-chip status-{{ service.status|lower|cut:' ' }}">{{ service.status }}</span>
+                    </td>
+                    <td>{{ service.created_at|date:'M d, Y h:i A' }}</td>
+                    <td>
+                        {% if service.service_report %}
+                            <a href="{% url 'om_view_service_report' service.service_report.id %}?back={{ request.get_full_path|urlencode }}" class="action-link">Service Report</a>
+                        {% endif %}
+                        {% if service.latest_invoice %}
+                            <a href="{% url 'om_view_invoice' service.latest_invoice.id %}?back={{ request.get_full_path|urlencode }}" class="action-link">Invoice</a>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+            <div class="empty">No service history records found.</div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

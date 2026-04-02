@@ -217,11 +217,29 @@
             {% if selected_section == 'Treatment' %}
             <input type="hidden" name="form_section" value="Treatment">
             <input type="hidden" name="field_name" value="Treatment Service">
-            <div class="create-grid" style="grid-template-columns: 1.2fr 1.4fr 0.9fr 170px;">
+            <div class="create-grid" style="grid-template-columns: 1fr 1fr 1fr 170px;">
                 <input type="text" name="option_value" class="field" placeholder="Treatment name" required>
                 <input type="text" name="option_description" class="field" placeholder="Treatment description" required>
                 <input type="number" name="option_rate" class="field" min="0.01" step="0.01" placeholder="Treatment rate" required>
                 <button type="submit" class="btn btn-primary">Add Treatment</button>
+            </div>
+            <div class="create-grid" style="grid-template-columns: repeat(3, 1fr); margin-top:10px;">
+                <input type="text" name="problem_text" class="field" placeholder="Problem text">
+                <input type="text" name="recommendation_text" class="field" placeholder="Recommendation text">
+                <input type="text" name="target_pest" class="field" placeholder="Target pest">
+            </div>
+            <div class="create-grid" style="grid-template-columns: repeat(3, 1fr); margin-top:10px;">
+                <input type="text" name="application_method" class="field" placeholder="Application method">
+                <input type="text" name="additional_information" class="field" placeholder="Additional information">
+                <input type="text" name="dilution_rate" class="field" placeholder="Dilution rate">
+            </div>
+            {% elif selected_section == 'Payment Proof Submission' and section_filter == 'Bank Used for Payment' %}
+            <input type="hidden" name="form_section" value="Payment Proof Submission">
+            <input type="hidden" name="field_name" value="Bank Used for Payment">
+            <div class="create-grid" style="grid-template-columns: 1fr 1fr 170px;">
+                <input type="text" name="option_value" class="field" placeholder="Bank name" required>
+                <input type="text" name="account_number" class="field" placeholder="Account number" required>
+                <button type="submit" class="btn btn-primary">Add Bank</button>
             </div>
             {% elif selected_section == 'Inspection' or selected_section == 'Service Report Submission' or selected_section == 'Payment Proof Submission' %}
             <input type="hidden" name="form_section" value="{{ selected_section }}">
@@ -402,13 +420,39 @@
                 <div style="margin-bottom:10px;">
                     <input type="text" name="option_description" id="editOptionDescription" class="field" placeholder="Treatment description" required>
                 </div>
-                <div style="margin-bottom:14px;">
+                <div style="margin-bottom:10px;">
                     <input type="number" name="option_rate" id="editOptionRate" class="field" min="0.01" step="0.01" placeholder="Treatment rate" required>
+                </div>
+                <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:10px;">
+                    <input type="text" name="problem_text" id="editProblemText" class="field" placeholder="Problem text">
+                    <input type="text" name="recommendation_text" id="editRecommendationText" class="field" placeholder="Recommendation text">
+                    <input type="text" name="target_pest" id="editTargetPest" class="field" placeholder="Target pest">
+                </div>
+                <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px;">
+                    <input type="text" name="application_method" id="editApplicationMethod" class="field" placeholder="Application method">
+                    <input type="text" name="additional_information" id="editAdditionalInformation" class="field" placeholder="Additional information">
+                    <input type="text" name="dilution_rate" id="editDilutionRate" class="field" placeholder="Dilution rate">
                 </div>
                 <div class="edit-controls-row">
                     <label style="display:flex;align-items:center;gap:8px;font-size:0.92em;color:#333;">
                         <input type="checkbox" id="editOptionActive" name="is_active" checked>
                         Active treatment service
+                    </label>
+                    <button type="button" class="modal-btn modal-btn-danger" id="hardDeleteOptionBtn">Hard Delete</button>
+                </div>
+                {% elif selected_section == 'Payment Proof Submission' and section_filter == 'Bank Used for Payment' %}
+                <input type="hidden" name="form_section" value="Payment Proof Submission">
+                <input type="hidden" name="field_name" id="editFieldName" value="Bank Used for Payment">
+                <div style="margin-bottom:10px;">
+                    <input type="text" name="option_value" id="editOptionValue" class="field" placeholder="Bank name" required>
+                </div>
+                <div style="margin-bottom:14px;">
+                    <input type="text" name="account_number" id="editAccountNumber" class="field" placeholder="Account number" required>
+                </div>
+                <div class="edit-controls-row">
+                    <label style="display:flex;align-items:center;gap:8px;font-size:0.92em;color:#333;">
+                        <input type="checkbox" id="editOptionActive" name="is_active" checked>
+                        Active bank option
                     </label>
                     <button type="button" class="modal-btn modal-btn-danger" id="hardDeleteOptionBtn">Hard Delete</button>
                 </div>
@@ -511,6 +555,13 @@
     const editFieldName = document.getElementById('editFieldName');
     const editOptionValue = document.getElementById('editOptionValue');
     const editOptionDescription = document.getElementById('editOptionDescription');
+    const editProblemText = document.getElementById('editProblemText');
+    const editRecommendationText = document.getElementById('editRecommendationText');
+    const editTargetPest = document.getElementById('editTargetPest');
+    const editApplicationMethod = document.getElementById('editApplicationMethod');
+    const editAdditionalInformation = document.getElementById('editAdditionalInformation');
+    const editDilutionRate = document.getElementById('editDilutionRate');
+    const editAccountNumber = document.getElementById('editAccountNumber');
     const editOptionRate = document.getElementById('editOptionRate');
     const editOptionActive = document.getElementById('editOptionActive');
     const hardDeleteOptionBtn = document.getElementById('hardDeleteOptionBtn');
@@ -531,6 +582,27 @@
             editOptionValue.value = this.dataset.editValue || '';
             if (editOptionDescription) {
                 editOptionDescription.value = this.dataset.editDescription || '';
+            }
+            if (editProblemText) {
+                editProblemText.value = this.dataset.editProblem || '';
+            }
+            if (editRecommendationText) {
+                editRecommendationText.value = this.dataset.editRecommendation || '';
+            }
+            if (editTargetPest) {
+                editTargetPest.value = this.dataset.editTargetPest || '';
+            }
+            if (editApplicationMethod) {
+                editApplicationMethod.value = this.dataset.editApplicationMethod || '';
+            }
+            if (editAdditionalInformation) {
+                editAdditionalInformation.value = this.dataset.editAdditionalInformation || '';
+            }
+            if (editDilutionRate) {
+                editDilutionRate.value = this.dataset.editDilutionRate || '';
+            }
+            if (editAccountNumber) {
+                editAccountNumber.value = this.dataset.editAccountNumber || '';
             }
             if (editOptionRate) {
                 editOptionRate.value = this.dataset.editRate || '';
