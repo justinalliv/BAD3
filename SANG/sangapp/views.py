@@ -161,10 +161,12 @@ TREATMENT_SERVICE_METADATA = {
 
 FALLBACK_CHEMICAL_NAMES = ['Temprid', 'Maxforce', 'Racumin', 'Muriatic Acid', 'Solignum']
 PAYMENT_BANK_DEFAULTS = [
-    ('BDO', '0000-0000-0000'),
-    ('BPI', '0000-1111-2222'),
-    ('Landbank', '0000-2222-3333'),
-    ('Metrobank', '0000-3333-4444'),
+    ('Online Bank Transfer', 'BDO', '0000-0000-0000'),
+    ('Online Bank Transfer', 'BPI', '0000-1111-2222'),
+    ('Over-the-counter Deposit', 'Landbank', '0000-2222-3333'),
+    ('Over-the-counter Deposit', 'Metrobank', '0000-3333-4444'),
+    ('E-Wallet Transfer', 'GCash', '0917-000-0000'),
+    ('E-Wallet Transfer', 'Maya', '0998-000-0000'),
 ]
 
 
@@ -197,7 +199,7 @@ def _build_service_form_default_options():
         ('Service Report Submission', 'Service Done'): TREATMENT_SERVICE_PREDEFINED_OPTIONS,
         ('Service Report Submission', 'Chemicals Used'): chemical_names,
         ('Service Report Submission', 'Levels of Infestation'): [label for _, label in ServiceReportArea.INFESTATION_CHOICES],
-        ('Payment Proof Submission', 'Bank Used for Payment'): [name for name, _ in PAYMENT_BANK_DEFAULTS],
+        ('Payment Proof Submission', 'Bank Used for Payment'): [name for _, name, _ in PAYMENT_BANK_DEFAULTS],
         ('Payment Proof Submission', 'Payment Type'): ['Online Bank Transfer', 'Over-the-counter Deposit', 'E-Wallet Transfer'],
     }
 
@@ -284,7 +286,7 @@ def _ensure_service_form_default_options():
             update_fields.append('updated_at')
             option.save(update_fields=update_fields)
 
-    for bank_name, account_number in PAYMENT_BANK_DEFAULTS:
+    for payment_type, bank_name, account_number in PAYMENT_BANK_DEFAULTS:
         option = ServiceFormOption.objects.filter(
             form_section='Payment Proof Submission',
             field_name='Bank Used for Payment',
@@ -293,6 +295,9 @@ def _ensure_service_form_default_options():
         if not option:
             continue
         update_fields = []
+        if not option.option_description:
+            option.option_description = payment_type
+            update_fields.append('option_description')
         if not option.account_number:
             option.account_number = account_number
             update_fields.append('account_number')
@@ -401,15 +406,18 @@ def _get_treatment_option_by_name(option_name):
     ).order_by('-updated_at', '-id').first()
 
 
-def _get_bank_option_by_name(bank_name):
+def _get_bank_option_by_name(bank_name, payment_type=''):
     if not bank_name:
         return None
-    return ServiceFormOption.objects.filter(
+    options = ServiceFormOption.objects.filter(
         form_section='Payment Proof Submission',
         field_name='Bank Used for Payment',
         option_value__iexact=bank_name.strip(),
         is_active=True,
-    ).order_by('-updated_at', '-id').first()
+    )
+    if payment_type:
+        options = options.filter(option_description__iexact=payment_type.strip())
+    return options.order_by('-updated_at', '-id').first()
 
 
 def _get_treatment_service_names():
@@ -689,6 +697,8 @@ def submit_payment_proof(request):
     if 'customer_id' not in request.session:
         return redirect('login')
 
+    _ensure_service_form_default_options()
+
     def _combined_invoice_total(inv):
         if not inv:
             return Decimal('0.00')
@@ -729,7 +739,7 @@ def submit_payment_proof(request):
                 form_section='Payment Proof Submission',
                 field_name='Bank Used for Payment',
                 is_active=True,
-            ).order_by('option_value')),
+            ).order_by('option_description', 'option_value')),
             'payment_type_options': list(ServiceFormOption.objects.filter(
                 form_section='Payment Proof Submission',
                 field_name='Payment Type',
@@ -768,14 +778,34 @@ def submit_payment_proof(request):
             errors['payment_type'] = 'Payment type is required'
         if not bank_used:
             errors['bank_used'] = 'Bank is required'
-        if not account_number:
-            errors['account_number'] = 'Account number is required'
         if not reference_number:
             errors['reference_number'] = 'Reference number is required'
         if not amount_paid:
             errors['amount_paid'] = 'Amount paid is required'
         if not proof_file and not existing_proof:
             errors['file'] = 'Proof of payment is required'
+
+        payment_type_option = None
+        if payment_type:
+            payment_type_option = ServiceFormOption.objects.filter(
+                form_section='Payment Proof Submission',
+                field_name='Payment Type',
+                option_value__iexact=payment_type,
+                is_active=True,
+            ).order_by('-updated_at', '-id').first()
+            if not payment_type_option:
+                errors['payment_type'] = 'Selected payment type is not available.'
+
+        selected_bank_option = None
+        if bank_used and payment_type and payment_type_option:
+            selected_bank_option = _get_bank_option_by_name(bank_used, payment_type)
+            if not selected_bank_option:
+                errors['bank_used'] = 'Selected bank is not available for the chosen payment type.'
+            elif not (selected_bank_option.account_number or '').strip():
+                errors['account_number'] = 'Selected bank has no configured account number.'
+
+        if selected_bank_option:
+            account_number = (selected_bank_option.account_number or '').strip()
         
         # Validate file format and size
         if proof_file:
@@ -790,41 +820,49 @@ def submit_payment_proof(request):
                 errors['file'] = 'File size exceeds 10 MB limit.'
         
         if errors:
+            form_data = request.POST.copy()
+            form_data['account_number'] = account_number
             return render(request, 'submit_payment_proof.html', _proof_context(
                 service,
                 invoice,
                 errors=errors,
-                form_data=request.POST,
+                form_data=form_data,
                 existing_proof=existing_proof,
             ))
 
         if not service:
             errors['service_id'] = 'A valid pending payment service is required.'
+            form_data = request.POST.copy()
+            form_data['account_number'] = account_number
             return render(request, 'submit_payment_proof.html', _proof_context(
                 service,
                 invoice,
                 errors=errors,
-                form_data=request.POST,
+                form_data=form_data,
                 existing_proof=existing_proof,
             ))
 
         if not invoice:
             errors['service_id'] = 'Invoice is not yet available for this service.'
+            form_data = request.POST.copy()
+            form_data['account_number'] = account_number
             return render(request, 'submit_payment_proof.html', _proof_context(
                 service,
                 invoice,
                 errors=errors,
-                form_data=request.POST,
+                form_data=form_data,
                 existing_proof=existing_proof,
             ))
 
         if existing_proof and existing_proof.status == PaymentProof.STATUS_VALIDATED:
             errors['service_id'] = 'Payment proof is already validated and is now read-only.'
+            form_data = request.POST.copy()
+            form_data['account_number'] = account_number
             return render(request, 'submit_payment_proof.html', _proof_context(
                 service,
                 invoice,
                 errors=errors,
-                form_data=request.POST,
+                form_data=form_data,
                 existing_proof=existing_proof,
             ))
 
@@ -888,17 +926,6 @@ def submit_payment_proof(request):
         service = Service.objects.filter(customer_id=request.session['customer_id'], status='Pending Payment').select_related('property').order_by('-created_at').first()
         if service:
             invoice = service.invoices.order_by('-created_at').first()
-
-    bank_options = list(ServiceFormOption.objects.filter(
-        form_section='Payment Proof Submission',
-        field_name='Bank Used for Payment',
-        is_active=True,
-    ).order_by('option_value'))
-    payment_type_options = list(ServiceFormOption.objects.filter(
-        form_section='Payment Proof Submission',
-        field_name='Payment Type',
-        is_active=True,
-    ).order_by('option_value'))
 
     existing_proof = PaymentProof.objects.filter(service=service).first() if service else None
     return render(request, 'submit_payment_proof.html', _proof_context(
@@ -2963,6 +2990,12 @@ def om_service_forms(request):
         ('Service Report Submission', 'Service Done'),
     }
 
+    payment_type_values = list(ServiceFormOption.objects.filter(
+        form_section='Payment Proof Submission',
+        field_name='Payment Type',
+        is_active=True,
+    ).order_by('option_value').values_list('option_value', flat=True))
+
     if request.method == 'POST':
         action = request.POST.get('action', '').strip()
         option_id = request.POST.get('option_id', '').strip()
@@ -2984,6 +3017,10 @@ def om_service_forms(request):
         is_service_report_chemicals_field = (
             form_section == 'Service Report Submission' and
             field_name == 'Chemicals Used'
+        )
+        is_payment_bank_field = (
+            form_section == 'Payment Proof Submission' and
+            field_name == 'Bank Used for Payment'
         )
         option_rate = None
         valid_field_names = SERVICE_FORM_FIELD_CATALOG.get(form_section, [])
@@ -3012,9 +3049,15 @@ def om_service_forms(request):
                 except (InvalidOperation, TypeError, ValueError):
                     messages.error(request, 'Treatment Rate must be a valid positive amount.')
                     return redirect_forms()
-            elif form_section == 'Payment Proof Submission' and field_name == 'Bank Used for Payment':
+            elif is_payment_bank_field:
                 if not option_account_number:
                     messages.error(request, 'Account Number is required.')
+                    return redirect_forms()
+                if not option_description:
+                    messages.error(request, 'Payment Type is required for bank options.')
+                    return redirect_forms()
+                if option_description not in payment_type_values:
+                    messages.error(request, 'Selected Payment Type is not available.')
                     return redirect_forms()
 
         if action == 'create':
@@ -3035,7 +3078,7 @@ def om_service_forms(request):
             if existing and not existing.is_active:
                 existing.option_value = option_value
                 existing.is_active = True
-                existing.option_description = option_description if is_treatment_service else ''
+                existing.option_description = option_description if (is_treatment_service or is_payment_bank_field) else ''
                 existing.option_rate = option_rate if is_treatment_service else None
                 existing.problem_text = option_problem_text if is_treatment_service else ''
                 existing.recommendation_text = option_recommendation_text if is_treatment_service else ''
@@ -3043,7 +3086,7 @@ def om_service_forms(request):
                 existing.application_method = option_application_method if is_treatment_service else ''
                 existing.additional_information = option_additional_information if is_treatment_service else ''
                 existing.dilution_rate = option_dilution_rate if is_treatment_service else ''
-                existing.account_number = option_account_number if form_section == 'Payment Proof Submission' and field_name == 'Bank Used for Payment' else ''
+                existing.account_number = option_account_number if is_payment_bank_field else ''
                 if existing.scoped_option_id is None:
                     last_scoped_id = ServiceFormOption.objects.filter(
                         form_section=form_section,
@@ -3063,7 +3106,7 @@ def om_service_forms(request):
                 field_name=field_name,
                 scoped_option_id=last_scoped_id + 1,
                 option_value=option_value,
-                option_description=option_description if is_treatment_service else '',
+                option_description=option_description if (is_treatment_service or is_payment_bank_field) else '',
                 option_rate=option_rate if is_treatment_service else None,
                 problem_text=option_problem_text if is_treatment_service else '',
                 recommendation_text=option_recommendation_text if is_treatment_service else '',
@@ -3071,7 +3114,7 @@ def om_service_forms(request):
                 application_method=option_application_method if is_treatment_service else '',
                 additional_information=option_additional_information if is_treatment_service else '',
                 dilution_rate=option_dilution_rate if is_treatment_service else '',
-                account_number=option_account_number if form_section == 'Payment Proof Submission' and field_name == 'Bank Used for Payment' else '',
+                account_number=option_account_number if is_payment_bank_field else '',
                 is_active=True,
             )
             return redirect_forms()
@@ -3105,7 +3148,7 @@ def om_service_forms(request):
             option.form_section = form_section
             option.field_name = field_name
             option.option_value = option_value
-            option.option_description = option_description if is_treatment_service else ''
+            option.option_description = option_description if (is_treatment_service or is_payment_bank_field) else ''
             option.option_rate = option_rate if is_treatment_service else None
             option.problem_text = option_problem_text if is_treatment_service else ''
             option.recommendation_text = option_recommendation_text if is_treatment_service else ''
@@ -3113,7 +3156,7 @@ def om_service_forms(request):
             option.application_method = option_application_method if is_treatment_service else ''
             option.additional_information = option_additional_information if is_treatment_service else ''
             option.dilution_rate = option_dilution_rate if is_treatment_service else ''
-            option.account_number = option_account_number if form_section == 'Payment Proof Submission' and field_name == 'Bank Used for Payment' else ''
+            option.account_number = option_account_number if is_payment_bank_field else ''
             option.is_active = is_active
             update_fields = ['form_section', 'field_name', 'option_value', 'option_description', 'option_rate', 'problem_text', 'recommendation_text', 'target_pest', 'application_method', 'additional_information', 'dilution_rate', 'account_number', 'is_active', 'updated_at']
             option.save(update_fields=update_fields)
@@ -3217,6 +3260,7 @@ def om_service_forms(request):
         'selected_section': selected_section,
         'section_filter': section_filter,
         'section_filter_options': section_filter_options,
+        'payment_type_options': payment_type_values,
         'is_managed_by_treatment': (selected_section, section_filter) in managed_by_treatment_fields,
     })
 

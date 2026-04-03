@@ -306,7 +306,7 @@
                     <select id="bank_used" name="bank_used" class="field field-select" {% if is_locked %}disabled{% else %}required{% endif %}>
                         <option value="">Select bank</option>
                         {% for option in bank_options %}
-                        <option value="{{ option.option_value }}" data-account-number="{{ option.account_number|default:'' }}" {% if form_data.bank_used == option.option_value %}selected{% endif %}>{{ option.option_value }}</option>
+                        <option value="{{ option.option_value }}" data-account-number="{{ option.account_number|default:'' }}" data-payment-type="{{ option.option_description|default:''|escape }}" {% if form_data.bank_used == option.option_value %}selected{% endif %}>{{ option.option_value }}</option>
                         {% endfor %}
                     </select>
                     {% if errors.bank_used %}<div class="error">{{ errors.bank_used }}</div>{% endif %}
@@ -359,8 +359,45 @@
 
 {% block extra_js %}
 <script>
+    const paymentTypeSelect = document.getElementById('payment_type');
     const bankSelect = document.getElementById('bank_used');
     const accountNumberField = document.getElementById('account_number');
+
+    function normalize(value) {
+        return (value || '').toString().trim().toLowerCase();
+    }
+
+    function syncBankOptions() {
+        if (!paymentTypeSelect || !bankSelect) {
+            return;
+        }
+
+        const selectedPaymentType = normalize(paymentTypeSelect.value);
+        const currentValue = bankSelect.value;
+        let hasVisibleSelected = false;
+
+        Array.from(bankSelect.options).forEach((option, index) => {
+            if (index === 0 || !option.value) {
+                option.hidden = false;
+                option.disabled = false;
+                return;
+            }
+
+            const optionPaymentType = normalize(option.dataset.paymentType);
+            const shouldShow = !selectedPaymentType || optionPaymentType === selectedPaymentType;
+
+            option.hidden = !shouldShow;
+            option.disabled = !shouldShow;
+
+            if (shouldShow && option.value === currentValue) {
+                hasVisibleSelected = true;
+            }
+        });
+
+        if (!hasVisibleSelected) {
+            bankSelect.value = '';
+        }
+    }
 
     function syncAccountNumber() {
         if (!bankSelect || !accountNumberField) {
@@ -371,8 +408,16 @@
         accountNumberField.value = selectedOption ? (selectedOption.dataset.accountNumber || '') : '';
     }
 
+    if (paymentTypeSelect) {
+        paymentTypeSelect.addEventListener('change', function () {
+            syncBankOptions();
+            syncAccountNumber();
+        });
+    }
+
     if (bankSelect) {
         bankSelect.addEventListener('change', syncAccountNumber);
+        syncBankOptions();
         syncAccountNumber();
     }
 </script>

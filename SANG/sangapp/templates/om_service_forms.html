@@ -273,7 +273,13 @@
             {% elif selected_section == 'Payment Proof Submission' and section_filter == 'Bank Used for Payment' %}
             <input type="hidden" name="form_section" value="Payment Proof Submission">
             <input type="hidden" name="field_name" value="Bank Used for Payment">
-            <div class="create-grid" style="grid-template-columns: 1fr 1fr 170px;">
+            <div class="create-grid" style="grid-template-columns: 1fr 1fr 1fr 170px;">
+                <select name="option_description" class="field field-select" required>
+                    <option value="">Select payment type</option>
+                    {% for payment_type in payment_type_options %}
+                    <option value="{{ payment_type }}">{{ payment_type }}</option>
+                    {% endfor %}
+                </select>
                 <input type="text" name="option_value" class="field" placeholder="Bank name" required>
                 <input type="text" name="account_number" class="field" placeholder="Account number" required>
                 <button type="submit" class="btn btn-primary">Add Bank</button>
@@ -367,7 +373,49 @@
                     {% endfor %}
                 </tbody>
                 {% else %}
-                {% if selected_section == 'Inspection' or selected_section == 'Service Report Submission' or selected_section == 'Payment Proof Submission' %}
+                {% if selected_section == 'Payment Proof Submission' and section_filter == 'Bank Used for Payment' %}
+                <thead>
+                    <tr>
+                        <th style="width: 12%;">Payment Proof ID</th>
+                        <th style="width: 24%;">Payment Type</th>
+                        <th style="width: 24%;">Bank Name</th>
+                        <th style="width: 18%;">Account Number</th>
+                        <th style="width: 10%;">Status</th>
+                        <th style="width: 12%;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for option in option_rows %}
+                    <tr>
+                        <td>{{ option.scoped_option_id|default:option.id }}</td>
+                        <td>{{ option.option_description|default:'-' }}</td>
+                        <td>{{ option.option_value }}</td>
+                        <td>{{ option.account_number|default:'-' }}</td>
+                        <td>{% if option.is_active %}Active{% else %}Inactive{% endif %}</td>
+                        <td>
+                            <div class="row-actions">
+                                <button
+                                    type="button"
+                                    class="btn-row btn-edit"
+                                    data-edit-id="{{ option.id }}"
+                                    data-edit-section="{{ option.form_section|escape }}"
+                                    data-edit-field="{{ option.field_name|escape }}"
+                                    data-edit-value="{{ option.option_value|escape }}"
+                                    data-edit-description="{{ option.option_description|escape }}"
+                                    data-edit-account-number="{{ option.account_number|escape }}"
+                                    data-edit-rate="{{ option.option_rate|default:'' }}"
+                                    data-edit-active="{{ option.is_active|yesno:'true,false' }}"
+                                >Update</button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" style="text-align:center;color:#666;">No payment-proof banks available.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                {% elif selected_section == 'Inspection' or selected_section == 'Service Report Submission' or selected_section == 'Payment Proof Submission' %}
                 <thead>
                     <tr>
                         <th style="width: 14%;">{% if selected_section == 'Inspection' %}Inspection{% elif selected_section == 'Service Report Submission' %}Service Report{% else %}Payment Proof{% endif %} ID</th>
@@ -392,6 +440,7 @@
                                     data-edit-field="{{ option.field_name|escape }}"
                                     data-edit-value="{{ option.option_value|escape }}"
                                     data-edit-description="{{ option.option_description|escape }}"
+                                    data-edit-account-number="{{ option.account_number|escape }}"
                                     data-edit-rate="{{ option.option_rate|default:'' }}"
                                     data-edit-active="{{ option.is_active|yesno:'true,false' }}"
                                 >Update</button>
@@ -491,6 +540,14 @@
                 {% elif selected_section == 'Payment Proof Submission' and section_filter == 'Bank Used for Payment' %}
                 <input type="hidden" name="form_section" value="Payment Proof Submission">
                 <input type="hidden" name="field_name" id="editFieldName" value="Bank Used for Payment">
+                <div style="margin-bottom:10px;">
+                    <select name="option_description" id="editOptionDescription" class="field field-select" required>
+                        <option value="">Select payment type</option>
+                        {% for payment_type in payment_type_options %}
+                        <option value="{{ payment_type }}">{{ payment_type }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
                 <div style="margin-bottom:10px;">
                     <input type="text" name="option_value" id="editOptionValue" class="field" placeholder="Bank name" required>
                 </div>
