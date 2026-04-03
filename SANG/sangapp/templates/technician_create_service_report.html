@@ -4,9 +4,9 @@
 
 {% block extra_css %}
     .container {
-        max-width: 1160px;
-        margin: 0 auto;
-        padding: 0 24px 28px;
+        max-width: 1120px;
+        margin: 24px auto 40px;
+        padding: 0 24px;
     }
 
     .identified-top {
@@ -19,15 +19,16 @@
     .title {
         text-align: center;
         color: #1a2a5e;
-        margin: 2px 0 16px;
-        font-size: clamp(2rem, 4.8vh, 3rem);
+        margin: 0 0 14px;
+        font-size: 2.2em;
     }
 
     .form-shell {
-        background-color: white;
-        border-radius: 10px;
+        background: #fff;
+        border: 1px solid #ddd;
+        border-radius: 12px;
         padding: 24px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
         margin-bottom: 18px;
     }
 
@@ -35,8 +36,16 @@
         color: #1a2a5e;
         font-weight: 700;
         margin: 0;
-        font-size: 1.55em;
+        font-size: 1.1em;
         line-height: 1.2;
+    }
+
+    .section-box {
+        border: 1px solid #dfe3ee;
+        border-radius: 10px;
+        padding: 14px;
+        margin-bottom: 14px;
+        background: #f9fafc;
     }
 
     .section-header {
@@ -65,10 +74,18 @@
     }
 
     .table-wrap {
-        border: 1px solid #e0e0e0;
+        border: 1px solid #dfe3ee;
+        border-radius: 10px;
         max-height: 220px;
         overflow-y: auto;
         background: #fff;
+    }
+
+    .table-card {
+        border: 1px solid #dfe3ee;
+        border-radius: 10px;
+        background: #fff;
+        overflow: hidden;
     }
 
     #selectTable {
@@ -88,12 +105,12 @@
     }
 
     th, td {
-        padding: 12px 10px;
+        padding: 12px 14px;
         text-align: left;
         font-size: 0.9em;
         color: #333;
         vertical-align: middle;
-        border-bottom: 1px solid #e0e0e0;
+        border-bottom: 1px solid #e9ebf1;
     }
 
     th {
@@ -115,10 +132,11 @@
         min-height: 42px;
         border: 1px solid #d7d7d7;
         border-radius: 10px;
-        padding: 0 10px;
+        padding: 0 12px;
         font-size: 0.9em;
         background: #fff;
         color: #333;
+        transition: border-color 0.2s, box-shadow 0.2s;
     }
 
     .row-input:focus,
@@ -127,6 +145,32 @@
         outline: none;
         border-color: #1a2a5e;
         box-shadow: 0 0 0 3px rgba(26, 42, 94, 0.12);
+    }
+
+    .row-input[readonly] {
+        background: #f5f6fa;
+        color: #5b6275;
+        border-color: #d6dbea;
+    }
+
+    .row-select {
+        appearance: none;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        padding-right: 40px;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='10' viewBox='0 0 14 10'%3E%3Cpath fill='none' stroke='%234a4a4a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M1 1l6 6 6-6'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 12px center;
+        background-size: 14px 10px;
+    }
+
+    .row-number {
+        text-align: center;
+    }
+
+    .row-number::-webkit-outer-spin-button,
+    .row-number::-webkit-inner-spin-button {
+        margin: 0;
     }
 
     .checkbox-group {
@@ -182,21 +226,38 @@
     }
 
     .note-cell {
-        display: flex;
-        align-items: center;
-        gap: 8px;
+        display: block;
     }
 
     .note-preview {
-        font-size: 0.82em;
+        display: block;
+        width: 100%;
+        min-height: 34px;
+        font-size: 0.84em;
         color: #555;
-        max-width: 130px;
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
-        padding: 4px 8px;
+        padding: 7px 10px;
         border-radius: 8px;
         background: #f4f6fb;
+        cursor: pointer;
+        border: 1px solid transparent;
+    }
+
+    .note-preview:hover {
+        border-color: #c9d2ee;
+        background: #eef2fc;
+    }
+
+    .note-preview:focus {
+        outline: none;
+        border-color: #1a2a5e;
+        box-shadow: 0 0 0 3px rgba(26, 42, 94, 0.12);
+    }
+
+    .note-preview.is-empty {
+        color: #8b91a2;
     }
 
     .small-btn {
@@ -207,7 +268,7 @@
         padding: 0 12px;
         border-radius: 8px;
         border: none;
-        font-size: 0.82em;
+        font-size: 0.84em;
         font-weight: 700;
         cursor: pointer;
     }
@@ -219,14 +280,26 @@
         margin-top: 10px;
     }
 
+    .btn-add:hover {
+        background: #dde3f6;
+    }
+
     .btn-edit {
-        background: #6c7293;
-        color: #fff;
+        background: #eef1fb;
+        color: #1a2a5e;
+    }
+
+    .btn-edit:hover {
+        background: #dde3f6;
     }
 
     .btn-delete {
         background: #d9534f;
         color: #fff;
+    }
+
+    .btn-delete:hover {
+        background: #c74743;
     }
 
     .error {
@@ -254,7 +327,7 @@
 
     .btn-cancel,
     .btn-back {
-        background: #e2e2e2;
+        background: #e8e8e8;
         color: #333;
     }
 
@@ -262,6 +335,16 @@
     .btn-submit {
         background: #1a2a5e;
         color: #fff;
+    }
+
+    .btn-cancel:hover,
+    .btn-back:hover {
+        background: #d0d0d0;
+    }
+
+    .btn-continue:hover,
+    .btn-submit:hover {
+        background: #0d1535;
     }
 
     .empty-box {
@@ -362,43 +445,51 @@
                 <input type="hidden" name="chemicals_json" id="chemicalsJsonInput">
                 <input type="hidden" name="treated_areas_json" id="treatedAreasJsonInput">
 
-                <div class="subtitle">Add chemicals used</div>
-                <p style="margin:6px 0 10px;color:#5a5f6d;font-size:0.86em;">Optional: you can submit this report without chemicals used.</p>
-                <table>
-                    <thead>
-                        <tr>
-                            <th style="width:40%;">Chemical</th>
-                            <th style="width:22%;">Unit Measure</th>
-                            <th style="width:22%;">Amount</th>
-                            <th style="width:16%;">Action</th>
-                        </tr>
-                    </thead>
-                    <tbody id="chemicalsBody"></tbody>
-                </table>
-                <button type="button" class="small-btn btn-add" id="addChemicalBtn">+ Add a chemical</button>
-                {% if errors.chemicals %}<p class="error">{{ errors.chemicals }}</p>{% endif %}
-
-                <div class="section-header" style="margin-top:14px; margin-bottom:10px;">
-                    <h2 class="subtitle">Treated Areas</h2>
+                <div class="section-box">
+                    <div class="subtitle">Add chemicals used</div>
+                    <div class="table-card" style="margin-top:10px;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th style="width:40%;">Chemical</th>
+                                    <th style="width:22%;">Unit Measure</th>
+                                    <th style="width:22%;">Amount</th>
+                                    <th style="width:16%;">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="chemicalsBody"></tbody>
+                        </table>
+                    </div>
+                    <button type="button" class="small-btn btn-add" id="addChemicalBtn">+ Add a chemical</button>
+                    {% if errors.chemicals %}<p class="error">{{ errors.chemicals }}</p>{% endif %}
                 </div>
-                <table>
-                    <thead>
-                        <tr>
-                            <th style="width:14%;">Areas</th>
-                            <th style="width:14%;">Levels of Infestation</th>
-                            <th style="width:6%;">Spray</th>
-                            <th style="width:6%;">Mist</th>
-                            <th style="width:8%;">Rat Bait</th>
-                            <th style="width:7%;">Powder</th>
-                            <th style="width:16%;">Remarks</th>
-                            <th style="width:16%;">Recommendation</th>
-                            <th style="width:7%;">Action</th>
-                        </tr>
-                    </thead>
-                    <tbody id="areasBody"></tbody>
-                </table>
-                <button type="button" class="small-btn btn-add" id="addAreaBtn">+ Add treated area</button>
-                {% if errors.treated_areas %}<p class="error">{{ errors.treated_areas }}</p>{% endif %}
+
+                <div class="section-box">
+                    <div class="section-header" style="margin-bottom:10px;">
+                        <h2 class="subtitle">Treated Areas</h2>
+                    </div>
+                    <p class="error" id="treatedAreasClientError" style="display:none;margin-top:0;"></p>
+                    <div class="table-card">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th style="width:14%;">Areas</th>
+                                    <th style="width:14%;">Levels of Infestation</th>
+                                    <th style="width:6%;">Spray</th>
+                                    <th style="width:6%;">Mist</th>
+                                    <th style="width:9%;">Rat&nbsp;Bait</th>
+                                    <th style="width:7%;">Powder</th>
+                                    <th style="width:16%;">Remarks</th>
+                                    <th style="width:16%;">Recommendation</th>
+                                    <th style="width:7%;">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="areasBody"></tbody>
+                        </table>
+                    </div>
+                    <button type="button" class="small-btn btn-add" id="addAreaBtn">+ Add treated area</button>
+                    {% if errors.treated_areas %}<p class="error">{{ errors.treated_areas }}</p>{% endif %}
+                </div>
 
                 <div class="actions">
                     <button type="button" class="main-btn btn-back" id="goBackBtn">Go Back</button>
@@ -541,6 +632,7 @@
         const addAreaBtn = document.getElementById('addAreaBtn');
         const chemicalsJsonInput = document.getElementById('chemicalsJsonInput');
         const treatedAreasJsonInput = document.getElementById('treatedAreasJsonInput');
+        const treatedAreasClientError = document.getElementById('treatedAreasClientError');
 
         const textModal = document.getElementById('textModal');
         const textModalTitle = document.getElementById('textModalTitle');
@@ -556,6 +648,15 @@
             return infestationChoices.map((choice) => (
                 `<option value="${choice}" ${selectedValue === choice ? 'selected' : ''}>${choice}</option>`
             )).join('');
+        }
+
+        function escapeHtml(value) {
+            return String(value || '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
         }
 
         let editingAreaIndex = -1;
@@ -646,14 +747,12 @@
                     <td><div class="checkbox-group"><input class="trait-check" type="checkbox" data-index="${index}" data-field="powder" ${area.powder ? 'checked' : ''}></div></td>
                     <td>
                         <div class="note-cell">
-                            <span class="note-preview">${area.remarks || '-'}</span>
-                            <button type="button" class="small-btn btn-edit" data-edit-index="${index}" data-edit-field="remarks">Edit</button>
+                            <span class="note-preview ${area.remarks ? '' : 'is-empty'}" role="button" tabindex="0" data-edit-index="${index}" data-edit-field="remarks">${area.remarks ? escapeHtml(area.remarks) : '&nbsp;'}</span>
                         </div>
                     </td>
                     <td>
                         <div class="note-cell">
-                            <span class="note-preview">${area.recommendation || '-'}</span>
-                            <button type="button" class="small-btn btn-edit" data-edit-index="${index}" data-edit-field="recommendation">Edit</button>
+                            <span class="note-preview ${area.recommendation ? '' : 'is-empty'}" role="button" tabindex="0" data-edit-index="${index}" data-edit-field="recommendation">${area.recommendation ? escapeHtml(area.recommendation) : '&nbsp;'}</span>
                         </div>
                     </td>
                     <td><button type="button" class="small-btn btn-delete" data-delete-area="${index}">Delete</button></td>
@@ -685,12 +784,20 @@
             });
 
             areasBody.querySelectorAll('[data-edit-index]').forEach((button) => {
-                button.addEventListener('click', function () {
+                const openEditor = function () {
                     editingAreaIndex = Number(this.dataset.editIndex);
                     editingField = this.dataset.editField;
                     textModalTitle.textContent = editingField === 'remarks' ? 'Edit Remarks' : 'Edit Recommendation';
                     textModalValue.value = treatedAreas[editingAreaIndex][editingField] || '';
                     textModal.classList.add('show');
+                };
+
+                button.addEventListener('click', openEditor);
+                button.addEventListener('keydown', function (event) {
+                    if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault();
+                        openEditor.call(this);
+                    }
                 });
             });
         }
@@ -698,6 +805,23 @@
         function serializeDraft() {
             chemicalsJsonInput.value = JSON.stringify(chemicals);
             treatedAreasJsonInput.value = JSON.stringify(treatedAreas);
+        }
+
+        function hasValidTreatedArea() {
+            const validInfestationValues = new Set(infestationChoices.length ? infestationChoices : ['Low', 'Medium', 'High']);
+            return treatedAreas.some((area) => {
+                const areaName = (area.area_name || '').trim();
+                const infestationLevel = (area.infestation_level || '').trim();
+                return Boolean(areaName) && validInfestationValues.has(infestationLevel);
+            });
+        }
+
+        function setTreatedAreaClientError(message) {
+            if (!treatedAreasClientError) {
+                return;
+            }
+            treatedAreasClientError.textContent = message || '';
+            treatedAreasClientError.style.display = message ? '' : 'none';
         }
 
         addChemicalBtn.addEventListener('click', function () {
@@ -720,6 +844,11 @@
         });
 
         openSubmitConfirm.addEventListener('click', function () {
+            if (!hasValidTreatedArea()) {
+                setTreatedAreaClientError('Please add at least one treated area before submitting this report.');
+                return;
+            }
+            setTreatedAreaClientError('');
             submitModal.classList.add('show');
         });
 
@@ -728,6 +857,12 @@
         });
 
         confirmSubmit.addEventListener('click', function () {
+            if (!hasValidTreatedArea()) {
+                submitModal.classList.remove('show');
+                setTreatedAreaClientError('Please add at least one treated area before submitting this report.');
+                return;
+            }
+            setTreatedAreaClientError('');
             serializeDraft();
             detailsAction.value = 'submit';
             detailsForm.submit();

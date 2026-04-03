@@ -3604,6 +3604,44 @@ def technician_view_booking(request, service_id):
     })
 
 
+def technician_view_estimated_bill(request, estimated_bill_id):
+    if 'technician_id' not in request.session:
+        return redirect('login')
+
+    try:
+        Technician.objects.get(id=request.session['technician_id'])
+    except Technician.DoesNotExist:
+        request.session.flush()
+        return redirect('login')
+
+    estimated_bill = EstimatedBill.objects.select_related(
+        'service__customer', 'service__property', 'operations_manager'
+    ).prefetch_related('items').filter(id=estimated_bill_id).first()
+
+    if not estimated_bill:
+        return redirect('technician_service_status')
+
+    treatment_rows = []
+    for item in estimated_bill.items.all():
+        treatment_details = _get_treatment_billing_details(item.service_type)
+        treatment_rows.append({
+            'service_type': treatment_details['service_type'],
+            'quantity': item.quantity,
+            'unit_price': item.unit_price,
+            'line_total': item.line_total,
+            'problem_text': item.problem_text or treatment_details['problem_text'],
+            'recommendation_text': item.recommendation_text or treatment_details['recommendation_text'],
+        })
+
+    return render(request, 'om_estimated_bill_view.html', {
+        'estimated_bill': estimated_bill,
+        'role': 'technician',
+        'back_url': _resolve_back_url(request, 'technician_service_status'),
+        'treatment_rows': treatment_rows,
+        'service_type_display': _service_display_treatments(estimated_bill.service),
+    })
+
+
 def technician_update_service_status(request, service_id):
     if 'technician_id' not in request.session:
         return redirect('login')

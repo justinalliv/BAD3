@@ -71,6 +71,7 @@ urlpatterns = [
     path('technician/profile/', views.technician_profile, name='technician_profile'),
     path('technician/service-status/', views.technician_service_status, name='technician_service_status'),
     path('technician/service-status/<int:service_id>/view-booking/', views.technician_view_booking, name='technician_view_booking'),
+    path('technician/service-status/estimated-bill/<int:estimated_bill_id>/', views.technician_view_estimated_bill, name='technician_view_estimated_bill'),
     path('technician/service-status/<int:service_id>/update-status/', views.technician_update_service_status, name='technician_update_service_status'),
     path('technician/service-status/<int:service_id>/edit-booking/', views.technician_edit_booking, name='technician_edit_booking'),
     path('technician/service-status/<int:service_id>/delete/', views.technician_delete_booking, name='technician_delete_service'),
