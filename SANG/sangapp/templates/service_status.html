@@ -3,185 +3,280 @@
 {% block title %}Service Status - Supreme Biotech Solutions{% endblock %}
 
 {% block extra_css %}
-        .container {
-            max-width: 1200px;
-            margin: 28px auto 48px;
-            padding: 0 24px;
-        }
+    .container {
+        max-width: 1220px;
+        margin: 24px auto 40px;
+        padding: 0 24px;
+    }
 
-        h1 {
-            color: #1a2a5e;
-            font-size: 2.5em;
-            margin-bottom: 22px;
-            text-align: center;
-        }
+    .title {
+        color: #1a2a5e;
+        font-size: 2.05em;
+        margin: 0;
+        text-align: center;
+    }
 
-        .table-wrap {
-            background: #fff;
-            border-radius: 12px;
-            border: 1px solid #ddd;
-            padding: 22px;
-            overflow-x: auto;
-        }
+    .sheet {
+        background: #fff;
+        border: 1px solid #ddd;
+        border-radius: 12px;
+        padding: 24px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+    }
 
+    .header-row {
+        margin-bottom: 18px;
+    }
+
+    .list-shell {
+        border: 1px solid #dfe3ee;
+        border-radius: 10px;
+        padding: 16px;
+        background: #f9fafc;
+    }
+
+    .table-wrap {
+        border: 1px solid #dfe3ee;
+        border-radius: 10px;
+        background: #fff;
+        overflow-x: auto;
+    }
+
+    .top-actions {
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 12px;
+    }
+
+    .search-box {
+        width: 300px;
+    }
+
+    #servicesTable {
+        width: 100%;
+        min-width: 1020px;
+        table-layout: fixed;
+        border-collapse: collapse;
+        border-spacing: 0;
+        border: 0;
+    }
+
+    #servicesTable th,
+    #servicesTable td {
+        font-size: 0.8em;
+        padding: 8px 7px;
+        text-align: left;
+        vertical-align: middle;
+        color: #333;
+        border-bottom: 1px solid #e9ebf1;
+    }
+
+    #servicesTable td {
+        word-break: break-word;
+        overflow-wrap: anywhere;
+    }
+
+    #servicesTable th {
+        white-space: normal;
+        word-break: normal;
+        overflow-wrap: normal;
+        color: #fff;
+        background: #1a2a5e;
+        font-size: 0.8em;
+        line-height: 1.2;
+        font-weight: 600;
+        border-bottom: none;
+    }
+
+    #servicesTable tbody tr:last-child td {
+        border-bottom: none;
+    }
+
+    #servicesTable th:last-child,
+    #servicesTable td:last-child {
+        text-align: center;
+    }
+
+    .action-wrap {
+        display: flex;
+        gap: 5px;
+        flex-direction: column;
+        align-items: stretch;
+        width: 100%;
+        max-width: 132px;
+        margin: 0 auto;
+        text-align: left;
+    }
+
+    .action-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        min-width: 0;
+        min-height: 32px;
+        padding: 0 8px;
+        border-radius: 8px;
+        color: #fff;
+        font-size: 0.72em;
+        text-decoration: none;
+        font-weight: 700;
+        white-space: nowrap;
+        border: none;
+        cursor: pointer;
+        transition: background-color 0.2s;
+        box-sizing: border-box;
+    }
+
+    .action-btn.estimated {
+        background: #5f6789;
+    }
+
+    .action-btn.estimated:hover {
+        background: #505775;
+    }
+
+    .action-btn.report {
+        background: #2b7a78;
+    }
+
+    .action-btn.report:hover {
+        background: #236765;
+    }
+
+    .action-btn.update {
+        background: #1a2a5e;
+    }
+
+    .action-btn.update:hover {
+        background: #0d1535;
+    }
+
+    .action-btn.booking {
+        background: #2f9e57;
+    }
+
+    .action-btn.booking:hover {
+        background: #267f47;
+    }
+
+    .action-btn.delete {
+        background: #d9534f;
+    }
+
+    .action-btn.delete:hover {
+        background: #c74743;
+    }
+
+    .action-note {
+        font-size: 0.8em;
+        color: #666;
+        line-height: 1.35;
+    }
+
+    .action-note.warning {
+        color: #6b5000;
+    }
+
+    .action-note.success {
+        color: #1e5f39;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 40px 20px;
+        color: #666;
+    }
+
+    .empty-state h3 {
+        color: #1a2a5e;
+        margin-bottom: 10px;
+        font-size: 1.5em;
+    }
+
+    .empty-state p {
+        margin-bottom: 20px;
+    }
+
+    .empty-state a {
+        display: inline-block;
+        padding: 0 30px;
+        min-height: 40px;
+        line-height: 40px;
+        background-color: #1a2a5e;
+        color: #fff;
+        text-decoration: none;
+        border-radius: 10px;
+        font-weight: 700;
+        transition: background-color 0.2s;
+    }
+
+    .empty-state a:hover {
+        background-color: #0d1535;
+    }
+
+    @media (max-width: 1100px) {
         .top-actions {
-            display: flex;
-            justify-content: flex-end;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 14px;
+            justify-content: flex-start;
         }
 
         .search-box {
-            width: 260px;
-            min-height: 40px;
-            border: 1px solid #ddd;
-            border-radius: 12px;
-            padding: 0 12px;
-            font-size: 0.9em;
-            background: #fff;
-        }
-
-        .search-box:focus {
-            outline: none;
-            border-color: #1a2a5e;
-            box-shadow: 0 0 0 3px rgba(26, 42, 94, 0.12);
+            width: 100%;
+            max-width: 320px;
         }
 
         #servicesTable {
-            width: 100%;
-            table-layout: fixed;
-            border-collapse: collapse;
-            border-spacing: 0;
-            border: 0;
+            min-width: 1020px;
+        }
+    }
+
+    @media (max-width: 760px) {
+        .container {
+            padding: 0 12px;
         }
 
-        #servicesTable th,
-        #servicesTable td {
-            font-size: 0.84em;
-            padding: 10px 8px;
-            text-align: left;
-            vertical-align: top;
-            word-break: break-word;
-            overflow-wrap: anywhere;
-            border: 0 !important;
-            box-shadow: none;
-            color: #333;
+        .sheet {
+            padding: 16px;
         }
 
-        #servicesTable th {
-            white-space: normal;
-            color: #fff;
-            background: #1a2a5e;
+        .list-shell {
+            padding: 12px;
         }
 
-        tbody tr:hover {
-            background-color: #f5f5f5;
+        .title {
+            font-size: 1.7em;
         }
-        /* Empty State */
-        .empty-state {
-            text-align: center;
-            padding: 60px 20px;
-            color: #666;
-        }
-        .empty-state-icon {
-            font-size: 4em;
-            color: #ddd;
-            margin-bottom: 20px;
-        }
-        .empty-state h3 {
-            color: #1a2a5e;
-            margin-bottom: 10px;
-            font-size: 1.5em;
-        }
-        .empty-state p {
-            margin-bottom: 20px;
-        }
-        .empty-state a {
-            display: inline-block;
-            padding: 12px 30px;
-            background-color: #1a2a5e;
-            color: white;
-            text-decoration: none;
-            border-radius: 5px;
-            transition: background-color 0.3s;
-        }
-        .empty-state a:hover {
-            background-color: #0d1535;
-        }
-
-        .action-btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            min-width: 132px;
-            min-height: 32px;
-            padding: 6px 10px;
-            border-radius: 8px;
-            background: #1a2a5e;
-            color: #fff;
-            font-size: 0.8em;
-            text-decoration: none;
-            font-weight: 700;
-            white-space: normal;
-            border: none;
-            cursor: pointer;
-            transition: background-color 0.2s;
-        }
-
-        .action-btn.delete {
-            background: #d9534f;
-        }
-
-        .action-btn.delete:hover {
-            background: #c74743;
-        }
-
-        .action-wrap {
-            display: flex;
-            gap: 6px;
-            flex-direction: column;
-            align-items: center;
-            text-align: left;
-        }
-
-        @media (max-width: 1100px) {
-            .top-actions {
-                justify-content: flex-start;
-            }
-
-            .search-box {
-                width: 100%;
-                max-width: 320px;
-            }
-
-            #servicesTable {
-                min-width: 1080px;
-            }
-        }
+    }
 {% endblock %}
 
 {% block content %}
     <!-- Main Content -->
     <div class="container">
-        <h1>Service Status</h1>
-
-        <div class="table-wrap">
-            <div class="top-actions">
-                <input type="text" class="search-box search-box-unified" id="searchInput" placeholder="Search">
+        <div class="sheet">
+            <div class="header-row">
+                <h1 class="title">Service Status</h1>
             </div>
-            {% if services %}
-            <table id="servicesTable">
+
+            <div class="list-shell">
+                <div class="top-actions">
+                    <input type="text" class="search-box search-box-unified" id="searchInput" placeholder="Search">
+                </div>
+
+                <div class="table-wrap">
+                {% if services %}
+                <table id="servicesTable">
                 <thead>
                     <tr>
-                        <th>Service ID</th>
-                        <th>Property Address</th>
-                        <th>Service Type</th>
-                        <th>Preferred Inspection Date</th>
-                        <th>Confirmed Inspection Date</th>
-                        <th>Confirmed Treatment Date</th>
-                        <th>Status</th>
-                        <th>Action</th>
+                        <th style="width:7%;">Service<br>ID</th>
+                        <th style="width:19%;">Property Address</th>
+                        <th style="width:10%;">Service Type</th>
+                        <th style="width:13%;">Preferred Inspect<br>Date</th>
+                        <th style="width:13%;">Confirmed Inspect<br>Date</th>
+                        <th style="width:13%;">Confirmed Treat<br>Date</th>
+                        <th style="width:9%;">Status</th>
+                        <th style="width:16%;">Action</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -201,24 +296,24 @@
                         <td>
                             <div class="action-wrap">
                                 {% if service.status == 'For Confirmation' or service.status == 'For Treatment Booking' %}
-                                    <span style="font-size:0.86em;color:#666;">Submitted {{ service.created_at|date:'M d, Y h:i A' }}. Please wait for OM call.</span>
+                                    <span class="action-note">Submitted {{ service.created_at|date:'M d, Y h:i A' }}. Please wait for OM call.</span>
                                 {% elif service.estimated_bill %}
-                                    <a href="{% url 'customer_view_estimated_bill' service.id %}" class="action-btn">View Estimated Bill</a>
+                                    <a href="{% url 'customer_view_estimated_bill' service.id %}" class="action-btn estimated">View Estimated Bill</a>
                                 {% endif %}
 
                                 {% if service.status == 'Pending Payment' or service.payment_proof %}
-                                    <a href="{% url 'customer_view_invoice' service.id %}" class="action-btn">View Invoice</a>
+                                    <a href="{% url 'customer_view_invoice' service.id %}" class="action-btn estimated">View Invoice</a>
                                     {% if service.can_submit_payment_proof %}
-                                        <a href="{% url 'submit_payment_proof' %}?service_id={{ service.id }}" class="action-btn">Submit Proof</a>
+                                        <a href="{% url 'submit_payment_proof' %}?service_id={{ service.id }}" class="action-btn update">Submit Proof</a>
                                     {% elif service.payment_proof_status == 'For Validation' %}
-                                        <span style="font-size:0.86em;color:#6b5000;">Proof submitted. Awaiting validation.</span>
+                                        <span class="action-note warning">Proof submitted. Awaiting validation.</span>
                                     {% elif service.payment_proof_status == 'Validated' %}
-                                        <span style="font-size:0.86em;color:#1e5f39;">Payment confirmed.</span>
+                                        <span class="action-note success">Payment confirmed.</span>
                                     {% endif %}
                                 {% endif %}
 
                                 {% if service.service_report %}
-                                    <a href="{% url 'customer_view_service_report' service.id %}" class="action-btn">View Service Report</a>
+                                    <a href="{% url 'customer_view_service_report' service.id %}" class="action-btn report">View Service Report</a>
                                 {% endif %}
 
                                 <button type="button" class="action-btn delete" onclick="openDeleteModal('{{ service.id }}')">Delete Service</button>
@@ -232,15 +327,16 @@
                     {% endfor %}
                 </tbody>
             </table>
-            {% else %}
-            <!-- Empty State -->
-            <div class="empty-state">
-                <div class="empty-state-icon">📋</div>
-                <h3>No ongoing services</h3>
-                <p>You don't have any ongoing services at the moment.</p>
-                <a href="{% url 'book_inspection' %}">Book an Inspection</a>
+                {% else %}
+                <!-- Empty State -->
+                <div class="empty-state">
+                    <h3>No ongoing services</h3>
+                    <p>You don't have any ongoing services at the moment.</p>
+                    <a href="{% url 'book_inspection' %}">Book an Inspection</a>
+                </div>
+                {% endif %}
+                </div>
             </div>
-            {% endif %}
         </div>
 
         <div id="deleteModal" class="modal">
@@ -251,7 +347,7 @@
                     <button type="button" class="modal-btn modal-btn-cancel" onclick="closeDeleteModal()">Cancel</button>
                     <form id="deleteForm" method="POST" style="margin:0;">
                         {% csrf_token %}
-                        <button type="submit" class="modal-btn modal-btn-confirm">Confirm</button>
+                        <button type="submit" class="modal-btn modal-btn-danger">Delete</button>
                     </form>
                 </div>
             </div>
