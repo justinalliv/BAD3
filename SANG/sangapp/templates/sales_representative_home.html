@@ -58,148 +58,10 @@
         margin-bottom: 8px;
     }
 
-    .title {
-        margin: 0 0 16px;
-        color: #1a2a5e;
-        font-size: 2.05em;
-    }
-
-    .stats {
-        display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 14px;
-        margin-bottom: 16px;
-    }
-
-    .stat-card {
-        background: #fff;
-        border: 1px solid #ddd;
-        border-radius: 12px;
-        padding: 18px;
-    }
-
-    .stat-label {
-        color: #5a5a5a;
-        font-size: 0.9em;
-        margin-bottom: 8px;
-    }
-
-    .stat-value {
-        color: #1a2a5e;
-        font-size: 1.9em;
-        font-weight: 800;
-        line-height: 1;
-    }
-
-    .sheet {
-        background: #fff;
-        border: 1px solid #ddd;
-        border-radius: 12px;
-        padding: 18px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
-    }
-
-    .sheet-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 12px;
-        margin-bottom: 12px;
-    }
-
-    .sheet-header h2 {
-        margin: 0;
-        color: #1a2a5e;
-        font-size: 1.24em;
-    }
-
-    .view-link {
-        color: #1a2a5e;
-        font-weight: 700;
-        text-decoration: none;
-    }
-
-    .view-link:hover {
-        text-decoration: underline;
-    }
-
-    .table-wrap {
-        border: 1px solid #dfe3ee;
-        border-radius: 10px;
-        background: #fff;
-        overflow-x: auto;
-    }
-
-    table {
-        width: 100%;
-        min-width: 860px;
-        table-layout: fixed;
-        border-collapse: collapse;
-    }
-
-    th,
-    td {
-        text-align: left;
-        padding: 10px 9px;
-        border-bottom: 1px solid #ececec;
-        font-size: 0.86em;
-        vertical-align: middle;
-        word-break: break-word;
-        overflow-wrap: anywhere;
-    }
-
-    th {
-        color: #fff;
-        background: #1a2a5e;
-        font-size: 0.86em;
-        font-weight: 600;
-        line-height: 1.2;
-        border-bottom: none;
-    }
-
-    tbody tr:last-child td {
-        border-bottom: none;
-    }
-
-    .empty {
-        color: #666;
-        font-size: 0.95em;
-        padding: 10px 0;
-    }
-
-    .status-chip {
-        display: inline-flex;
-        align-items: center;
-        border-radius: 999px;
-        padding: 4px 11px;
-        font-size: 0.82em;
-        font-weight: 700;
-    }
-
-    .status-pending {
-        background: #fff0c4;
-        color: #6b5000;
-    }
-
-    .status-validated {
-        background: #d9f2e4;
-        color: #1e5f39;
-    }
-
-    .status-rejected {
-        background: #fde1e1;
-        color: #8a2a2a;
-    }
 
     @media (max-width: 1100px) {
         .card-grid {
             grid-template-columns: repeat(2, minmax(0, 1fr));
-        }
-    }
-
-    @media (max-width: 900px) {
-        .stats {
-            grid-template-columns: 1fr;
         }
     }
 
@@ -215,10 +77,6 @@
 
         .sales-card {
             min-height: 140px;
-        }
-
-        .title {
-            font-size: 1.7em;
         }
     }
 {% endblock %}
@@ -249,63 +107,6 @@
             <h2>Proof of Payment</h2>
             <p>Review submitted proof queue</p>
         </a>
-    </div>
-
-    <h1 class="title">Payment Validation Dashboard</h1>
-
-    <div class="stats">
-        <div class="stat-card">
-            <div class="stat-label">For Validation</div>
-            <div class="stat-value">{{ queue_count }}</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-label">Validated</div>
-            <div class="stat-value">{{ validated_count }}</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-label">Rejected</div>
-            <div class="stat-value">{{ rejected_count }}</div>
-        </div>
-    </div>
-
-    <div class="sheet">
-        <div class="sheet-header">
-            <h2>Recent Payment Proof Submissions</h2>
-            <a href="{% url 'sales_representative_payment_proofs' %}" class="view-link">Open full queue</a>
-        </div>
-
-        {% if recent_proofs %}
-        <div class="table-wrap">
-            <table>
-                <thead>
-                    <tr>
-                        <th style="width:12%;">Service ID</th>
-                        <th style="width:18%;">Customer</th>
-                        <th style="width:22%;">Uploaded</th>
-                        <th style="width:16%;">Amount Paid</th>
-                        <th style="width:16%;">Status</th>
-                        <th style="width:16%;">Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for proof in recent_proofs %}
-                    <tr>
-                        <td>{{ proof.service.id|stringformat:'07d' }}</td>
-                        <td>{{ proof.customer.first_name }} {{ proof.customer.last_name }}</td>
-                        <td>{{ proof.uploaded_at|date:'M d, Y h:i A' }}</td>
-                        <td>PHP {{ proof.amount_paid }}</td>
-                        <td>
-                            <span class="status-chip {% if proof.status == 'For Validation' %}status-pending{% elif proof.status == 'Validated' %}status-validated{% else %}status-rejected{% endif %}">{{ proof.status }}</span>
-                        </td>
-                        <td><a class="view-link" href="{% url 'sales_representative_review_payment_proof' proof.id %}">Review</a></td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-        {% else %}
-            <p class="empty">No payment proofs submitted yet.</p>
-        {% endif %}
     </div>
 </div>
 {% endblock %}
