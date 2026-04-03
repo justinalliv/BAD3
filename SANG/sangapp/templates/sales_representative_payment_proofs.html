@@ -86,14 +86,35 @@
         border-bottom: none;
     }
 
-    .review-link {
-        text-decoration: none;
-        font-weight: 700;
-        color: #1a2a5e;
+    .action-wrap {
+        display: flex;
+        justify-content: center;
     }
 
-    .review-link:hover {
-        text-decoration: underline;
+    .action-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 118px;
+        min-height: 32px;
+        padding: 0 12px;
+        border-radius: 8px;
+        color: #fff;
+        font-size: 0.78em;
+        text-decoration: none;
+        font-weight: 700;
+        white-space: nowrap;
+        border: none;
+        cursor: pointer;
+        transition: background-color 0.2s;
+    }
+
+    .action-btn.update {
+        background: #1a2a5e;
+    }
+
+    .action-btn.update:hover {
+        background: #0d1535;
     }
 
     .empty {
@@ -145,7 +166,7 @@
 
         <div class="list-shell">
             <form method="GET" class="toolbar">
-                <input type="text" class="search-box search-box-unified" name="q" value="{{ search }}" placeholder="Search by service ID, customer, or property">
+                <input type="text" class="search-box search-box-unified" name="q" value="{{ search }}" placeholder="Search">
             </form>
 
             <div class="table-wrap">
@@ -155,9 +176,10 @@
                         <tr>
                             <th style="width:12%;">Service ID</th>
                             <th style="width:20%;">Customer Name</th>
-                            <th style="width:36%;">Property Address</th>
-                            <th style="width:16%;">Payment Date</th>
-                            <th style="width:16%;">Action</th>
+                            <th style="width:28%;">Property Address</th>
+                            <th style="width:16%;">Service Type</th>
+                            <th style="width:12%;">Payment Date</th>
+                            <th style="width:12%;">Action</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -166,8 +188,13 @@
                             <td>{{ proof.service.id|stringformat:'07d' }}</td>
                             <td>{{ proof.customer.first_name }} {{ proof.customer.last_name }}</td>
                             <td>{{ proof.service.property.street_number }} {{ proof.service.property.street }}, {{ proof.service.property.city }}</td>
+                            <td>{{ proof.service.treatment_summary }}</td>
                             <td>{{ proof.uploaded_at|date:'M d, Y' }}</td>
-                            <td><a href="{% url 'sales_representative_review_payment_proof' proof.id %}" class="review-link">Validate</a></td>
+                            <td>
+                                <div class="action-wrap">
+                                    <a href="{% url 'sales_representative_review_payment_proof' proof.id %}" class="action-btn update">Validate</a>
+                                </div>
+                            </td>
                         </tr>
                         {% endfor %}
                     </tbody>

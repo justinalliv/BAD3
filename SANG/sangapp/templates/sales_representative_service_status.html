@@ -56,7 +56,7 @@
 
     #serviceTable {
         width: 100%;
-        min-width: 1020px;
+        min-width: 1120px;
         table-layout: fixed;
         border-collapse: collapse;
         border-spacing: 0;
@@ -94,6 +94,15 @@
         border-bottom: none;
     }
 
+    #serviceTable th:last-child,
+    #serviceTable td:last-child {
+        text-align: left;
+    }
+
+    .status-badge {
+        white-space: nowrap;
+    }
+
     .empty {
         text-align: center;
         padding: 40px 20px;
@@ -111,7 +120,7 @@
         }
 
         #serviceTable {
-            min-width: 1020px;
+            min-width: 1120px;
         }
     }
 
@@ -151,12 +160,12 @@
                 <table id="serviceTable">
                     <thead>
                         <tr>
-                            <th style="width:10%;">Service<br>ID</th>
-                            <th style="width:24%;">Customer Name</th>
-                            <th style="width:34%;">Property Address</th>
-                            <th style="width:16%;">Service Type</th>
-                            <th style="width:8%;">Status</th>
-                            <th style="width:8%;">Date Created</th>
+                            <th style="width:8%;">Service<br>ID</th>
+                            <th style="width:16%;">Customer Name</th>
+                            <th style="width:30%;">Property Address</th>
+                            <th style="width:18%;">Service Type</th>
+                            <th style="width:14%;">Status</th>
+                            <th style="width:14%;">Date Created</th>
                         </tr>
                     </thead>
                     <tbody>
