@@ -536,15 +536,6 @@
                 width: min(96vw, 560px);
             }
 
-                {% if messages %}
-                <div class="flash-wrap">
-                    <div class="flash-list">
-                        {% for message in messages %}
-                        <div class="flash-message {{ message.tags }}">{{ message }}</div>
-                        {% endfor %}
-                    </div>
-                </div>
-                {% endif %}
             .modal-content p {
                 margin-bottom: 22px;
             }
@@ -791,6 +782,15 @@
         {% endif %}
         {% endwith %}
     </nav>
+    {% if messages %}
+    <div class="flash-wrap">
+        <div class="flash-list">
+            {% for message in messages %}
+            <div class="flash-message {{ message.tags }}">{{ message }}</div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
     {% endblock %}
 
     <!-- Main Content -->
