@@ -271,12 +271,12 @@
                     <tr>
                         <th style="width:7%;">Service<br>ID</th>
                         <th style="width:19%;">Property Address</th>
-                        <th style="width:10%;">Service Type</th>
                         <th style="width:13%;">Preferred Inspect<br>Date</th>
                         <th style="width:13%;">Confirmed Inspect<br>Date</th>
+                        <th style="width:10%;">Confirmed Service<br>Type</th>
                         <th style="width:13%;">Confirmed Treat<br>Date</th>
                         <th style="width:9%;">Status</th>
-                        <th style="width:16%;">Action</th>
+                        <th style="width:15%;">Action</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -284,9 +284,9 @@
                     <tr>
                         <td>{{ service.id|stringformat:"07d" }}</td>
                         <td>{{ service.property.street_number }} {{ service.property.street }}, {{ service.property.city }}</td>
-                        <td>{{ service.treatment_summary }}</td>
                         <td>{{ service.date|date:'M d, Y' }}</td>
                         <td>{% if service.inspection_confirmed_date %}{{ service.inspection_confirmed_date|date:'M d, Y' }}{% else %}-{% endif %}</td>
+                        <td>{{ service.treatment_summary }}</td>
                         <td>{% if service.treatment_confirmed_date %}{{ service.treatment_confirmed_date|date:'M d, Y' }}{% else %}-{% endif %}</td>
                         <td>
                             <span class="status-badge status-{{ service.status|lower|cut:' ' }}">
@@ -312,6 +312,8 @@
                                 {% if service.estimated_bill %}
                                     <a href="{% url 'customer_view_estimated_bill' service.id %}" class="action-btn estimated">View Estimated Bill</a>
                                 {% endif %}
+
+                                <a href="{% url 'customer_view_booking' service.id %}" class="action-btn booking">View Booking</a>
 
                                 <button type="button" class="action-btn delete" onclick="openDeleteModal('{{ service.id }}')">Delete Service</button>
                             </div>

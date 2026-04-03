@@ -1325,6 +1325,33 @@ def customer_delete_booking(request, service_id):
     return redirect('service_status')
 
 
+def customer_view_booking(request, service_id):
+    if 'customer_id' not in request.session:
+        return redirect('login')
+
+    try:
+        customer = Customer.objects.get(id=request.session['customer_id'])
+    except Customer.DoesNotExist:
+        request.session.flush()
+        return redirect('login')
+
+    service = Service.objects.select_related('customer', 'property').filter(
+        id=service_id,
+        customer=customer,
+    ).first()
+
+    if not service:
+        messages.error(request, 'Service record not found.')
+        return redirect('service_status')
+
+    return render(request, 'view_booking.html', {
+        'customer': customer,
+        'service': service,
+        'identified_as': 'Customer',
+        'back_url': _resolve_back_url(request, 'service_status'),
+    })
+
+
 def customer_view_estimated_bill(request, service_id):
     if 'customer_id' not in request.session:
         return redirect('login')

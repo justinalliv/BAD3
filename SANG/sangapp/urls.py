@@ -20,6 +20,7 @@ urlpatterns = [
     path('book-inspection/', views.book_inspection, name='book_inspection'),
     path('service-status/', views.service_status, name='service_status'),
     path('service-status/<int:service_id>/delete/', views.customer_delete_booking, name='customer_delete_booking'),
+    path('service-status/<int:service_id>/view-booking/', views.customer_view_booking, name='customer_view_booking'),
     path('service-status/<int:service_id>/estimated-bill/', views.customer_view_estimated_bill, name='customer_view_estimated_bill'),
     path('service-status/estimated-bill/<int:estimated_bill_id>/confirm/', views.customer_confirm_estimated_bill, name='customer_confirm_estimated_bill'),
     path('service-status/<int:service_id>/invoice/', views.customer_view_invoice, name='customer_view_invoice'),
