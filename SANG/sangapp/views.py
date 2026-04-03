@@ -3519,6 +3519,21 @@ def om_manage_accounts(request):
         request.session.flush()
         return redirect('login')
 
+    def _manage_accounts_context(**extra):
+        context = {
+            'om': om,
+            'technicians': Technician.objects.all().order_by('technician_id'),
+            'sales_representatives': SalesRepresentative.objects.all().order_by('created_at'),
+            'customers': Customer.objects.annotate(
+                property_count=Count('properties', distinct=True),
+                service_count=Count('services', distinct=True),
+            ).order_by('-created_at'),
+            'form_data': {},
+            'errors': {},
+        }
+        context.update(extra)
+        return context
+
     if request.method == 'POST':
         action = request.POST.get('action', '').strip()
 
@@ -3536,13 +3551,10 @@ def om_manage_accounts(request):
                 errors['password'] = 'Password is required.'
 
             if errors:
-                return render(request, 'om_manage_accounts.html', {
-                    'om': om,
-                    'errors': errors,
-                    'form_data': request.POST,
-                    'technicians': Technician.objects.all().order_by('technician_id'),
-                    'sales_representatives': SalesRepresentative.objects.all().order_by('created_at'),
-                })
+                return render(request, 'om_manage_accounts.html', _manage_accounts_context(
+                    errors=errors,
+                    form_data=request.POST,
+                ))
 
             existing_ids = []
             for tech in Technician.objects.only('technician_id'):
@@ -3618,13 +3630,10 @@ def om_manage_accounts(request):
                 errors['sr_password'] = 'Password is required.'
 
             if errors:
-                return render(request, 'om_manage_accounts.html', {
-                    'om': om,
-                    'errors': errors,
-                    'form_data': request.POST,
-                    'technicians': Technician.objects.all().order_by('technician_id'),
-                    'sales_representatives': SalesRepresentative.objects.all().order_by('created_at'),
-                })
+                return render(request, 'om_manage_accounts.html', _manage_accounts_context(
+                    errors=errors,
+                    form_data=request.POST,
+                ))
 
             SalesRepresentative.objects.create(
                 first_name=first_name,
@@ -3646,12 +3655,27 @@ def om_manage_accounts(request):
             sales_representative.delete()
             return redirect('om_manage_accounts')
 
-    return render(request, 'om_manage_accounts.html', {
-        'om': om,
-        'technicians': Technician.objects.all().order_by('technician_id'),
-        'sales_representatives': SalesRepresentative.objects.all().order_by('created_at'),
-        'form_data': {},
-    })
+        if action == 'delete_customer':
+            customer_pk = request.POST.get('customer_pk', '').strip()
+            if not customer_pk:
+                messages.error(request, 'Customer account not found.')
+                return redirect('om_manage_accounts')
+
+            customer = Customer.objects.filter(id=customer_pk).first()
+            if not customer:
+                messages.error(request, 'Customer account not found.')
+                return redirect('om_manage_accounts')
+
+            if customer.properties.exists() or customer.services.exists() or customer.payment_proofs.exists():
+                messages.error(request, 'Only unused customer accounts can be deleted. This account has linked records.')
+                return redirect('om_manage_accounts')
+
+            deleted_email = customer.email
+            customer.delete()
+            messages.success(request, f'Customer account deleted: {deleted_email}')
+            return redirect('om_manage_accounts')
+
+    return render(request, 'om_manage_accounts.html', _manage_accounts_context())
 
 
 def om_edit_sales_representative_account(request, sales_representative_pk):
