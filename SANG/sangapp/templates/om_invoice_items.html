@@ -143,24 +143,6 @@
         color: #fff;
     }
 
-    .status-pill {
-        display: inline-block;
-        padding: 4px 10px;
-        border-radius: 999px;
-        font-size: 0.82em;
-        font-weight: 700;
-    }
-
-    .status-pill.active {
-        background: #d1e7dd;
-        color: #0f5132;
-    }
-
-    .status-pill.inactive {
-        background: #e2e3e5;
-        color: #383d41;
-    }
-
     .row-actions {
         display: flex;
         gap: 8px;
@@ -196,15 +178,37 @@
     }
 
     .modal-btn-danger:hover {
-        background: #b92f2b;
+        background: #c74743;
     }
 
     .edit-controls-row {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        gap: 12px;
+        gap: 16px;
         margin-bottom: 14px;
+        padding: 12px 14px;
+        background: #f9fafc;
+        border-radius: 10px;
+        border: 1px solid #e9ebf1;
+    }
+
+    .edit-controls-row label {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 0.92em;
+        color: #1a2a5e;
+        font-weight: 500;
+        margin: 0;
+        cursor: pointer;
+    }
+
+    .edit-controls-row input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+        cursor: pointer;
+        accent-color: #1a2a5e;
     }
 
     @media (max-width: 900px) {
@@ -274,9 +278,9 @@
                         <td>PHP {{ item.default_unit_price }}</td>
                         <td>
                             {% if item.is_active %}
-                            <span class="status-pill active">Active</span>
+                            Active
                             {% else %}
-                            <span class="status-pill inactive">Inactive</span>
+                            Inactive
                             {% endif %}
                         </td>
                         <td>
@@ -316,11 +320,11 @@
                     <input type="number" class="field" id="editPrice" name="default_unit_price" min="0.01" step="0.01" placeholder="Default price (optional)">
                 </div>
                 <div class="edit-controls-row">
-                    <label style="display:flex;align-items:center;gap:8px;font-size:0.92em;color:#333;">
+                    <label>
                         <input type="checkbox" id="editActive" name="is_active">
                         Active service item
                     </label>
-                    <button type="button" class="modal-btn modal-btn-danger" id="hardDeleteItemBtn">Hard Delete</button>
+                    <button type="button" class="modal-btn modal-btn-danger" id="hardDeleteItemBtn">Delete</button>
                 </div>
                 <div class="modal-buttons">
                     <button type="button" class="modal-btn modal-btn-cancel" id="closeEditModal">Cancel</button>
