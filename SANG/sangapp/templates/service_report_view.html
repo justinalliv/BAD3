@@ -24,10 +24,16 @@
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
     }
 
+    .page-head {
+        position: relative;
+        min-height: 44px;
+        margin-bottom: 8px;
+    }
+
     .title {
         color: #1a2a5e;
         text-align: center;
-        margin: 0 0 14px;
+        margin: 0;
         font-size: 2.2em;
     }
 
@@ -162,14 +168,6 @@
         text-align: center;
     }
 
-    .back-row {
-        margin-top: 14px;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        gap: 10px;
-    }
-
     .back-link {
         display: inline-flex;
         align-items: center;
@@ -177,25 +175,42 @@
         min-height: 40px;
         padding: 0 16px;
         border-radius: 10px;
-        border: 1px solid #c5cce5;
+        border: none;
         background: #eef1fb;
         color: #1a2a5e;
         text-decoration: none;
-        font-weight: 700;
+        font-weight: 600;
+        font-size: 0.95em;
+        transition: all 0.2s;
+        position: absolute;
+        left: 0;
+        top: 50%;
+        transform: translateY(-50%);
     }
 
     .back-link:hover {
         background: #dde3f6;
+        box-shadow: 0 2px 4px rgba(26, 42, 94, 0.1);
     }
 
     @media (max-width: 760px) {
-        .meta {
-            grid-template-columns: 1fr;
+        .page-head {
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+            gap: 10px;
+            min-height: 0;
+            margin-bottom: 10px;
         }
 
-        .back-row {
-            flex-direction: column;
-            align-items: center;
+        .back-link {
+            position: static;
+            transform: none;
+            width: fit-content;
+        }
+
+        .meta {
+            grid-template-columns: 1fr;
         }
     }
 {% endblock %}
@@ -211,7 +226,10 @@
     {% endif %}
 
     <div class="sheet">
-        <h1 class="title">Service Report</h1>
+        <div class="page-head">
+            <a href="{{ back_url|default:'#' }}" class="back-link">← Back</a>
+            <h1 class="title">Service Report</h1>
+        </div>
 
         <div class="meta">
             <div><strong>Service ID:</strong> {{ report.service.id|stringformat:'07d' }}</div>
@@ -300,10 +318,6 @@
             </div>
         </div>
 
-    </div>
-
-    <div class="back-row">
-        <a href="{{ back_url|default:'#' }}" class="back-link">Back</a>
     </div>
 </div>
 {% endblock %}
