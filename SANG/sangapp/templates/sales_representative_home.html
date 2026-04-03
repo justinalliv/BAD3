@@ -3,21 +3,63 @@
 {% block title %}Sales Representative Home - Supreme Biotech Solutions{% endblock %}
 
 {% block extra_css %}
-    .dashboard {
-        max-width: 1180px;
-        margin: 26px auto 44px;
+    .container {
+        max-width: 1220px;
+        margin: 24px auto 40px;
         padding: 0 24px;
     }
 
-    .identified {
-        text-align: right;
-        margin-bottom: 14px;
-        color: #333;
-        font-size: 0.95em;
+    .card-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 14px;
+        margin-bottom: 18px;
+    }
+
+    .sales-card {
+        background: #fff;
+        border: 1px solid #d9d9d9;
+        border-radius: 14px;
+        min-height: 154px;
+        padding: 16px 14px;
+        text-decoration: none;
+        color: inherit;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .sales-card:hover {
+        border-color: #1a2a5e;
+        box-shadow: 0 6px 16px rgba(17, 31, 76, 0.08);
+    }
+
+    .sales-card h2 {
+        color: #1a2a5e;
+        font-size: 1.5em;
+        margin: 0 0 6px;
+        text-align: center;
+        line-height: 1.2;
+    }
+
+    .sales-card p {
+        color: #4e5b82;
+        font-size: 0.94em;
+        text-align: center;
+        line-height: 1.3;
+        margin: 0;
+    }
+
+    .icon {
+        font-size: 1.9em;
+        color: #1a2a5e;
+        margin-bottom: 8px;
     }
 
     .title {
-        margin: 0 0 18px;
+        margin: 0 0 16px;
         color: #1a2a5e;
         font-size: 2.05em;
     }
@@ -26,7 +68,7 @@
         display: grid;
         grid-template-columns: repeat(3, minmax(0, 1fr));
         gap: 14px;
-        margin-bottom: 20px;
+        margin-bottom: 16px;
     }
 
     .stat-card {
@@ -54,6 +96,7 @@
         border: 1px solid #ddd;
         border-radius: 12px;
         padding: 18px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
     }
 
     .sheet-header {
@@ -80,8 +123,17 @@
         text-decoration: underline;
     }
 
+    .table-wrap {
+        border: 1px solid #dfe3ee;
+        border-radius: 10px;
+        background: #fff;
+        overflow-x: auto;
+    }
+
     table {
         width: 100%;
+        min-width: 860px;
+        table-layout: fixed;
         border-collapse: collapse;
     }
 
@@ -90,18 +142,29 @@
         text-align: left;
         padding: 10px 9px;
         border-bottom: 1px solid #ececec;
-        font-size: 0.93em;
+        font-size: 0.86em;
+        vertical-align: middle;
+        word-break: break-word;
+        overflow-wrap: anywhere;
     }
 
     th {
-        color: #1a2a5e;
-        font-size: 0.9em;
+        color: #fff;
+        background: #1a2a5e;
+        font-size: 0.86em;
+        font-weight: 600;
+        line-height: 1.2;
+        border-bottom: none;
+    }
+
+    tbody tr:last-child td {
+        border-bottom: none;
     }
 
     .empty {
         color: #666;
         font-size: 0.95em;
-        padding: 8px 0;
+        padding: 10px 0;
     }
 
     .status-chip {
@@ -128,21 +191,66 @@
         color: #8a2a2a;
     }
 
+    @media (max-width: 1100px) {
+        .card-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+    }
+
     @media (max-width: 900px) {
         .stats {
             grid-template-columns: 1fr;
         }
+    }
 
-        th,
-        td {
-            font-size: 0.88em;
+    @media (max-width: 760px) {
+        .container {
+            padding: 0 12px;
+        }
+
+        .card-grid {
+            grid-template-columns: 1fr;
+            gap: 12px;
+        }
+
+        .sales-card {
+            min-height: 140px;
+        }
+
+        .title {
+            font-size: 1.7em;
         }
     }
 {% endblock %}
 
 {% block content %}
-<div class="dashboard">
-    <p class="identified">User Identified As: Sales Representative</p>
+<div class="container">
+    <div class="card-grid">
+        <a href="{% url 'sales_representative_home' %}" class="sales-card">
+            <div class="icon">⌂</div>
+            <h2>Home</h2>
+            <p>View payment validation summary</p>
+        </a>
+
+        <a href="{% url 'sales_representative_service_history' %}" class="sales-card">
+            <div class="icon">📅</div>
+            <h2>Service History</h2>
+            <p>View previous service records</p>
+        </a>
+
+        <a href="{% url 'sales_representative_service_status' %}" class="sales-card">
+            <div class="icon">▦</div>
+            <h2>Service Status</h2>
+            <p>View ongoing service records</p>
+        </a>
+
+        <a href="{% url 'sales_representative_payment_proofs' %}" class="sales-card">
+            <div class="icon">🧾</div>
+            <h2>Proof of Payment</h2>
+            <p>Review submitted proof queue</p>
+        </a>
+    </div>
+
     <h1 class="title">Payment Validation Dashboard</h1>
 
     <div class="stats">
@@ -167,32 +275,34 @@
         </div>
 
         {% if recent_proofs %}
-        <table>
-            <thead>
-                <tr>
-                    <th>Service ID</th>
-                    <th>Customer</th>
-                    <th>Uploaded</th>
-                    <th>Amount Paid</th>
-                    <th>Status</th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for proof in recent_proofs %}
-                <tr>
-                    <td>{{ proof.service.id|stringformat:'07d' }}</td>
-                    <td>{{ proof.customer.first_name }} {{ proof.customer.last_name }}</td>
-                    <td>{{ proof.uploaded_at|date:'M d, Y h:i A' }}</td>
-                    <td>PHP {{ proof.amount_paid }}</td>
-                    <td>
-                        <span class="status-chip {% if proof.status == 'For Validation' %}status-pending{% elif proof.status == 'Validated' %}status-validated{% else %}status-rejected{% endif %}">{{ proof.status }}</span>
-                    </td>
-                    <td><a class="view-link" href="{% url 'sales_representative_review_payment_proof' proof.id %}">Review</a></td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width:12%;">Service ID</th>
+                        <th style="width:18%;">Customer</th>
+                        <th style="width:22%;">Uploaded</th>
+                        <th style="width:16%;">Amount Paid</th>
+                        <th style="width:16%;">Status</th>
+                        <th style="width:16%;">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for proof in recent_proofs %}
+                    <tr>
+                        <td>{{ proof.service.id|stringformat:'07d' }}</td>
+                        <td>{{ proof.customer.first_name }} {{ proof.customer.last_name }}</td>
+                        <td>{{ proof.uploaded_at|date:'M d, Y h:i A' }}</td>
+                        <td>PHP {{ proof.amount_paid }}</td>
+                        <td>
+                            <span class="status-chip {% if proof.status == 'For Validation' %}status-pending{% elif proof.status == 'Validated' %}status-validated{% else %}status-rejected{% endif %}">{{ proof.status }}</span>
+                        </td>
+                        <td><a class="view-link" href="{% url 'sales_representative_review_payment_proof' proof.id %}">Review</a></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
         {% else %}
             <p class="empty">No payment proofs submitted yet.</p>
         {% endif %}

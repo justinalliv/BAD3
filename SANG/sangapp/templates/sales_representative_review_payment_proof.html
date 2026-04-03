@@ -4,35 +4,40 @@
 
 {% block extra_css %}
     .container {
-        max-width: 1080px;
-        margin: 26px auto 44px;
+        max-width: 1220px;
+        margin: 24px auto 40px;
         padding: 0 24px;
     }
 
-    .identified {
-        text-align: right;
-        margin-bottom: 14px;
-        color: #333;
-        font-size: 0.95em;
+    .sheet {
+        background: #fff;
+        border: 1px solid #ddd;
+        border-radius: 12px;
+        padding: 24px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
     }
 
-    h1 {
+    .header-row {
+        margin-bottom: 18px;
+    }
+
+    .header-row h1 {
         color: #1a2a5e;
-        font-size: 2.02em;
-        margin-bottom: 16px;
+        font-size: 2.05em;
+        margin: 0;
     }
 
     .layout {
         display: grid;
-        grid-template-columns: 1.1fr 1fr;
+        grid-template-columns: 1.05fr 0.95fr;
         gap: 16px;
     }
 
     .card {
-        background: #fff;
-        border: 1px solid #ddd;
-        border-radius: 12px;
-        padding: 16px;
+        border: 1px solid #dfe3ee;
+        border-radius: 10px;
+        padding: 14px;
+        background: #f9fafc;
     }
 
     .card h2 {
@@ -85,11 +90,15 @@
     .btn {
         min-height: 42px;
         border: none;
-        border-radius: 8px;
+        border-radius: 10px;
         padding: 0 14px;
         font-size: 0.9em;
         font-weight: 700;
         cursor: pointer;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
     }
 
     .btn-primary {
@@ -97,28 +106,42 @@
         color: #fff;
     }
 
+    .btn-primary:hover {
+        background: #0d1535;
+    }
+
     .btn-danger {
-        background: #bf2f2f;
+        background: #d9534f;
         color: #fff;
     }
 
+    .btn-danger:hover {
+        background: #c74743;
+    }
+
     .btn-secondary {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        text-decoration: none;
         background: #e5e7ef;
         color: #1a2a5e;
     }
 
+    .btn-secondary:hover {
+        background: #d6dceb;
+    }
+
     textarea {
         width: 100%;
-        border: 1px solid #d6d6d6;
-        border-radius: 10px;
+        border: 1px solid #d2d7e6;
+        border-radius: 12px;
         min-height: 130px;
         padding: 10px 12px;
         resize: vertical;
         font-size: 0.92em;
+    }
+
+    textarea:focus {
+        outline: none;
+        border-color: #1a2a5e;
+        box-shadow: 0 0 0 3px rgba(26, 42, 94, 0.12);
     }
 
     .status-chip {
@@ -145,9 +168,23 @@
         color: #8a2a2a;
     }
 
-    @media (max-width: 900px) {
+    @media (max-width: 980px) {
         .layout {
             grid-template-columns: 1fr;
+        }
+    }
+
+    @media (max-width: 760px) {
+        .container {
+            padding: 0 12px;
+        }
+
+        .sheet {
+            padding: 16px;
+        }
+
+        .header-row h1 {
+            font-size: 1.7em;
         }
 
         .row {
@@ -159,66 +196,69 @@
 
 {% block content %}
 <div class="container">
-    <p class="identified">User Identified As: Sales Representative</p>
-    <h1>Review Payment Proof</h1>
-
-    <div class="layout">
-        <div class="card">
-            <h2>Submission Details</h2>
-            <div class="row"><div class="label">Service ID</div><div class="value">{{ proof.service.id|stringformat:'07d' }}</div></div>
-            <div class="row"><div class="label">Customer</div><div class="value">{{ proof.customer.first_name }} {{ proof.customer.last_name }}</div></div>
-            <div class="row">
-                <div class="label">Invoice</div>
-                <div class="value">
-                    {% if proof.invoice %}
-                        <a class="proof-link" href="{% url 'sales_representative_view_invoice' proof.invoice.id %}?back={% url 'sales_representative_review_payment_proof' proof.id %}">View Invoice</a>
-                    {% else %}
-                        -
-                    {% endif %}
-                </div>
-            </div>
-            <div class="row"><div class="label">Property</div><div class="value">{{ proof.service.property.street_number }} {{ proof.service.property.street }}, {{ proof.service.property.city }}</div></div>
-            <div class="row"><div class="label">Payment Type</div><div class="value">{{ proof.payment_type }}</div></div>
-            <div class="row"><div class="label">Bank Used</div><div class="value">{{ proof.bank_used }}</div></div>
-            <div class="row"><div class="label">Account Number</div><div class="value">{{ proof.account_number }}</div></div>
-            <div class="row"><div class="label">Reference Number</div><div class="value">{{ proof.reference_number }}</div></div>
-            <div class="row"><div class="label">Amount Paid</div><div class="value">PHP {{ proof.amount_paid }}</div></div>
-            <div class="row"><div class="label">Uploaded</div><div class="value">{{ proof.uploaded_at|date:'M d, Y h:i A' }}</div></div>
-            <div class="row">
-                <div class="label">Current Status</div>
-                <div class="value">
-                    <span class="status-chip {% if proof.status == 'For Validation' %}status-pending{% elif proof.status == 'Validated' %}status-validated{% else %}status-rejected{% endif %}">{{ proof.status }}</span>
-                </div>
-            </div>
-            {% if proof.proof_file %}
-            <div class="row"><div class="label">Proof File</div><div class="value"><a href="{{ proof.proof_file.url }}" target="_blank" rel="noopener" class="proof-link">Open uploaded proof</a></div></div>
-            {% endif %}
-            {% if proof.rejection_reason %}
-            <div class="row"><div class="label">Previous Rejection</div><div class="value">{{ proof.rejection_reason }}</div></div>
-            {% endif %}
+    <div class="sheet">
+        <div class="header-row">
+            <h1>Review Payment Proof</h1>
         </div>
 
-        <div class="card">
-            <h2>Validation Action</h2>
-            {% if proof.status == 'Validated' %}
-                <p>This payment proof is already validated.</p>
-                <div class="actions">
-                    <a href="{% url 'sales_representative_payment_proofs' %}" class="btn btn-secondary">Back to Queue</a>
+        <div class="layout">
+            <div class="card">
+                <h2>Submission Details</h2>
+                <div class="row"><div class="label">Service ID</div><div class="value">{{ proof.service.id|stringformat:'07d' }}</div></div>
+                <div class="row"><div class="label">Customer</div><div class="value">{{ proof.customer.first_name }} {{ proof.customer.last_name }}</div></div>
+                <div class="row">
+                    <div class="label">Invoice</div>
+                    <div class="value">
+                        {% if proof.invoice %}
+                            <a class="proof-link" href="{% url 'sales_representative_view_invoice' proof.invoice.id %}?back={% url 'sales_representative_review_payment_proof' proof.id %}">View Invoice</a>
+                        {% else %}
+                            -
+                        {% endif %}
+                    </div>
                 </div>
-            {% else %}
-                <form method="POST">
-                    {% csrf_token %}
-                    <label for="rejection_reason" class="label">Rejection Reason (required only when rejecting)</label>
-                    <textarea id="rejection_reason" name="rejection_reason" placeholder="State clear reason if this payment proof is invalid."></textarea>
-                    {% if errors.rejection_reason %}<div class="error">{{ errors.rejection_reason }}</div>{% endif %}
+                <div class="row"><div class="label">Property</div><div class="value">{{ proof.service.property.street_number }} {{ proof.service.property.street }}, {{ proof.service.property.city }}</div></div>
+                <div class="row"><div class="label">Payment Type</div><div class="value">{{ proof.payment_type }}</div></div>
+                <div class="row"><div class="label">Bank Used</div><div class="value">{{ proof.bank_used }}</div></div>
+                <div class="row"><div class="label">Account Number</div><div class="value">{{ proof.account_number }}</div></div>
+                <div class="row"><div class="label">Reference Number</div><div class="value">{{ proof.reference_number }}</div></div>
+                <div class="row"><div class="label">Amount Paid</div><div class="value">PHP {{ proof.amount_paid }}</div></div>
+                <div class="row"><div class="label">Uploaded</div><div class="value">{{ proof.uploaded_at|date:'M d, Y h:i A' }}</div></div>
+                <div class="row">
+                    <div class="label">Current Status</div>
+                    <div class="value">
+                        <span class="status-chip {% if proof.status == 'For Validation' %}status-pending{% elif proof.status == 'Validated' %}status-validated{% else %}status-rejected{% endif %}">{{ proof.status }}</span>
+                    </div>
+                </div>
+                {% if proof.proof_file %}
+                <div class="row"><div class="label">Proof File</div><div class="value"><a href="{{ proof.proof_file.url }}" target="_blank" rel="noopener" class="proof-link">Open uploaded proof</a></div></div>
+                {% endif %}
+                {% if proof.rejection_reason %}
+                <div class="row"><div class="label">Previous Rejection</div><div class="value">{{ proof.rejection_reason }}</div></div>
+                {% endif %}
+            </div>
 
+            <div class="card">
+                <h2>Validation Action</h2>
+                {% if proof.status == 'Validated' %}
+                    <p>This payment proof is already validated.</p>
                     <div class="actions">
                         <a href="{% url 'sales_representative_payment_proofs' %}" class="btn btn-secondary">Back to Queue</a>
-                        <button type="submit" name="action" value="validate" class="btn btn-primary">Validate Payment</button>
-                        <button type="submit" name="action" value="reject" class="btn btn-danger">Reject Payment</button>
                     </div>
-                </form>
-            {% endif %}
+                {% else %}
+                    <form method="POST">
+                        {% csrf_token %}
+                        <label for="rejection_reason" class="label">Rejection Reason (required only when rejecting)</label>
+                        <textarea id="rejection_reason" name="rejection_reason" placeholder="State clear reason if this payment proof is invalid."></textarea>
+                        {% if errors.rejection_reason %}<div class="error">{{ errors.rejection_reason }}</div>{% endif %}
+
+                        <div class="actions">
+                            <a href="{% url 'sales_representative_payment_proofs' %}" class="btn btn-secondary">Back to Queue</a>
+                            <button type="submit" name="action" value="validate" class="btn btn-primary">Validate Payment</button>
+                            <button type="submit" name="action" value="reject" class="btn btn-danger">Reject Payment</button>
+                        </div>
+                    </form>
+                {% endif %}
+            </div>
         </div>
     </div>
 </div>
