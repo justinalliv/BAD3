@@ -643,21 +643,8 @@ def pending_payment(request):
     # Check if user is logged in
     if 'customer_id' not in request.session:
         return redirect('login')
-    
-    services = Service.objects.filter(
-        customer=Customer.objects.get(id=request.session['customer_id']),
-        status='Pending Payment',
-        invoices__isnull=False,
-    ).select_related('property', 'payment_proof').distinct().order_by('-created_at')
 
-    for service in services:
-        proof = getattr(service, 'payment_proof', None)
-        service.payment_proof_status = proof.status if proof else ''
-        service.can_submit_payment_proof = (not proof) or proof.status == PaymentProof.STATUS_REJECTED
-
-    return render(request, 'pending_payment.html', {
-        'pending_payments': services,
-    })
+    return redirect('service_status')
 
 
 def payment_instructions(request):
@@ -674,6 +661,18 @@ def submit_payment_proof(request):
     # Check if user is logged in
     if 'customer_id' not in request.session:
         return redirect('login')
+
+    def _combined_invoice_total(inv):
+        if not inv:
+            return Decimal('0.00')
+
+        estimated_bill = getattr(inv.service, 'estimated_bill', None)
+        treatment_total = Decimal('0.00')
+        if estimated_bill:
+            treatment_total = sum((item.line_total for item in estimated_bill.items.all()), Decimal('0.00'))
+
+        service_item_total = sum((item.line_total for item in inv.items.all()), Decimal('0.00'))
+        return treatment_total + service_item_total
     
     if request.method == 'POST':
         payment_type = request.POST.get('payment_type', '').strip()
@@ -715,7 +714,8 @@ def submit_payment_proof(request):
             return render(request, 'submit_payment_proof.html', {
                 'errors': errors,
                 'form_data': request.POST,
-                'back_url': _resolve_back_url(request, 'pending_payment'),
+                'back_url': _resolve_back_url(request, 'service_status'),
+                'display_total_amount': _combined_invoice_total(invoice),
             })
 
         service = None
@@ -730,7 +730,8 @@ def submit_payment_proof(request):
             return render(request, 'submit_payment_proof.html', {
                 'errors': errors,
                 'form_data': request.POST,
-                'back_url': _resolve_back_url(request, 'pending_payment'),
+                'back_url': _resolve_back_url(request, 'service_status'),
+                'display_total_amount': _combined_invoice_total(invoice),
             })
 
         if not invoice:
@@ -750,7 +751,8 @@ def submit_payment_proof(request):
                     field_name='Payment Type',
                     is_active=True,
                 ).order_by('option_value')),
-                'back_url': _resolve_back_url(request, 'pending_payment'),
+                'back_url': _resolve_back_url(request, 'service_status'),
+                'display_total_amount': _combined_invoice_total(invoice),
             })
 
         existing_proof = PaymentProof.objects.filter(service=service).first()
@@ -774,7 +776,8 @@ def submit_payment_proof(request):
                     field_name='Payment Type',
                     is_active=True,
                 ).order_by('option_value')),
-                'back_url': _resolve_back_url(request, 'pending_payment'),
+                'back_url': _resolve_back_url(request, 'service_status'),
+                'display_total_amount': _combined_invoice_total(invoice),
             })
 
         if existing_proof and existing_proof.status == PaymentProof.STATUS_REJECTED:
@@ -802,7 +805,7 @@ def submit_payment_proof(request):
                 'validated_by',
                 'rejection_reason',
             ])
-            return redirect('pending_payment')
+            return redirect('service_status')
 
         PaymentProof.objects.create(
             service=service,
@@ -816,7 +819,7 @@ def submit_payment_proof(request):
             proof_file=proof_file,
         )
 
-        return redirect('pending_payment')
+        return redirect('service_status')
 
     service_id = request.GET.get('service_id', '').strip()
     service = None
@@ -848,7 +851,8 @@ def submit_payment_proof(request):
         'bank_options': bank_options,
         'payment_type_options': payment_type_options,
         'form_data': {},
-        'back_url': _resolve_back_url(request, 'pending_payment'),
+        'back_url': _resolve_back_url(request, 'service_status'),
+        'display_total_amount': _combined_invoice_total(invoice),
     })
 
 
@@ -1258,12 +1262,15 @@ def service_status(request):
         customer=customer
     ).exclude(
         status__in=['Completed', 'Cancelled']
-    ).select_related('property', 'estimated_bill', 'service_report', 'payment_proof').order_by('-created_at')
+    ).select_related('property', 'estimated_bill', 'service_report', 'payment_proof').annotate(
+        invoice_count=Count('invoices', distinct=True)
+    ).order_by('-created_at')
 
     for service in services:
         proof = getattr(service, 'payment_proof', None)
+        service.has_invoice = (service.invoice_count or 0) > 0
         service.payment_proof_status = proof.status if proof else ''
-        service.can_submit_payment_proof = (not proof) or proof.status == PaymentProof.STATUS_REJECTED
+        service.can_submit_payment_proof = service.has_invoice and ((not proof) or proof.status == PaymentProof.STATUS_REJECTED)
     
     return render(request, 'service_status.html', {
         'customer': customer,
@@ -1861,7 +1868,7 @@ def customer_view_invoice(request, service_id):
     return render(request, 'om_invoice_view.html', {
         'invoice': invoice,
         'role': 'customer',
-        'back_url': _resolve_back_url(request, 'pending_payment'),
+        'back_url': _resolve_back_url(request, 'service_status'),
         'treatment_rows': treatment_rows,
         'service_item_rows': service_item_rows,
         'display_total_amount': treatment_total + service_item_total,

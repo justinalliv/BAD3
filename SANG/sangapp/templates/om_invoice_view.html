@@ -26,7 +26,7 @@
 
     .page-head {
         position: relative;
-        min-height: 44px;
+        min-height: 52px;
         margin-bottom: 8px;
     }
 
@@ -145,6 +145,10 @@
         border: none;
         background: #1a2a5e;
         color: #fff;
+        position: absolute;
+        right: 0;
+        top: 50%;
+        transform: translateY(-50%);
     }
 
     .detail-note {
@@ -182,6 +186,13 @@
             width: fit-content;
         }
 
+        .action-link {
+            position: static;
+            transform: none;
+            width: fit-content;
+            margin-left: auto;
+        }
+
         .meta {
             grid-template-columns: 1fr;
         }
@@ -194,6 +205,9 @@
         <div class="page-head">
             <a href="{{ back_url|default:'#' }}" class="back-link">← Back</a>
             <h1 class="title">Invoice</h1>
+            {% if allow_customer_payment %}
+                <a href="{% url 'submit_payment_proof' %}?service_id={{ invoice.service.id }}" class="action-link">Submit Proof of Payment</a>
+            {% endif %}
         </div>
 
         <div class="meta">
@@ -274,10 +288,5 @@
         <p class="total">Total Amount: ₱ {{ display_total_amount|default:invoice.total_amount }}</p>
     </div>
 
-    {% if role == 'customer' %}
-    <div class="back-row">
-        <a href="{% url 'submit_payment_proof' %}?service_id={{ invoice.service.id }}" class="action-link">Submit Proof of Payment</a>
-    </div>
-    {% endif %}
 </div>
 {% endblock %}

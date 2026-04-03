@@ -303,9 +303,7 @@
 
                                 {% if service.has_invoice %}
                                     <a href="{% url 'customer_view_invoice' service.id %}" class="action-btn estimated">View Invoice</a>
-                                    {% if service.can_submit_payment_proof %}
-                                        <a href="{% url 'submit_payment_proof' %}?service_id={{ service.id }}" class="action-btn update">Submit Proof</a>
-                                    {% elif service.payment_proof_status == 'For Validation' %}
+                                    {% if service.payment_proof_status == 'For Validation' %}
                                         <span class="action-note warning">Proof submitted. Awaiting validation.</span>
                                     {% elif service.payment_proof_status == 'Validated' %}
                                         <span class="action-note success">Payment confirmed.</span>
