@@ -357,6 +357,12 @@
                                                 <input type="hidden" name="technician_pk" value="{{ tech.id }}">
                                                 <button type="submit" class="action-btn delete">Delete</button>
                                             </form>
+                                            <form method="POST" style="margin:0;">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="action" value="hard_delete_technician">
+                                                <input type="hidden" name="technician_pk" value="{{ tech.id }}">
+                                                <button type="submit" class="action-btn delete">Hard Delete</button>
+                                            </form>
                                         </div>
                                     </td>
                                 </tr>
@@ -444,6 +450,12 @@
                                                 <input type="hidden" name="sales_representative_pk" value="{{ sr.id }}">
                                                 <button type="submit" class="action-btn delete">Delete</button>
                                             </form>
+                                            <form method="POST" style="margin:0;">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="action" value="hard_delete_sales_representative">
+                                                <input type="hidden" name="sales_representative_pk" value="{{ sr.id }}">
+                                                <button type="submit" class="action-btn delete">Hard Delete</button>
+                                            </form>
                                         </div>
                                     </td>
                                 </tr>
@@ -508,6 +520,12 @@
                                             <input type="hidden" name="action" value="delete_customer">
                                             <input type="hidden" name="customer_pk" value="{{ customer.id }}">
                                             <button type="submit" class="action-btn delete">Delete</button>
+                                        </form>
+                                        <form method="POST" style="margin:0;">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="action" value="hard_delete_customer">
+                                            <input type="hidden" name="customer_pk" value="{{ customer.id }}">
+                                            <button type="submit" class="action-btn delete">Hard Delete</button>
                                         </form>
                                     </div>
                                 </td>

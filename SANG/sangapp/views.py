@@ -3605,6 +3605,22 @@ def om_manage_accounts(request):
             messages.success(request, f'Technician account archived: {technician.email}')
             return redirect('om_manage_accounts')
 
+        if action == 'hard_delete_technician':
+            technician_pk = request.POST.get('technician_pk', '').strip()
+
+            if not technician_pk:
+                messages.error(request, 'Technician account not found.')
+                return redirect('om_manage_accounts')
+
+            technician = Technician.objects.filter(id=technician_pk).first()
+            if not technician:
+                messages.error(request, 'Technician account not found.')
+                return redirect('om_manage_accounts')
+
+            technician.delete()
+            messages.success(request, f'Technician account permanently deleted: {technician.email}')
+            return redirect('om_manage_accounts')
+
         if action == 'create_sales_representative':
             first_name = request.POST.get('sr_first_name', '').strip()
             last_name = request.POST.get('sr_last_name', '').strip()
@@ -3655,6 +3671,21 @@ def om_manage_accounts(request):
             messages.success(request, f'Sales representative account archived: {sales_representative.email}')
             return redirect('om_manage_accounts')
 
+        if action == 'hard_delete_sales_representative':
+            sales_representative_pk = request.POST.get('sales_representative_pk', '').strip()
+            if not sales_representative_pk:
+                messages.error(request, 'Sales representative account not found.')
+                return redirect('om_manage_accounts')
+
+            sales_representative = SalesRepresentative.objects.filter(id=sales_representative_pk).first()
+            if not sales_representative:
+                messages.error(request, 'Sales representative account not found.')
+                return redirect('om_manage_accounts')
+
+            sales_representative.delete()
+            messages.success(request, f'Sales representative account permanently deleted: {sales_representative.email}')
+            return redirect('om_manage_accounts')
+
         if action == 'delete_customer':
             customer_pk = request.POST.get('customer_pk', '').strip()
             if not customer_pk:
@@ -3677,6 +3708,27 @@ def om_manage_accounts(request):
                 messages.success(request, f'Customer account archived: {customer.email}. Linked records were kept for history.')
             else:
                 messages.success(request, f'Customer account archived: {customer.email}')
+            return redirect('om_manage_accounts')
+
+        if action == 'hard_delete_customer':
+            customer_pk = request.POST.get('customer_pk', '').strip()
+            if not customer_pk:
+                messages.error(request, 'Customer account not found.')
+                return redirect('om_manage_accounts')
+
+            customer = Customer.objects.filter(id=customer_pk).first()
+            if not customer:
+                messages.error(request, 'Customer account not found.')
+                return redirect('om_manage_accounts')
+
+            has_links = customer.properties.exists() or customer.services.exists() or customer.payment_proofs.exists()
+            if has_links:
+                messages.error(request, 'Hard delete is blocked for customer accounts with linked properties, services, or payment records. Archive instead.')
+                return redirect('om_manage_accounts')
+
+            deleted_email = customer.email
+            customer.delete()
+            messages.success(request, f'Customer account permanently deleted: {deleted_email}')
             return redirect('om_manage_accounts')
 
     return render(request, 'om_manage_accounts.html', _manage_accounts_context())
