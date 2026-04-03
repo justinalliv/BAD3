@@ -695,7 +695,7 @@ def submit_payment_proof(request):
             'bank_used': proof.bank_used,
             'account_number': proof.account_number,
             'reference_number': proof.reference_number,
-            'amount_paid': str(proof.amount_paid),
+                'amount_paid': proof.amount_paid,
         }
 
     def _proof_context(service, invoice, errors=None, form_data=None, existing_proof=None):
@@ -2509,8 +2509,9 @@ def om_service_reports(request):
             | Q(service__preferred_service__icontains=search)
         )
 
-    return render(request, 'om_service_reports.html', {
+    return render(request, 'service_reports_shared.html', {
         'om': om,
+        'report_role': 'om',
         'reports': reports,
         'search': search,
     })
@@ -3762,8 +3763,9 @@ def technician_service_status(request):
         )
     ).order_by(order_by, 'workflow_order')
 
-    return render(request, 'technician_service_status.html', {
+    return render(request, 'service_status_shared.html', {
         'technician': technician,
+        'status_role': 'technician',
         'services': services,
         'created_order': created_order,
     })
@@ -4148,8 +4150,9 @@ def technician_service_reports(request):
             | Q(service__preferred_service__icontains=search)
         )
 
-    return render(request, 'technician_service_reports.html', {
+    return render(request, 'service_reports_shared.html', {
         'technician': technician,
+        'report_role': 'technician',
         'reports': reports,
         'search': search,
     })
@@ -4752,8 +4755,9 @@ def om_service_status(request):
 
     services = list(services_qs)
 
-    return render(request, 'om_service_status.html', {
+    return render(request, 'service_status_shared.html', {
         'om': om,
+        'status_role': 'om',
         'services': services,
         'created_order': created_order,
     })
