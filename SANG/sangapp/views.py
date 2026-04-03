@@ -1597,19 +1597,7 @@ def om_placeholder(request, page_title):
     })
 
 
-def om_service_history(request):
-    if 'om_id' not in request.session:
-        return redirect('login')
-
-    try:
-        om = OperationsManager.objects.get(id=request.session['om_id'])
-    except OperationsManager.DoesNotExist:
-        request.session.flush()
-        return redirect('login')
-
-    search = request.GET.get('q', '').strip()
-    status_filter = request.GET.get('status', '').strip()
-
+def _get_service_history_queryset(search='', status_filter=''):
     history_statuses = ['Payment Confirmed', 'Completed', 'Cancelled']
     services = Service.objects.select_related(
         'customer',
@@ -1635,6 +1623,23 @@ def om_service_history(request):
 
     for service in services:
         service.latest_invoice = service.invoices.order_by('-created_at').first()
+
+    return services, history_statuses
+
+
+def om_service_history(request):
+    if 'om_id' not in request.session:
+        return redirect('login')
+
+    try:
+        om = OperationsManager.objects.get(id=request.session['om_id'])
+    except OperationsManager.DoesNotExist:
+        request.session.flush()
+        return redirect('login')
+
+    search = request.GET.get('q', '').strip()
+    status_filter = request.GET.get('status', '').strip()
+    services, history_statuses = _get_service_history_queryset(search, status_filter)
 
     return render(request, 'service_history_shared.html', {
         'om': om,
@@ -4154,32 +4159,7 @@ def technician_service_history(request):
 
     search = request.GET.get('q', '').strip()
     status_filter = request.GET.get('status', '').strip()
-
-    history_statuses = ['Payment Confirmed', 'Completed', 'Cancelled']
-    services = Service.objects.select_related(
-        'customer',
-        'property',
-        'service_report',
-    ).prefetch_related('invoices').filter(
-        service_report__isnull=False,
-        status__in=history_statuses,
-    ).order_by('-created_at')
-
-    if status_filter in history_statuses:
-        services = services.filter(status=status_filter)
-
-    if search:
-        services = services.filter(
-            Q(id__icontains=search)
-            | Q(customer__first_name__icontains=search)
-            | Q(customer__last_name__icontains=search)
-            | Q(property__property_name__icontains=search)
-            | Q(property__street__icontains=search)
-            | Q(preferred_service__icontains=search)
-        )
-
-    for service in services:
-        service.latest_invoice = service.invoices.order_by('-created_at').first()
+    services, history_statuses = _get_service_history_queryset(search, status_filter)
 
     return render(request, 'service_history_shared.html', {
         'technician': technician,
