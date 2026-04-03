@@ -24,13 +24,31 @@
     .trait-check { appearance:none; -webkit-appearance:none; width:20px; height:20px; border:2px solid #9aa6d1; border-radius:6px; background:#fff; cursor:pointer; position:relative; transition:all 0.15s ease; }
     .trait-check:checked { background:#1a2a5e; border-color:#1a2a5e; }
     .trait-check:checked::after { content:''; position:absolute; width:5px; height:10px; border:solid #fff; border-width:0 2px 2px 0; transform:rotate(45deg); left:7px; top:3px; }
-    .note-cell { display:flex; align-items:center; gap:8px; }
-    .note-preview { font-size:0.78em; color:#555; max-width:130px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; padding:5px 8px; border-radius:8px; background:#f4f6fb; }
-    .area-preview { min-height:36px; display:flex; align-items:center; font-size:0.82em; padding:5px 8px; max-width:100%; }
+    .note-cell { display:block; width:100%; }
+    .note-preview {
+        display: block;
+        max-width: 100%;
+        width: 100%;
+        min-height: 30px;
+        font-size: 0.78em;
+        color: #555;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        padding: 5px 8px;
+        border-radius: 8px;
+        background: #f4f6fb;
+        cursor: pointer;
+        border: 1px solid transparent;
+        box-sizing: border-box;
+    }
+    .area-preview { min-height:36px; display:flex; align-items:center; font-size:0.82em; padding:5px 8px; }
+    .note-preview:hover { border-color:#c9d2ee; background:#eef2fc; }
+    .note-preview:focus { outline:none; border-color:#1a2a5e; box-shadow:0 0 0 3px rgba(26,42,94,0.12); }
+    .note-preview.is-empty { color:#8b91a2; }
     .small-btn { display: inline-flex; align-items: center; justify-content: center; min-height: 32px; padding: 0 12px; border-radius: 8px; border: none; font-size: 0.78em; font-weight: 700; cursor: pointer; }
     .btn-add { background: #eef1fb; color: #1a2a5e; border: 1px solid #c5cce5; margin-top: 10px; }
     .btn-add:hover { background:#dde3f6; }
-    .btn-edit { background: #6c7293; color: #fff; }
     .btn-delete { min-width: 0; width: 100%; padding: 0 8px; white-space: nowrap; font-size: 0.72em; background: #d9534f; color: #fff; }
     .btn-delete:hover { background:#c74743; }
     .error { color: #d32f2f; font-size: 0.86em; margin: 6px 0 10px; }
@@ -153,7 +171,7 @@
             .replace(/'/g, '&#39;');
     }
 
-    function truncatePreview(value, maxLength = 22) {
+    function truncatePreview(value, maxLength = 18) {
         const text = String(value || '').trim();
         if (!text) {
             return '';
@@ -255,14 +273,12 @@
                 <td><div class="checkbox-group"><input class="trait-check" type="checkbox" data-index="${index}" data-field="powder" ${area.powder ? 'checked' : ''}></div></td>
                 <td>
                     <div class="note-cell">
-                        <span class="note-preview">${area.remarks || '-'}</span>
-                        <button type="button" class="small-btn btn-edit" data-edit-index="${index}" data-edit-field="remarks">Edit</button>
+                        <span class="note-preview ${area.remarks ? '' : 'is-empty'}" role="button" tabindex="0" data-edit-index="${index}" data-edit-field="remarks">${area.remarks ? escapeHtml(truncatePreview(area.remarks)) : '&nbsp;'}</span>
                     </div>
                 </td>
                 <td>
                     <div class="note-cell">
-                        <span class="note-preview">${area.recommendation || '-'}</span>
-                        <button type="button" class="small-btn btn-edit" data-edit-index="${index}" data-edit-field="recommendation">Edit</button>
+                        <span class="note-preview ${area.recommendation ? '' : 'is-empty'}" role="button" tabindex="0" data-edit-index="${index}" data-edit-field="recommendation">${area.recommendation ? escapeHtml(truncatePreview(area.recommendation)) : '&nbsp;'}</span>
                     </div>
                 </td>
                 <td><button type="button" class="small-btn btn-delete" data-delete-area="${index}">Delete</button></td>
