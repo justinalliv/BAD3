@@ -173,15 +173,6 @@
         background: #0d1535;
     }
 
-    .change-password-link {
-        text-align: center;
-        margin-top: 4px;
-    }
-
-    .change-password-link .btn {
-        min-width: 210px;
-    }
-
     @media (max-width: 760px) {
         .container {
             padding: 0 12px;
@@ -219,8 +210,7 @@
             gap: 0;
         }
 
-        .btn,
-        .change-password-link .btn {
+        .btn {
             width: 100%;
             min-width: 0;
         }
@@ -265,12 +255,8 @@
                         {% endif %}
                     </div>
 
-                    <div class="change-password-link">
-                        <a href="{% url 'change_password' %}" class="btn btn-secondary">Change Password</a>
-                    </div>
-
                     <div class="button-row">
-                        <button type="button" class="btn btn-secondary" onclick="window.location.href='{% url 'profile' %}'">Cancel</button>
+                        <a href="{% url 'change_password' %}" class="btn btn-secondary">Change Password</a>
                         <button type="button" class="btn btn-primary" onclick="showConfirmation()">Save Changes</button>
                     </div>
                 </form>
