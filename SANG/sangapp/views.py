@@ -430,7 +430,7 @@ def login(request):
             request.session.flush()
             request.session['om_id'] = om.id
             request.session['om_name'] = f"{om.first_name} {om.last_name}"
-            request.session['om_display_id'] = f"{om.id:03d}"
+            request.session['om_display_id'] = str(om.id)
             return redirect('om_home')
 
         technician = Technician.objects.filter(email__iexact=email).only('id', 'technician_id', 'password', 'first_name', 'last_name').first()
@@ -446,7 +446,7 @@ def login(request):
             request.session.flush()
             request.session['sales_representative_id'] = sales_representative.id
             request.session['sales_representative_name'] = f"{sales_representative.first_name} {sales_representative.last_name}"
-            request.session['sales_representative_display_id'] = f"{sales_representative.id:03d}"
+            request.session['sales_representative_display_id'] = str(sales_representative.id)
             return redirect('sales_representative_home')
 
         customer = Customer.objects.filter(email=email).only('id', 'password', 'first_name', 'last_name').first()
@@ -454,6 +454,7 @@ def login(request):
             request.session.flush()
             request.session['customer_id'] = customer.id
             request.session['customer_name'] = f"{customer.first_name} {customer.last_name}"
+            request.session['customer_display_id'] = str(customer.id)
             return redirect('home')
 
         return render(request, 'login.html', {

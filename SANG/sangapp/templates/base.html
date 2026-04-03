@@ -651,7 +651,7 @@
                 <circle cx="10" cy="6" r="4"/>
                 <path d="M 4 18 Q 4 12 10 12 Q 16 12 16 18 Z"/>
             </svg>
-            Profile
+            Customer {{ request.session.customer_display_id|default:request.session.customer_id }}
         </a>
         {% else %}
         <!-- Public Navigation -->

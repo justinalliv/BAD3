@@ -2,11 +2,15 @@ def role_display_ids(request):
     session = request.session
 
     if session.get('om_id') and not session.get('om_display_id'):
-        session['om_display_id'] = f"{session['om_id']:03d}"
+        session['om_display_id'] = str(session['om_id'])
         session.modified = True
 
     if session.get('sales_representative_id') and not session.get('sales_representative_display_id'):
-        session['sales_representative_display_id'] = f"{session['sales_representative_id']:03d}"
+        session['sales_representative_display_id'] = str(session['sales_representative_id'])
+        session.modified = True
+
+    if session.get('customer_id') and not session.get('customer_display_id'):
+        session['customer_display_id'] = str(session['customer_id'])
         session.modified = True
 
     if session.get('technician_id') and not session.get('technician_display_id'):
