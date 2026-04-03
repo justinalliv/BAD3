@@ -55,16 +55,22 @@
         font-size: 0.85em;
         padding: 9px 8px;
         vertical-align: middle;
+        border-bottom: 1px solid #e9ebf1;
+    }
+
+    #serviceTable td {
         word-break: break-word;
         overflow-wrap: anywhere;
-        border-bottom: 1px solid #e9ebf1;
     }
 
     #serviceTable th {
         white-space: normal;
+        word-break: normal;
+        overflow-wrap: normal;
         background: #1a2a5e;
         color: #fff;
         font-size: 0.88em;
+        line-height: 1.2;
         font-weight: 600;
         border-bottom: none;
     }
@@ -261,11 +267,11 @@
                 <table id="serviceTable">
                     <thead>
                         <tr>
-                            <th style="width:8%;">Service ID</th>
+                            <th style="width:8%;">Service<br>ID</th>
                             <th style="width:13%;">Customer Name</th>
-                            <th style="width:11%;">Confirmed Inspection Date</th>
-                            <th style="width:11%;">Confirmed Treatment Date</th>
-                            <th style="width:12%;">Confirmed Treatment</th>
+                            <th style="width:11%;">Confirmed<br>Inspection&nbsp;Date</th>
+                            <th style="width:11%;">Confirmed<br>Treatment&nbsp;Date</th>
+                            <th style="width:12%;">Confirmed<br>Treatment</th>
                             <th style="width:10%;">Created At</th>
                             <th style="width:10%;">Status</th>
                             <th style="width:18%;">Action</th>
