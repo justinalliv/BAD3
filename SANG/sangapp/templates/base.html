@@ -685,7 +685,7 @@
                 <circle cx="10" cy="6" r="4"/>
                 <path d="M 4 18 Q 4 12 10 12 Q 16 12 16 18 Z"/>
             </svg>
-            OM {{ request.session.om_display_id|default:request.session.om_id }}
+            OM
         </a>
         {% elif request.session.technician_id %}
         <ul class="nav-links">
@@ -727,7 +727,7 @@
                 <circle cx="10" cy="6" r="4"/>
                 <path d="M 4 18 Q 4 12 10 12 Q 16 12 16 18 Z"/>
             </svg>
-            Customer {{ request.session.customer_display_id|default:request.session.customer_id }}
+            Customer
         </a>
         {% else %}
         <!-- Public Navigation -->
