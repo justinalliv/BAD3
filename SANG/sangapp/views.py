@@ -430,13 +430,15 @@ def login(request):
             request.session.flush()
             request.session['om_id'] = om.id
             request.session['om_name'] = f"{om.first_name} {om.last_name}"
+            request.session['om_display_id'] = f"{om.id:03d}"
             return redirect('om_home')
 
-        technician = Technician.objects.filter(email__iexact=email).only('id', 'password', 'first_name', 'last_name').first()
+        technician = Technician.objects.filter(email__iexact=email).only('id', 'technician_id', 'password', 'first_name', 'last_name').first()
         if technician and technician.password == password:
             request.session.flush()
             request.session['technician_id'] = technician.id
             request.session['technician_name'] = f"{technician.first_name} {technician.last_name}"
+            request.session['technician_display_id'] = technician.technician_id or str(technician.id)
             return redirect('technician_home')
 
         sales_representative = SalesRepresentative.objects.filter(email__iexact=email).only('id', 'password', 'first_name', 'last_name').first()
@@ -444,6 +446,7 @@ def login(request):
             request.session.flush()
             request.session['sales_representative_id'] = sales_representative.id
             request.session['sales_representative_name'] = f"{sales_representative.first_name} {sales_representative.last_name}"
+            request.session['sales_representative_display_id'] = f"{sales_representative.id:03d}"
             return redirect('sales_representative_home')
 
         customer = Customer.objects.filter(email=email).only('id', 'password', 'first_name', 'last_name').first()
@@ -4314,7 +4317,7 @@ def technician_create_service_report(request):
             return render_step_two(selected_service, chemicals=raw_chemicals, treated_areas=raw_areas)
 
     if selected_service_id:
-        selected_service = selectable_services.filter(id=selected_service_id).first()
+        selected_service = selectable_services_qs.filter(id=selected_service_id).first()
         if selected_service:
             return render_step_two(selected_service)
         request.session.pop('tech_service_report_draft', None)
