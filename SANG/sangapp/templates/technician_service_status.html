@@ -25,6 +25,11 @@
     }
 
     .header-row {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 46px;
         margin-bottom: 18px;
     }
 
@@ -33,6 +38,43 @@
         border-radius: 10px;
         padding: 16px;
         background: #f9fafc;
+    }
+
+    .top-actions {
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 12px;
+    }
+
+    .search-box {
+        width: 300px;
+    }
+
+    .filter-box {
+        width: 164px;
+        min-height: 40px;
+        border: 1px solid #d2d7e6;
+        border-radius: 12px;
+        padding: 0 38px 0 12px;
+        font-size: 0.9em;
+        background-color: #fff;
+        color: #333;
+        appearance: none;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='10' viewBox='0 0 14 10'%3E%3Cpath fill='none' stroke='%234a4a4a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M1 1l6 6 6-6'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 12px center;
+        background-size: 14px 10px;
+    }
+
+    .filter-box:focus,
+    .search-box:focus {
+        outline: none;
+        border-color: #1a2a5e;
+        box-shadow: 0 0 0 3px rgba(26, 42, 94, 0.12);
     }
 
     .table-wrap {
@@ -44,6 +86,7 @@
 
     #serviceTable {
         width: 100%;
+        min-width: 1020px;
         table-layout: fixed;
         border-collapse: collapse;
         border-spacing: 0;
@@ -70,7 +113,7 @@
         overflow-wrap: normal;
         background: #1a2a5e;
         color: #fff;
-        font-size: 0.88em;
+        font-size: 0.8em;
         line-height: 1.2;
         font-weight: 600;
         border-bottom: none;
@@ -83,54 +126,6 @@
     #serviceTable th:last-child,
     #serviceTable td:last-child {
         text-align: center;
-    }
-
-    .top-actions {
-        display: flex;
-        justify-content: flex-end;
-        align-items: center;
-        gap: 10px;
-        margin-bottom: 12px;
-    }
-
-    .search-box {
-        width: 250px;
-        min-height: 40px;
-        border: 1px solid #d2d7e6;
-        border-radius: 12px;
-        padding: 0 12px;
-        font-size: 0.9em;
-        background: #fff;
-    }
-
-    .search-box:focus {
-        outline: none;
-        border-color: #1a2a5e;
-        box-shadow: 0 0 0 3px rgba(26, 42, 94, 0.12);
-    }
-
-    .filter-box {
-        width: 164px;
-        min-height: 40px;
-        border: 1px solid #d2d7e6;
-        border-radius: 12px;
-        padding: 0 38px 0 12px;
-        font-size: 0.9em;
-        background-color: #fff;
-        color: #333;
-        appearance: none;
-        -webkit-appearance: none;
-        -moz-appearance: none;
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='10' viewBox='0 0 14 10'%3E%3Cpath fill='none' stroke='%234a4a4a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M1 1l6 6 6-6'/%3E%3C/svg%3E");
-        background-repeat: no-repeat;
-        background-position: right 12px center;
-        background-size: 14px 10px;
-    }
-
-    .filter-box:focus {
-        outline: none;
-        border-color: #1a2a5e;
-        box-shadow: 0 0 0 3px rgba(26, 42, 94, 0.12);
     }
 
     .action-stack {
@@ -152,7 +147,7 @@
         min-height: 32px;
         padding: 0 8px;
         border-radius: 8px;
-        color: white;
+        color: #fff;
         text-decoration: none;
         font-size: 0.72em;
         font-weight: 700;
@@ -194,14 +189,6 @@
         background: #236765;
     }
 
-    .action-btn.delete {
-        background: #d9534f;
-    }
-
-    .action-btn.delete:hover {
-        background: #c74743;
-    }
-
     .empty {
         text-align: center;
         padding: 28px 0;
@@ -220,58 +207,58 @@
             max-width: 320px;
         }
 
+        #serviceTable {
+            min-width: 1020px;
+        }
+    }
+
+    @media (max-width: 760px) {
+        .container {
+            padding: 0 12px;
+        }
+
+        .sheet {
+            padding: 16px;
+        }
+
+        .list-shell {
+            padding: 12px;
+        }
+
+        .title {
+            font-size: 1.7em;
+        }
+    }
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="sheet">
+        <div class="header-row">
+            <h1 class="title">Service Status</h1>
+        </div>
+
+        <div class="list-shell">
+            <div class="top-actions">
+                <form method="GET" style="margin:0;display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end;">
+                    <label for="created_order" style="font-size:0.88em;color:#444;">Created:</label>
+                    <select id="created_order" name="created_order" class="filter-box" onchange="this.form.submit()">
+                        <option value="newest" {% if created_order != 'oldest' %}selected{% endif %}>Newest First</option>
+                        <option value="oldest" {% if created_order == 'oldest' %}selected{% endif %}>Oldest First</option>
+                    </select>
+                </form>
+                <input type="text" class="search-box search-box-unified" id="searchInput" placeholder="Search">
+            </div>
+
             <div class="table-wrap">
                 {% if services %}
                 <table id="serviceTable">
                     <thead>
                         <tr>
                             <th style="width:8%;">Service<br>ID</th>
-                            <th style="width:13%">Customer Name</th>
+                            <th style="width:13%;">Customer Name</th>
                             <th style="width:11%;">Confirmed<br>Inspection&nbsp;Date</th>
                             <th style="width:11%;">Confirmed<br>Treatment&nbsp;Date</th>
-                            <th style="width:12%;">Confirmed<br>Treatment</th>
-                            <th style="width:10%;">Created At</th>
-                            <th style="width:10%;">Status</th>
-                            <th style="width:18%;">Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for service in services %}
-                        <tr>
-                            <td>{{ service.id|stringformat:"07d" }}</td>
-                            <td>{{ service.customer.first_name }} {{ service.customer.last_name }}</td>
-                            <td>{% if service.inspection_confirmed_date %}{{ service.inspection_confirmed_date|date:'M d, Y' }}{% else %}-{% endif %}</td>
-                            <td>{% if service.treatment_confirmed_date %}{{ service.treatment_confirmed_date|date:'M d, Y' }}{% else %}-{% endif %}</td>
-                            <td>
-                                {% if service.status == 'For Treatment Booking' or service.status == 'Ongoing Treatment' or service.status == 'Pending Payment' or service.status == 'Payment Confirmed' or service.status == 'Completed' or service.status == 'Cancelled' %}
-                                    {{ service.treatment_summary }}
-                                {% else %}
-                                    -
-                                {% endif %}
-                            </td>
-                            <td>{{ service.created_at|date:'M d, Y h:i A' }}</td>
-                            <td>
-                                <span class="status-badge status-{{ service.status|lower|cut:' ' }}">{{ service.status }}</span>
-                            </td>
-                            <td>
-                                <div class="action-stack">
-                                    <a href="{% url 'technician_update_service_status' service.id %}" class="action-btn update">Update Status</a>
-                                    <a href="{% url 'technician_view_booking' service.id %}" class="action-btn booking">View Booking</a>
-                                    {% if service.estimated_bill %}
-                                        <a href="{% url 'technician_view_estimated_bill' service.estimated_bill.id %}?back={% url 'technician_service_status' %}" class="action-btn estimated">View Estimated Bill</a>
-                                    {% endif %}
-                                    {% if service.service_report %}
-                                        <a href="{% url 'technician_view_service_report' service.service_report.id %}" class="action-btn report">View Service Report</a>
-                                    {% endif %}
-                                </div>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-                {% else %}
-                    <div class="empty">No service records available.</div>
-                {% endif %}
                             <th style="width:12%;">Confirmed<br>Treatment</th>
                             <th style="width:10%;">Created At</th>
                             <th style="width:10%;">Status</th>

@@ -56,7 +56,7 @@
 
     #serviceTable {
         width: 100%;
-        min-width: 980px;
+        min-width: 1020px;
         table-layout: fixed;
         border-collapse: collapse;
         border-spacing: 0;
@@ -111,7 +111,7 @@
         }
 
         #serviceTable {
-            min-width: 980px;
+            min-width: 1020px;
         }
     }
 
@@ -166,7 +166,9 @@
                             <td>{{ service.customer.first_name }} {{ service.customer.last_name }}</td>
                             <td>{{ service.property.street_number }} {{ service.property.street }}, {{ service.property.city }}</td>
                             <td>{{ service.treatment_summary }}</td>
-                            <td>{{ service.status }}</td>
+                            <td>
+                                <span class="status-badge status-{{ service.status|lower|cut:' ' }}">{{ service.status }}</span>
+                            </td>
                             <td>{{ service.created_at|date:'M d, Y' }}</td>
                         </tr>
                         {% endfor %}
