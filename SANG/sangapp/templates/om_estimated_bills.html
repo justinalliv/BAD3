@@ -4,31 +4,33 @@
 
 {% block extra_css %}
     .container {
-        max-width: 1200px;
-        margin: 28px auto 48px;
+        max-width: 1220px;
+        margin: 24px auto 40px;
         padding: 0 24px;
     }
 
-    .identified-top {
-        text-align: right;
-        color: #333;
-        margin: 10px 0 8px;
-        font-size: 0.9em;
-    }
-
     .title {
-        text-align: left;
+        text-align: center;
         color: #1a2a5e;
-        font-size: 2.5em;
+        font-size: 2.05em;
         margin: 0;
     }
 
+    .sheet {
+        background: #fff;
+        border: 1px solid #ddd;
+        border-radius: 12px;
+        padding: 24px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+    }
+
     .header-row {
+        position: relative;
         display: flex;
-        justify-content: space-between;
         align-items: center;
-        gap: 16px;
-        margin-bottom: 20px;
+        justify-content: center;
+        min-height: 46px;
+        margin-bottom: 18px;
     }
 
     .flash {
@@ -41,35 +43,38 @@
     }
 
     .list-shell {
-        background-color: white;
+        border: 1px solid #dfe3ee;
         border-radius: 10px;
-        padding: 30px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        padding: 16px;
+        background: #f9fafc;
     }
 
     .toolbar {
         display: flex;
         justify-content: flex-end;
         align-items: center;
-        gap: 12px;
-        margin-bottom: 20px;
+        margin-bottom: 14px;
     }
 
     .create-btn {
+        position: absolute;
+        right: 0;
+        top: 50%;
+        transform: translateY(-50%);
         display: inline-flex;
         align-items: center;
         justify-content: center;
         gap: 8px;
-        min-height: 44px;
-        padding: 12px 30px;
-        border-radius: 8px;
+        min-height: 40px;
+        padding: 0 16px;
+        border-radius: 10px;
         border: none;
         background: #1a2a5e;
         color: #fff;
-        font-size: 1em;
-        font-weight: 600;
+        font-size: 0.92em;
+        font-weight: 700;
         text-decoration: none;
-        transition: background-color 0.3s;
+        transition: background-color 0.2s;
     }
 
     .create-btn:hover {
@@ -77,38 +82,32 @@
     }
 
     .search-box {
-        width: 280px;
-        min-height: 38px;
-        border: 1px solid #ddd;
-        border-radius: 12px;
-        padding: 0 38px 0 12px;
-        font-size: 0.88em;
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%23444' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cline x1='21' y1='21' x2='16.65' y2='16.65'/%3E%3C/svg%3E");
-        background-repeat: no-repeat;
-        background-position: right 12px center;
-        background-size: 18px;
+        width: 300px;
     }
 
     .table-wrap {
-        max-height: 430px;
-        overflow: auto;
-        background: white;
+        overflow-x: auto;
+        border: 1px solid #dfe3ee;
+        border-radius: 10px;
+        background: #fff;
     }
 
     table {
         width: 100%;
+        min-width: 1020px;
         table-layout: fixed;
         border-collapse: collapse;
+        border-spacing: 0;
     }
 
     #billTable th,
     #billTable td {
-        padding: 15px;
+        padding: 9px 8px;
         text-align: left;
         color: #333;
-        font-size: 0.9em;
-        border-bottom: 1px solid #e0e0e0;
-        vertical-align: top;
+        font-size: 0.82em;
+        border-bottom: 1px solid #e9ebf1;
+        vertical-align: middle;
         word-break: break-word;
         overflow-wrap: anywhere;
     }
@@ -116,52 +115,65 @@
     #billTable th {
         background: #1a2a5e;
         color: #fff;
-        font-size: 0.9em;
+        font-size: 0.84em;
         font-weight: 600;
+        line-height: 1.2;
+        white-space: normal;
+        word-break: normal;
+        overflow-wrap: normal;
     }
 
-    tbody tr:last-child td {
+    #billTable tbody tr:last-child td {
         border-bottom: none;
+    }
+
+    #billTable th:last-child,
+    #billTable td:last-child {
+        text-align: center;
     }
 
     .action-stack {
         display: flex;
         flex-direction: column;
-        gap: 8px;
-        align-items: center;
+        gap: 6px;
+        align-items: stretch;
+        width: 100%;
+        max-width: 148px;
+        margin: 0 auto;
     }
 
     .action-btn {
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        min-width: 132px;
-        min-height: 32px;
-        padding: 6px 10px;
+        width: 100%;
+        min-width: 0;
+        min-height: 34px;
+        padding: 0 8px;
         border-radius: 8px;
         color: #fff;
         text-decoration: none;
         font-size: 0.8em;
         font-weight: 700;
-        white-space: normal;
+        white-space: nowrap;
         border: none;
         cursor: pointer;
         transition: background-color 0.2s;
     }
 
-    .action-btn.view {
+    .action-btn.update {
         background: #1a2a5e;
     }
 
-    .action-btn.view:hover {
+    .action-btn.update:hover {
         background: #0d1535;
     }
 
-    .action-btn.edit {
+    .action-btn.estimated {
         background: #6c7293;
     }
 
-    .action-btn.edit:hover {
+    .action-btn.estimated:hover {
         background: #585e7a;
     }
 
@@ -176,14 +188,24 @@
     .empty {
         text-align: center;
         color: #777;
-        padding: 34px 10px;
-        font-size: 0.95em;
+        padding: 28px 0;
+        font-size: 0.92em;
     }
 
     @media (max-width: 1100px) {
         .header-row {
+            min-height: 0;
             flex-wrap: wrap;
             justify-content: flex-start;
+            flex-direction: column;
+            align-items: stretch;
+            gap: 10px;
+        }
+
+        .create-btn {
+            position: static;
+            transform: none;
+            width: fit-content;
         }
 
         .toolbar {
@@ -196,67 +218,97 @@
         }
 
         #billTable {
-            min-width: 980px;
+            min-width: 1020px;
+        }
+    }
+
+    @media (max-width: 760px) {
+        .container {
+            padding: 0 12px;
+        }
+
+        .sheet {
+            padding: 16px;
+        }
+
+        .list-shell {
+            padding: 12px;
+        }
+
+        .title {
+            font-size: 1.7em;
         }
     }
 {% endblock %}
 
 {% block content %}
 <div class="container">
-    <p class="identified-top">User Identified As: Operations Manager</p>
-    <div class="header-row">
-        <h1 class="title">Estimated Bill</h1>
-        <a href="{% url 'om_create_estimated_bill' %}" class="create-btn">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style="margin-right: 5px;">
-                <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14h-2v-4h-4v-2h4V7h2v4h4v2h-4z"/>
-            </svg>
-            Create Estimated Bill
-        </a>
-    </div>
-
-    <div class="list-shell">
-        <div class="toolbar">
-            <form method="GET" style="margin:0;display:flex;justify-content:flex-end;">
-                <input type="text" id="searchBox" name="q" value="{{ search }}" class="search-box search-box-unified" placeholder="Search">
-            </form>
+    <div class="sheet">
+        <div class="header-row">
+            <h1 class="title">Estimated Bill</h1>
+            <a href="{% url 'om_create_estimated_bill' %}" class="create-btn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="margin-right:4px;">
+                    <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14h-2v-4h-4v-2h4V7h2v4h4v2h-4z"/>
+                </svg>
+                Create Estimated Bill
+            </a>
         </div>
 
-        <div class="table-wrap">
-            <table id="billTable">
-                <thead>
-                    <tr>
-                        <th style="width:12%;">Service ID</th>
-                        <th style="width:18%;">Customer Name</th>
-                        <th style="width:26%;">Address</th>
-                        <th style="width:20%;">Service Type</th>
-                        <th style="width:12%;">Estimated Bill ID</th>
-                        <th style="width:12%;">Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for bill in estimated_bills %}
-                    <tr>
-                        <td>{{ bill.service.id|stringformat:'07d' }}</td>
-                        <td>{{ bill.service.customer.first_name }} {{ bill.service.customer.last_name }}</td>
-                        <td>{{ bill.service.property.street_number }} {{ bill.service.property.street }}, {{ bill.service.property.city }}</td>
-                        <td>{{ bill.service.treatment_summary }}</td>
-                        <td>{{ bill.id|stringformat:'07d' }}</td>
-                        <td>
-                            <div class="action-stack">
-                                <a href="{% url 'om_view_estimated_bill' bill.id %}?back={% url 'om_estimated_bills' %}" class="action-btn view">View</a>
-                                <a href="{% url 'om_edit_estimated_bill' bill.id %}" class="action-btn edit">Edit</a>
-                                <form method="POST" action="{% url 'om_delete_estimated_bill' bill.id %}" style="margin:0;" onsubmit="return confirm('Delete this estimated bill?');">
-                                    {% csrf_token %}
-                                    <button type="submit" class="action-btn delete">Delete</button>
-                                </form>
-                            </div>
-                        </td>
-                    </tr>
-                    {% empty %}
-                    <tr><td colspan="6" class="empty">No estimated bills available.</td></tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+        <div class="list-shell">
+            <div class="toolbar">
+                <form method="GET" style="margin:0;display:flex;justify-content:flex-end;">
+                    <input type="text" id="searchBox" name="q" value="{{ search }}" class="search-box search-box-unified" placeholder="Search">
+                </form>
+            </div>
+
+            <div class="table-wrap">
+                <table id="billTable">
+                    <thead>
+                        <tr>
+                            <th style="width:10%;">Service<br>ID</th>
+                            <th style="width:18%;">Customer Name</th>
+                            <th style="width:26%;">Address</th>
+                            <th style="width:18%;">Service Type</th>
+                            <th style="width:11%;">Estimated Bill<br>ID</th>
+                            <th style="width:17%;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for bill in estimated_bills %}
+                        <tr>
+                            <td>{{ bill.service.id|stringformat:'07d' }}</td>
+                            <td>{{ bill.service.customer.first_name }} {{ bill.service.customer.last_name }}</td>
+                            <td>{{ bill.service.property.street_number }} {{ bill.service.property.street }}, {{ bill.service.property.city }}</td>
+                            <td>{{ bill.service.treatment_summary }}</td>
+                            <td>{{ bill.id|stringformat:'07d' }}</td>
+                            <td>
+                                <div class="action-stack">
+                                    <a href="{% url 'om_view_estimated_bill' bill.id %}?back={% url 'om_estimated_bills' %}" class="action-btn estimated">View Estimated Bill</a>
+                                    <a href="{% url 'om_edit_estimated_bill' bill.id %}" class="action-btn update">Update Estimated Bill</a>
+                                    <form method="POST" action="{% url 'om_delete_estimated_bill' bill.id %}" style="margin:0;" class="delete-estimated-form">
+                                        {% csrf_token %}
+                                        <button type="submit" class="action-btn delete">Delete</button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="6" class="empty">No estimated bills available.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div id="deleteEstimatedBillModal" class="modal">
+        <div class="modal-content">
+            <h2>Delete estimated bill</h2>
+            <p>Are you sure you want to delete this estimated bill?</p>
+            <div class="modal-buttons">
+                <button type="button" class="modal-btn modal-btn-cancel" id="cancelDeleteEstimatedBill">Cancel</button>
+                <button type="button" class="modal-btn modal-btn-danger" id="confirmDeleteEstimatedBill">Delete</button>
+            </div>
         </div>
     </div>
 </div>
@@ -266,6 +318,11 @@
 <script>
     const searchBox = document.getElementById('searchBox');
     const billTable = document.getElementById('billTable');
+    const deleteModal = document.getElementById('deleteEstimatedBillModal');
+    const deleteForms = document.querySelectorAll('.delete-estimated-form');
+    const cancelDeleteBtn = document.getElementById('cancelDeleteEstimatedBill');
+    const confirmDeleteBtn = document.getElementById('confirmDeleteEstimatedBill');
+    let pendingDeleteForm = null;
 
     if (searchBox && billTable) {
         searchBox.addEventListener('keyup', function () {
@@ -273,6 +330,27 @@
             billTable.querySelectorAll('tbody tr').forEach((row) => {
                 row.style.display = row.textContent.toLowerCase().includes(term) ? '' : 'none';
             });
+        });
+    }
+
+    if (deleteForms.length && deleteModal && cancelDeleteBtn && confirmDeleteBtn) {
+        deleteForms.forEach((form) => {
+            form.addEventListener('submit', function (event) {
+                event.preventDefault();
+                pendingDeleteForm = form;
+                deleteModal.classList.add('show');
+            });
+        });
+
+        cancelDeleteBtn.addEventListener('click', function () {
+            pendingDeleteForm = null;
+            deleteModal.classList.remove('show');
+        });
+
+        confirmDeleteBtn.addEventListener('click', function () {
+            if (pendingDeleteForm) {
+                pendingDeleteForm.submit();
+            }
         });
     }
 </script>
