@@ -239,6 +239,7 @@
     .note-preview {
         display: block;
         width: 100%;
+        max-width: 100%;
         min-height: 34px;
         font-size: 0.84em;
         color: #555;
@@ -447,7 +448,7 @@
         <h1 class="title">Create Service Report</h1>
 
         <div class="form-shell">
-            <form method="POST" id="detailsForm">
+            <form method="POST" id="detailsForm" data-default-treatment-date="{{ default_treatment_date|default:'' }}">
                 {% csrf_token %}
                 <input type="hidden" name="step" value="details">
                 <input type="hidden" name="action" id="detailsAction" value="submit">
@@ -482,14 +483,15 @@
                         <table>
                             <thead>
                                 <tr>
-                                    <th style="width:14%;">Areas</th>
-                                    <th style="width:14%;">Levels of Infestation</th>
+                                    <th style="width:18%;">Areas</th>
+                                    <th style="width:10%;">Date</th>
+                                    <th style="width:13%;">Levels of Infestation</th>
                                     <th style="width:6%;">Spray</th>
                                     <th style="width:6%;">Mist</th>
                                     <th style="width:9%;">Rat&nbsp;Bait</th>
                                     <th style="width:7%;">Powder</th>
-                                    <th style="width:16%;">Remarks</th>
-                                    <th style="width:16%;">Recommendation</th>
+                                    <th style="width:14%;">Remarks</th>
+                                    <th style="width:14%;">Recommendation</th>
                                     <th style="width:7%;">Action</th>
                                 </tr>
                             </thead>
@@ -610,6 +612,7 @@
         const infestationChoices = JSON.parse('{{ infestation_choices_json|default:"[]"|escapejs }}');
         const chemicalUnitMap = Object.fromEntries(chemicalChoices.map(choice => [choice.value, choice.standard_unit_measure]));
         const defaultInfestation = infestationChoices.length ? infestationChoices[0] : 'Low';
+        const defaultTreatmentDate = detailsForm ? (detailsForm.dataset.defaultTreatmentDate || '') : '';
 
         function renderInfestationOptions(selectedValue) {
             return infestationChoices.map((choice) => (
@@ -624,6 +627,31 @@
                 .replace(/>/g, '&gt;')
                 .replace(/"/g, '&quot;')
                 .replace(/'/g, '&#39;');
+        }
+
+        function truncatePreview(value, maxLength = 18) {
+            const text = String(value || '').trim();
+            if (!text) {
+                return '';
+            }
+            if (text.length <= maxLength) {
+                return text;
+            }
+            return `${text.slice(0, maxLength).trimEnd()}...`;
+        }
+
+        function normalizeArea(area) {
+            return {
+                area_name: area.area_name || '',
+                infestation_level: area.infestation_level || defaultInfestation,
+                spray: Boolean(area.spray),
+                mist: Boolean(area.mist),
+                rat_bait: Boolean(area.rat_bait),
+                powder: Boolean(area.powder),
+                date: area.date || defaultTreatmentDate,
+                remarks: area.remarks || '',
+                recommendation: area.recommendation || ''
+            };
         }
 
         let editingAreaIndex = -1;
@@ -651,9 +679,12 @@
         if (!Array.isArray(treatedAreas) || treatedAreas.length === 0) {
             treatedAreas = [{
                 area_name: '', infestation_level: defaultInfestation, spray: false, mist: false, rat_bait: false, powder: false,
+                date: defaultTreatmentDate,
                 remarks: '', recommendation: ''
             }];
         }
+
+        treatedAreas = treatedAreas.map(normalizeArea);
 
         function renderChemicals() {
             chemicalsBody.innerHTML = '';
@@ -703,6 +734,7 @@
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td><input class="row-input" type="text" value="${(area.area_name || '').replace(/"/g, '&quot;')}" data-index="${index}" data-field="area_name"></td>
+                    <td><input class="row-input" type="date" value="${(area.date || defaultTreatmentDate).replace(/"/g, '&quot;')}" data-index="${index}" data-field="date"></td>
                     <td>
                         <select class="row-select infestation-box" data-index="${index}" data-field="infestation_level">
                             ${renderInfestationOptions(area.infestation_level || defaultInfestation)}
@@ -714,12 +746,12 @@
                     <td><div class="checkbox-group"><input class="trait-check" type="checkbox" data-index="${index}" data-field="powder" ${area.powder ? 'checked' : ''}></div></td>
                     <td>
                         <div class="note-cell">
-                            <span class="note-preview ${area.remarks ? '' : 'is-empty'}" role="button" tabindex="0" data-edit-index="${index}" data-edit-field="remarks">${area.remarks ? escapeHtml(area.remarks) : '&nbsp;'}</span>
+                            <span class="note-preview ${area.remarks ? '' : 'is-empty'}" role="button" tabindex="0" data-edit-index="${index}" data-edit-field="remarks">${area.remarks ? escapeHtml(truncatePreview(area.remarks)) : '&nbsp;'}</span>
                         </div>
                     </td>
                     <td>
                         <div class="note-cell">
-                            <span class="note-preview ${area.recommendation ? '' : 'is-empty'}" role="button" tabindex="0" data-edit-index="${index}" data-edit-field="recommendation">${area.recommendation ? escapeHtml(area.recommendation) : '&nbsp;'}</span>
+                            <span class="note-preview ${area.recommendation ? '' : 'is-empty'}" role="button" tabindex="0" data-edit-index="${index}" data-edit-field="recommendation">${area.recommendation ? escapeHtml(truncatePreview(area.recommendation)) : '&nbsp;'}</span>
                         </div>
                     </td>
                     <td><button type="button" class="small-btn btn-delete" data-delete-area="${index}">Delete</button></td>
@@ -798,7 +830,7 @@
 
         addAreaBtn.addEventListener('click', function () {
             treatedAreas.push({
-                area_name: '', infestation_level: defaultInfestation, spray: false, mist: false, rat_bait: false, powder: false,
+                area_name: '', infestation_level: defaultInfestation, spray: false, mist: false, rat_bait: false, powder: false, date: defaultTreatmentDate,
                 remarks: '', recommendation: ''
             });
             renderAreas();

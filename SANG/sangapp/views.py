@@ -7,6 +7,7 @@ from django.conf import settings
 from django.urls import reverse
 from django.utils import timezone
 from decimal import Decimal, InvalidOperation
+from datetime import datetime
 import json
 import re
 from collections import defaultdict
@@ -4036,6 +4037,7 @@ def _clean_area_rows(raw_rows, infestation_values=None):
         mist = bool(row.get('mist'))
         rat_bait = bool(row.get('rat_bait'))
         powder = bool(row.get('powder'))
+        date_raw = (row.get('date') or '').strip()
         remarks = (row.get('remarks') or '').strip()
         recommendation = (row.get('recommendation') or '').strip()
 
@@ -4057,6 +4059,14 @@ def _clean_area_rows(raw_rows, infestation_values=None):
             has_invalid = True
             continue
 
+        area_date = None
+        if date_raw:
+            try:
+                area_date = datetime.strptime(date_raw, '%Y-%m-%d').date()
+            except ValueError:
+                has_invalid = True
+                continue
+
         cleaned_rows.append({
             'area_name': area_name,
             'infestation_level': infestation_level,
@@ -4064,6 +4074,7 @@ def _clean_area_rows(raw_rows, infestation_values=None):
             'mist': mist,
             'rat_bait': rat_bait,
             'powder': powder,
+            'date': area_date,
             'remarks': remarks,
             'recommendation': recommendation,
         })
@@ -4125,19 +4136,20 @@ def technician_create_service_report(request):
             'mist': False,
             'rat_bait': False,
             'powder': False,
+            'date': '',
             'remarks': '',
             'recommendation': '',
         }
     ]
 
-    selectable_services = Service.objects.filter(
+    selectable_services_qs = Service.objects.filter(
         status='Ongoing Treatment',
         service_report__isnull=True,
     ).select_related('customer', 'property', 'estimated_bill').prefetch_related(
         'estimated_bill__items'
     ).order_by('-confirmed_date', '-date', '-created_at')
 
-    selectable_services = list(selectable_services)
+    selectable_services = list(selectable_services_qs)
     for selectable_service in selectable_services:
         bill = getattr(selectable_service, 'estimated_bill', None)
         bill_item_names = []
@@ -4160,6 +4172,10 @@ def technician_create_service_report(request):
         })
 
     def render_step_two(service, errors=None, chemicals=None, treated_areas=None):
+        default_treatment_date = ''
+        if service.confirmed_date or service.date:
+            default_treatment_date = (service.confirmed_date or service.date).strftime('%Y-%m-%d')
+
         return render(request, 'technician_create_service_report.html', {
             'technician': technician,
             'identified_as': identified_as,
@@ -4170,6 +4186,7 @@ def technician_create_service_report(request):
             'treated_areas_json': json.dumps(treated_areas if treated_areas is not None else default_areas),
             'chemical_choices_json': json.dumps(chemical_choices),
             'infestation_choices_json': json.dumps(infestation_choices),
+            'default_treatment_date': default_treatment_date,
         })
 
     if request.method == 'POST':
@@ -4185,7 +4202,7 @@ def technician_create_service_report(request):
         if step == 'select':
             if action == 'continue':
                 chosen_service_id = request.POST.get('selected_service_id', '').strip()
-                selected_service = selectable_services.filter(id=chosen_service_id).first()
+                selected_service = selectable_services_qs.filter(id=chosen_service_id).first()
 
                 if not selected_service:
                     return render_step_one({'selected_service': 'Please select an Ongoing Treatment service record.'})
@@ -4216,7 +4233,7 @@ def technician_create_service_report(request):
         if step == 'details':
             selected_service = None
             if selected_service_id:
-                selected_service = selectable_services.filter(id=selected_service_id).first()
+                selected_service = selectable_services_qs.filter(id=selected_service_id).first()
 
             if not selected_service:
                 request.session.pop('tech_service_report_draft', None)
@@ -4281,6 +4298,7 @@ def technician_create_service_report(request):
                             mist=row['mist'],
                             rat_bait=row['rat_bait'],
                             powder=row['powder'],
+                            date=row.get('date'),
                             remarks=row['remarks'],
                             recommendation=row['recommendation'],
                         )
@@ -4421,6 +4439,7 @@ def edit_service_report(request, report_id):
                     mist=row['mist'],
                     rat_bait=row['rat_bait'],
                     powder=row['powder'],
+                    date=row.get('date'),
                     remarks=row['remarks'],
                     recommendation=row['recommendation'],
                 )
@@ -4448,6 +4467,7 @@ def edit_service_report(request, report_id):
                 'mist': area.mist,
                 'rat_bait': area.rat_bait,
                 'powder': area.powder,
+                'date': area.date.isoformat() if area.date else '',
                 'remarks': area.remarks,
                 'recommendation': area.recommendation,
             }
@@ -4456,6 +4476,7 @@ def edit_service_report(request, report_id):
         'back_url': _resolve_back_url(request, _service_report_redirect_name(request)),
         'chemical_choices_json': json.dumps(chemical_choices),
         'infestation_choices_json': json.dumps(infestation_choices),
+        'default_treatment_date': (report.service.confirmed_date or report.service.date).strftime('%Y-%m-%d') if (report.service.confirmed_date or report.service.date) else '',
     })
 
 

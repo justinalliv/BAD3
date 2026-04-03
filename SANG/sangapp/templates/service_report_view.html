@@ -271,7 +271,7 @@
                     {% for area in report.treated_areas.all %}
                     <tr>
                         <td>{{ area.area_name }}</td>
-                        <td class="center">{{ report.service.confirmed_date|default:report.service.date|date:'m/d/Y' }}</td>
+                        <td class="center">{% if area.date %}{{ area.date|date:'m/d/Y' }}{% else %}{{ report.service.confirmed_date|default:report.service.date|date:'m/d/Y' }}{% endif %}</td>
                         <td class="center">{{ area.infestation_level|upper }}</td>
                         <td class="center">{% if area.spray %}OK{% endif %}</td>
                         <td class="center">{% if area.mist %}OK{% endif %}</td>

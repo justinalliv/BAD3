@@ -266,6 +266,7 @@ class ServiceReportArea(models.Model):
     mist = models.BooleanField(default=False)
     rat_bait = models.BooleanField(default=False)
     powder = models.BooleanField(default=False)
+    date = models.DateField(blank=True, null=True)
     remarks = models.TextField(blank=True)
     recommendation = models.TextField(blank=True)
 

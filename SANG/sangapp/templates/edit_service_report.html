@@ -46,7 +46,7 @@
     <div class="sheet">
     <h1 class="title">Edit Service Report</h1>
 
-    <form method="POST" id="detailsForm">
+    <form method="POST" id="detailsForm" data-default-treatment-date="{{ default_treatment_date|default:'' }}">
         {% csrf_token %}
         <input type="hidden" name="action" id="detailsAction" value="submit">
         <input type="hidden" name="chemicals_json" id="chemicalsJsonInput">
@@ -77,14 +77,15 @@
             <table>
                 <thead>
                     <tr>
-                        <th style="width:14%;">Areas</th>
-                        <th style="width:14%;">Levels of Infestation</th>
+                        <th style="width:18%;">Areas</th>
+                        <th style="width:10%;">Date</th>
+                        <th style="width:13%;">Levels of Infestation</th>
                         <th style="width:6%;">Spray</th>
                         <th style="width:6%;">Mist</th>
-                        <th style="width:8%;">Rat Bait</th>
+                        <th style="width:9%;">Rat Bait</th>
                         <th style="width:7%;">Powder</th>
-                        <th style="width:16%;">Remarks</th>
-                        <th style="width:16%;">Recommendation</th>
+                        <th style="width:14%;">Remarks</th>
+                        <th style="width:14%;">Recommendation</th>
                         <th style="width:7%;">Action</th>
                     </tr>
                 </thead>
@@ -121,6 +122,7 @@
     const areasBody = document.getElementById('areasBody');
     const addChemicalBtn = document.getElementById('addChemicalBtn');
     const addAreaBtn = document.getElementById('addAreaBtn');
+    const detailsForm = document.getElementById('detailsForm');
     const chemicalsJsonInput = document.getElementById('chemicalsJsonInput');
     const treatedAreasJsonInput = document.getElementById('treatedAreasJsonInput');
     const textModal = document.getElementById('textModal');
@@ -132,6 +134,7 @@
     const infestationChoices = JSON.parse('{{ infestation_choices_json|default:"[]"|escapejs }}');
     const chemicalUnitMap = Object.fromEntries(chemicalChoices.map(choice => [choice.value, choice.standard_unit_measure]));
     const defaultInfestation = infestationChoices.length ? infestationChoices[0] : 'Low';
+    const defaultTreatmentDate = detailsForm ? (detailsForm.dataset.defaultTreatmentDate || '') : '';
 
     function renderInfestationOptions(selectedValue) {
         return infestationChoices.map((choice) => (
@@ -153,8 +156,20 @@
     }
 
     if (!Array.isArray(treatedAreas) || treatedAreas.length === 0) {
-        treatedAreas = [{ area_name: '', infestation_level: defaultInfestation, spray: false, mist: false, rat_bait: false, powder: false, remarks: '', recommendation: '' }];
+        treatedAreas = [{ area_name: '', infestation_level: defaultInfestation, spray: false, mist: false, rat_bait: false, powder: false, date: defaultTreatmentDate, remarks: '', recommendation: '' }];
     }
+
+    treatedAreas = treatedAreas.map((area) => ({
+        area_name: area.area_name || '',
+        infestation_level: area.infestation_level || defaultInfestation,
+        spray: Boolean(area.spray),
+        mist: Boolean(area.mist),
+        rat_bait: Boolean(area.rat_bait),
+        powder: Boolean(area.powder),
+        date: area.date || defaultTreatmentDate,
+        remarks: area.remarks || '',
+        recommendation: area.recommendation || ''
+    }));
 
     function renderChemicals() {
         chemicalsBody.innerHTML = '';
@@ -202,6 +217,7 @@
             const row = document.createElement('tr');
             row.innerHTML = `
                 <td><input class="row-input" type="text" value="${(area.area_name || '').replace(/"/g, '&quot;')}" data-index="${index}" data-field="area_name"></td>
+                <td><input class="row-input" type="date" value="${(area.date || defaultTreatmentDate).replace(/"/g, '&quot;')}" data-index="${index}" data-field="date"></td>
                 <td>
                     <select class="row-select infestation-box" data-index="${index}" data-field="infestation_level">
                         ${renderInfestationOptions(area.infestation_level || defaultInfestation)}
@@ -240,7 +256,7 @@
         areasBody.querySelectorAll('[data-delete-area]').forEach((button) => {
             button.addEventListener('click', function () {
                 treatedAreas.splice(Number(this.dataset.deleteArea), 1);
-                if (!treatedAreas.length) treatedAreas.push({ area_name: '', infestation_level: defaultInfestation, spray: false, mist: false, rat_bait: false, powder: false, remarks: '', recommendation: '' });
+                if (!treatedAreas.length) treatedAreas.push({ area_name: '', infestation_level: defaultInfestation, spray: false, mist: false, rat_bait: false, powder: false, date: defaultTreatmentDate, remarks: '', recommendation: '' });
                 renderAreas();
             });
         });
