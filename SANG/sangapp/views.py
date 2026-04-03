@@ -1594,8 +1594,9 @@ def om_service_history(request):
     for service in services:
         service.latest_invoice = service.invoices.order_by('-created_at').first()
 
-    return render(request, 'om_service_history.html', {
+    return render(request, 'service_history_shared.html', {
         'om': om,
+        'history_role': 'om',
         'services': services,
         'search': search,
         'status_filter': status_filter,
@@ -4090,7 +4091,7 @@ def technician_service_history(request):
         'customer',
         'property',
         'service_report',
-    ).filter(
+    ).prefetch_related('invoices').filter(
         service_report__isnull=False,
         status__in=history_statuses,
     ).order_by('-created_at')
@@ -4108,8 +4109,12 @@ def technician_service_history(request):
             | Q(preferred_service__icontains=search)
         )
 
-    return render(request, 'technician_service_history.html', {
+    for service in services:
+        service.latest_invoice = service.invoices.order_by('-created_at').first()
+
+    return render(request, 'service_history_shared.html', {
         'technician': technician,
+        'history_role': 'technician',
         'services': services,
         'search': search,
         'status_filter': status_filter,

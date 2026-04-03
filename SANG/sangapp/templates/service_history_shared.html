@@ -1,0 +1,300 @@
+{% extends 'base.html' %}
+
+{% block title %}Service History - Supreme Biotech Solutions{% endblock %}
+
+{% block extra_css %}
+    .container {
+        max-width: 1220px;
+        margin: 24px auto 40px;
+        padding: 0 24px;
+    }
+
+    .title {
+        color: #1a2a5e;
+        font-size: 2.05em;
+        margin: 0;
+        text-align: center;
+    }
+
+    .sheet {
+        background: #fff;
+        border: 1px solid #ddd;
+        border-radius: 12px;
+        padding: 24px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+    }
+
+    .header-row {
+        margin-bottom: 18px;
+    }
+
+    .list-shell {
+        border: 1px solid #dfe3ee;
+        border-radius: 10px;
+        padding: 16px;
+        background: #f9fafc;
+    }
+
+    .toolbar {
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        flex-wrap: wrap;
+        margin-bottom: 12px;
+    }
+
+    .toolbar-search {
+        width: 100%;
+        max-width: 360px;
+    }
+
+    .table-wrap {
+        border: 1px solid #dfe3ee;
+        border-radius: 10px;
+        background: #fff;
+        overflow-x: auto;
+    }
+
+    table {
+        width: 100%;
+        min-width: 1080px;
+        table-layout: fixed;
+        border-collapse: collapse;
+    }
+
+    #historyTable th,
+    #historyTable td {
+        border-bottom: 1px solid #e9ebf1;
+        padding: 10px 8px;
+        text-align: left;
+        font-size: 0.84em;
+        vertical-align: middle;
+        line-height: 1.35;
+        word-break: break-word;
+        overflow-wrap: anywhere;
+    }
+
+    #historyTable th {
+        background: #1a2a5e;
+        color: #fff;
+        font-weight: 600;
+        font-size: 0.85em;
+        line-height: 1.2;
+        border-bottom: none;
+        white-space: normal;
+        word-break: normal;
+        overflow-wrap: normal;
+    }
+
+    #historyTable tbody tr:last-child td {
+        border-bottom: none;
+    }
+
+    #historyTable th:last-child,
+    #historyTable td:last-child {
+        text-align: center;
+    }
+
+    #historyTable th:last-child,
+    #historyTable td:last-child {
+        padding-right: 18px;
+    }
+
+    #historyTable th:nth-child(5),
+    #historyTable td:nth-child(5) {
+        padding-right: 18px;
+        text-align: center;
+    }
+
+    #historyTable th:nth-child(6),
+    #historyTable td:nth-child(6) {
+        padding-left: 14px;
+    }
+
+    .status-chip {
+        display: inline-flex;
+        align-items: center;
+        max-width: 100%;
+        box-sizing: border-box;
+        border-radius: 999px;
+        padding: 4px 12px;
+        font-size: 0.8em;
+        font-weight: 700;
+        white-space: nowrap;
+    }
+
+    .status-completed {
+        background: #d9f2e4;
+        color: #1e5f39;
+    }
+
+    .status-cancelled {
+        background: #fde1e1;
+        color: #8a2a2a;
+    }
+
+    .status-payment-confirmed {
+        background: #e3ebff;
+        color: #1a2a5e;
+    }
+
+    .action-stack {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        align-items: stretch;
+        width: 100%;
+        max-width: 168px;
+        margin: 0 auto;
+        padding-right: 8px;
+    }
+
+    .action-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        min-width: 0;
+        min-height: 34px;
+        padding: 0 10px;
+        border-radius: 8px;
+        color: #fff;
+        text-decoration: none;
+        font-size: 0.74em;
+        font-weight: 700;
+        white-space: nowrap;
+        border: none;
+        transition: background-color 0.2s;
+    }
+
+    .action-btn.booking {
+        background: #2f9e44;
+    }
+
+    .action-btn.booking:hover {
+        background: #257f37;
+    }
+
+    .action-btn.estimated {
+        background: #6c7293;
+    }
+
+    .action-btn.estimated:hover {
+        background: #585e7a;
+    }
+
+    .action-btn.report {
+        background: #1f8a92;
+    }
+
+    .action-btn.report:hover {
+        background: #186f76;
+    }
+
+    .empty {
+        text-align: center;
+        color: #666;
+        font-size: 0.95em;
+        padding: 24px 8px;
+    }
+
+    @media (max-width: 1100px) {
+        .toolbar {
+            justify-content: flex-start;
+        }
+
+        .toolbar-search {
+            width: 100%;
+            max-width: 320px;
+        }
+
+        table {
+            min-width: 1080px;
+        }
+    }
+
+    @media (max-width: 760px) {
+        .container {
+            padding: 0 12px;
+        }
+
+        .sheet {
+            padding: 16px;
+        }
+
+        .list-shell {
+            padding: 12px;
+        }
+
+        .title {
+            font-size: 1.7em;
+        }
+    }
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="sheet">
+        <div class="header-row">
+            <h1 class="title">Service History</h1>
+        </div>
+
+        <div class="list-shell">
+            <form method="GET" class="toolbar">
+                <input type="text" class="search-box-unified toolbar-search" name="q" value="{{ search }}" placeholder="Search">
+            </form>
+
+            <div class="table-wrap">
+                {% if services %}
+                <table id="historyTable">
+                    <thead>
+                        <tr>
+                            <th style="width:9%;">Service ID</th>
+                            <th style="width:16%;">Customer Name</th>
+                            <th style="width:22%;">Property Address</th>
+                            <th style="width:15%;">Service Type</th>
+                            <th style="width:15%;">Status</th>
+                            <th style="width:13%;">Created At</th>
+                            <th style="width:13%;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for service in services %}
+                        <tr>
+                            <td>{{ service.id|stringformat:'07d' }}</td>
+                            <td>{{ service.customer.first_name }} {{ service.customer.last_name }}</td>
+                            <td>{{ service.property.street_number }} {{ service.property.street }}, {{ service.property.city }}</td>
+                            <td>{{ service.treatment_summary }}</td>
+                            <td>
+                                <span class="status-chip status-{{ service.status|lower|cut:' ' }}">{{ service.status }}</span>
+                            </td>
+                            <td>{{ service.created_at|date:'M d, Y h:i A' }}</td>
+                            <td>
+                                <div class="action-stack">
+                                    {% if history_role == 'technician' %}
+                                        <a href="{% url 'technician_view_booking' service.id %}?back={{ request.get_full_path|urlencode }}" class="action-btn booking">View Booking</a>
+                                        {% if service.service_report %}
+                                            <a href="{% url 'technician_view_service_report' service.service_report.id %}?back={{ request.get_full_path|urlencode }}" class="action-btn report">Service Report</a>
+                                        {% endif %}
+                                    {% else %}
+                                        {% if service.service_report %}
+                                            <a href="{% url 'om_view_service_report' service.service_report.id %}?back={{ request.get_full_path|urlencode }}" class="action-btn report">Service Report</a>
+                                        {% endif %}
+                                        {% if service.latest_invoice %}
+                                            <a href="{% url 'om_view_invoice' service.latest_invoice.id %}?back={{ request.get_full_path|urlencode }}" class="action-btn estimated">View Invoice</a>
+                                        {% endif %}
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                    <div class="empty">No service history records found.</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
