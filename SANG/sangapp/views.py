@@ -531,7 +531,7 @@ def profile(request):
         request.session.flush()
         return redirect('login')
     
-    # Get ongoing services (not completed or cancelled)
+    # Keep existing ongoing-services context for compatibility.
     services = Service.objects.filter(
         customer=customer
     ).exclude(
@@ -545,10 +545,25 @@ def profile(request):
         service.has_invoice = (service.invoice_count or 0) > 0
         service.payment_proof_status = proof.status if proof else ''
         service.can_submit_payment_proof = service.has_invoice and ((not proof) or proof.status == PaymentProof.STATUS_REJECTED)
+
+    history_statuses = ['Payment Confirmed', 'Completed', 'Cancelled']
+    completed_services = Service.objects.filter(
+        customer=customer,
+        status__in=history_statuses,
+    ).select_related(
+        'property',
+        'service_report',
+    ).annotate(
+        invoice_count=Count('invoices', distinct=True)
+    ).order_by('-created_at')
+
+    for service in completed_services:
+        service.has_invoice = (service.invoice_count or 0) > 0
     
     return render(request, 'profile.html', {
         'customer': customer,
         'services': services,
+        'completed_services': completed_services,
     })
 
 
