@@ -23,12 +23,19 @@
         font-size: 2.2em;
     }
 
-    .form-shell {
+    .sheet {
         background: #fff;
         border: 1px solid #ddd;
         border-radius: 12px;
         padding: 24px;
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+    }
+
+    .form-shell {
+        border: 1px solid #dfe3ee;
+        border-radius: 10px;
+        padding: 16px;
+        background: #f9fafc;
         margin-bottom: 18px;
     }
 
@@ -382,6 +389,8 @@
 <div class="container">
     <p class="identified-top">User Identified As: {{ identified_as|default:'Technician' }}</p>
 
+    <div class="sheet">
+
     {% if step == 'select' %}
         <h1 class="title">Service Report Submission</h1>
         <div class="form-shell">
@@ -416,7 +425,7 @@
                                 <td>{{ service.id|stringformat:'07d' }}</td>
                                 <td>{{ service.customer.first_name }} {{ service.customer.last_name }}</td>
                                 <td>{{ service.property.street_number }} {{ service.property.street }}, {{ service.property.city }}</td>
-                                <td>{{ service.preferred_service }}</td>
+                                <td>{{ service.service_type_display|default:service.preferred_service }}</td>
                                 <td>{{ service.confirmed_date|default:service.date|date:'M d, Y' }}</td>
                             </tr>
                             {% empty %}
@@ -429,7 +438,7 @@
                 {% if errors.selected_service %}<p class="error">{{ errors.selected_service }}</p>{% endif %}
 
                 <div class="actions">
-                    <button type="button" class="main-btn btn-cancel" id="openCancelSelect">Cancel</button>
+                    <button type="submit" class="main-btn btn-cancel" onclick="document.getElementById('selectAction').value='confirm_cancel'">Cancel</button>
                     <button type="submit" class="main-btn btn-continue">Continue</button>
                 </div>
             </form>
@@ -498,16 +507,6 @@
             </form>
         </div>
     {% endif %}
-
-    <div id="cancelModal" class="modal">
-        <div class="modal-content">
-            <h2>Cancel submission</h2>
-            <p>Are you sure you want to cancel? All progress will be lost.</p>
-            <div class="modal-buttons">
-                <button type="button" class="modal-btn modal-btn-cancel" id="continueEditingCancel">Continue Editing</button>
-                <button type="button" class="modal-btn modal-btn-confirm" id="confirmCancel">Confirm</button>
-            </div>
-        </div>
     </div>
 
     <div id="submitModal" class="modal">
@@ -560,10 +559,6 @@
             });
         }
 
-        const cancelModal = document.getElementById('cancelModal');
-        const openCancelSelect = document.getElementById('openCancelSelect');
-        const continueEditingCancel = document.getElementById('continueEditingCancel');
-        const confirmCancel = document.getElementById('confirmCancel');
         const selectForm = document.getElementById('selectForm');
         const detailsForm = document.getElementById('detailsForm');
         const selectAction = document.getElementById('selectAction');
@@ -585,34 +580,6 @@
         if (closeSelectServiceModal && selectServiceModal) {
             closeSelectServiceModal.addEventListener('click', function () {
                 selectServiceModal.classList.remove('show');
-            });
-        }
-
-        if (openCancelSelect && cancelModal) {
-            openCancelSelect.addEventListener('click', function () {
-                cancelModal.classList.add('show');
-            });
-        }
-
-        if (continueEditingCancel && cancelModal) {
-            continueEditingCancel.addEventListener('click', function () {
-                cancelModal.classList.remove('show');
-            });
-        }
-
-        if (confirmCancel) {
-            confirmCancel.addEventListener('click', function () {
-                if (selectForm && selectAction) {
-                    selectAction.value = 'confirm_cancel';
-                    selectForm.submit();
-                    return;
-                }
-
-                if (detailsForm && detailsAction) {
-                    serializeDraft();
-                    detailsAction.value = 'confirm_cancel';
-                    detailsForm.submit();
-                }
             });
         }
 
@@ -882,7 +849,6 @@
 
         document.addEventListener('keydown', function (event) {
             if (event.key === 'Escape') {
-                cancelModal.classList.remove('show');
                 submitModal.classList.remove('show');
                 textModal.classList.remove('show');
             }

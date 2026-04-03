@@ -4,8 +4,8 @@
 
 {% block extra_css %}
     .container {
-        max-width: 1080px;
-        margin: 28px auto 48px;
+        max-width: 1120px;
+        margin: 24px auto 40px;
         padding: 0 24px;
     }
 
@@ -45,11 +45,19 @@
         color: #2a2a2a;
     }
 
+    .section-box {
+        border: 1px solid #dfe3ee;
+        border-radius: 10px;
+        padding: 14px;
+        margin-bottom: 14px;
+        background: #f9fafc;
+    }
+
     .chem-label {
         font-weight: 700;
-        font-size: 0.95em;
-        color: #222;
-        margin-bottom: 4px;
+        font-size: 1.1em;
+        color: #1a2a5e;
+        margin-bottom: 8px;
     }
 
     .chem-summary {
@@ -166,13 +174,18 @@
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        min-height: 38px;
+        min-height: 40px;
         padding: 0 16px;
-        border-radius: 8px;
-        border: 1px solid #cfd3df;
-        background: #fff;
+        border-radius: 10px;
+        border: 1px solid #c5cce5;
+        background: #eef1fb;
         color: #1a2a5e;
         text-decoration: none;
+        font-weight: 700;
+    }
+
+    .back-link:hover {
+        background: #dde3f6;
     }
 
     @media (max-width: 760px) {
@@ -211,32 +224,36 @@
 
         <p class="intro">Please find below the report for the service conducted on {{ report.service.confirmed_date|default:report.service.date|date:'F d, Y' }}.</p>
 
-        <div class="chem-label">Chemicals Used</div>
-        <div class="table-wrap">
-            <table class="chem-summary">
-                <thead>
-                    <tr>
-                        {% for chemical in report.chemicals.all %}
-                        <th>{{ chemical.chemical_name|upper }}</th>
-                        {% empty %}
-                        <th>No Chemicals Recorded</th>
-                        {% endfor %}
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        {% for chemical in report.chemicals.all %}
-                        <td>{{ chemical.amount }} {{ chemical.unit_measure }}</td>
-                        {% empty %}
-                        <td>-</td>
-                        {% endfor %}
-                    </tr>
-                </tbody>
-            </table>
+        <div class="section-box">
+            <div class="chem-label">Chemicals Used</div>
+            <div class="table-wrap">
+                <table class="chem-summary">
+                    <thead>
+                        <tr>
+                            {% for chemical in report.chemicals.all %}
+                            <th>{{ chemical.chemical_name|upper }}</th>
+                            {% empty %}
+                            <th>No Chemicals Recorded</th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            {% for chemical in report.chemicals.all %}
+                            <td>{{ chemical.amount }} {{ chemical.unit_measure }}</td>
+                            {% empty %}
+                            <td>-</td>
+                            {% endfor %}
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
 
-        <div class="table-wrap">
-            <table class="area-table">
+        <div class="section-box">
+            <div class="chem-label">Treated Areas</div>
+            <div class="table-wrap">
+                <table class="area-table">
                 <thead>
                     <tr>
                         <th style="width:14%;">Areas</th>
@@ -269,7 +286,8 @@
                     </tr>
                     {% endfor %}
                 </tbody>
-            </table>
+                </table>
+            </div>
         </div>
 
         <div class="signature-row">

@@ -4133,7 +4133,21 @@ def technician_create_service_report(request):
     selectable_services = Service.objects.filter(
         status='Ongoing Treatment',
         service_report__isnull=True,
-    ).select_related('customer', 'property').order_by('-confirmed_date', '-date', '-created_at')
+    ).select_related('customer', 'property', 'estimated_bill').prefetch_related(
+        'estimated_bill__items'
+    ).order_by('-confirmed_date', '-date', '-created_at')
+
+    selectable_services = list(selectable_services)
+    for selectable_service in selectable_services:
+        bill = getattr(selectable_service, 'estimated_bill', None)
+        bill_item_names = []
+        if bill:
+            bill_item_names = [
+                item.service_type
+                for item in bill.items.all()
+                if item.service_type
+            ]
+        selectable_service.service_type_display = ', '.join(_unique_preserve_order(bill_item_names)) if bill_item_names else (selectable_service.preferred_service or '-')
 
     def render_step_one(errors=None):
         return render(request, 'technician_create_service_report.html', {
@@ -4165,8 +4179,8 @@ def technician_create_service_report(request):
         if action == 'confirm_cancel':
             request.session.pop('tech_service_report_draft', None)
             if request.session.get('om_id'):
-                return redirect('om_home')
-            return redirect('technician_home')
+                return redirect('om_service_reports')
+            return redirect('technician_service_reports')
 
         if step == 'select':
             if action == 'continue':
