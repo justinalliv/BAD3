@@ -334,8 +334,9 @@
 
         <div class="action-shell">
             <h2>Validation Action</h2>
-            {% if proof.status == 'Validated' %}
-                <p class="validated-note">This payment proof is already validated.</p>
+            {% if proof.status != 'For Validation' %}
+                <p class="validated-note">This payment proof is final and can no longer be changed.</p>
+                {% if errors.action %}<div class="error">{{ errors.action }}</div>{% endif %}
             {% else %}
                 <form method="POST">
                     {% csrf_token %}

@@ -1,0 +1,245 @@
+{% extends 'base.html' %}
+
+{% block title %}Remittance Details - Supreme Biotech Solutions{% endblock %}
+
+{% block extra_css %}
+    .container {
+        max-width: 940px;
+        margin: 24px auto 40px;
+        padding: 0 24px;
+    }
+
+    .sheet {
+        background: #fff;
+        border: 1px solid #ddd;
+        border-radius: 12px;
+        padding: 24px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+    }
+
+    .header-row {
+        position: relative;
+        min-height: 44px;
+        margin-bottom: 12px;
+    }
+
+    .title {
+        color: #1a2a5e;
+        text-align: center;
+        margin: 0;
+        font-size: 2.05em;
+    }
+
+    .subtext {
+        text-align: center;
+        color: #5a5f73;
+        margin: 0 0 18px;
+        font-size: 0.96em;
+    }
+
+    .back-link {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 40px;
+        padding: 0 16px;
+        border-radius: 10px;
+        border: none;
+        background: #eef1fb;
+        color: #1a2a5e;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.95em;
+        transition: all 0.2s;
+        position: absolute;
+        left: 0;
+        top: 50%;
+        transform: translateY(-50%);
+    }
+
+    .back-link:hover {
+        background: #dde3f6;
+        box-shadow: 0 2px 4px rgba(26, 42, 94, 0.1);
+    }
+
+    .lock-note {
+        border: 1px solid #d9e6d1;
+        background: #f2f8ef;
+        color: #2e5d36;
+        border-radius: 10px;
+        padding: 12px 14px;
+        font-size: 0.9em;
+        margin-bottom: 14px;
+    }
+
+    .details-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px 14px;
+    }
+
+    .detail-card {
+        background: #fafbfe;
+        border: 1px solid #dfe3ee;
+        border-radius: 10px;
+        padding: 12px 14px;
+    }
+
+    .label {
+        display: block;
+        color: #5a5f73;
+        font-size: 0.82em;
+        margin-bottom: 4px;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+    }
+
+    .value {
+        color: #1a2a5e;
+        font-weight: 700;
+        font-size: 0.96em;
+        word-break: break-word;
+        overflow-wrap: anywhere;
+    }
+
+    .actions {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        margin-top: 18px;
+        flex-wrap: wrap;
+    }
+
+    .btn {
+        min-width: 180px;
+        min-height: 40px;
+        border: none;
+        border-radius: 8px;
+        font-size: 0.88em;
+        font-weight: 700;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .btn.estimated {
+        background: #6c7293;
+        color: #fff;
+    }
+
+    .btn.estimated:hover {
+        background: #585e7a;
+    }
+
+    @media (max-width: 760px) {
+        .container {
+            padding: 0 12px;
+        }
+
+        .sheet {
+            padding: 16px;
+        }
+
+        .header-row {
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+            gap: 10px;
+            min-height: 0;
+            margin-bottom: 10px;
+        }
+
+        .back-link {
+            width: fit-content;
+            position: static;
+            transform: none;
+        }
+
+        .details-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .title {
+            font-size: 1.7em;
+        }
+    }
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="sheet">
+        <div class="header-row">
+            <a href="{{ back_url|default:'#' }}" class="back-link">← Back</a>
+            <h1 class="title">Remittance Record Details</h1>
+        </div>
+        <p class="subtext">Official payment reference details for this confirmed transaction.</p>
+
+        <div class="lock-note">
+            Proof of payment is read-only and validation status is final. Invoice remains viewable and this remittance record is the official reference.
+        </div>
+
+        <div class="details-grid">
+            <div class="detail-card">
+                <span class="label">Customer Name</span>
+                <span class="value">{{ details.customer_name }}</span>
+            </div>
+            <div class="detail-card">
+                <span class="label">Address</span>
+                <span class="value">{{ details.address }}</span>
+            </div>
+            <div class="detail-card">
+                <span class="label">OR Number</span>
+                <span class="value">{{ details.or_number }}</span>
+            </div>
+            <div class="detail-card">
+                <span class="label">Bank Initials / Bank Used</span>
+                <span class="value">{{ details.bank_initials_used|default:'-' }}</span>
+            </div>
+            <div class="detail-card">
+                <span class="label">Payment Type</span>
+                <span class="value">{{ details.payment_type|default:'-' }}</span>
+            </div>
+            <div class="detail-card">
+                <span class="label">Check Number or Reference Number</span>
+                <span class="value">{{ details.check_or_reference_number|default:'-' }}</span>
+            </div>
+            <div class="detail-card">
+                <span class="label">Date of Check / Payment Date</span>
+                <span class="value">{{ details.payment_date|date:'M d, Y h:i A' }}</span>
+            </div>
+            <div class="detail-card">
+                <span class="label">Account Number</span>
+                <span class="value">{{ details.account_number|default:'-' }}</span>
+            </div>
+            <div class="detail-card">
+                <span class="label">Amount</span>
+                <span class="value">PHP {{ details.amount }}</span>
+            </div>
+            <div class="detail-card">
+                <span class="label">Treatment Date</span>
+                <span class="value">{{ details.treatment_date|date:'M d, Y'|default:'-' }}</span>
+            </div>
+            <div class="detail-card">
+                <span class="label">Invoice ID</span>
+                <span class="value">{% if details.invoice_id %}INV{{ details.invoice_id|stringformat:'04d' }}{% else %}-{% endif %}</span>
+            </div>
+            <div class="detail-card">
+                <span class="label">Validation Status</span>
+                <span class="value">{{ record.payment_proof.status }}</span>
+            </div>
+        </div>
+
+        {% if record.invoice %}
+        <div class="actions">
+            {% if request.session.om_id %}
+                <a href="{% url 'om_view_invoice' record.invoice.id %}?back={% url 'om_remittance_record_details' record.id %}" class="btn estimated">View Invoice</a>
+            {% else %}
+                <a href="{% url 'sales_representative_view_invoice' record.invoice.id %}?back={% url 'sales_representative_remittance_record_details' record.id %}" class="btn estimated">View Invoice</a>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

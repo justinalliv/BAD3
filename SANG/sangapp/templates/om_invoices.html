@@ -189,6 +189,19 @@
         padding: 28px 0;
     }
 
+    .action-note {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        min-height: 32px;
+        border-radius: 8px;
+        font-size: 0.78em;
+        font-weight: 700;
+        background: #d9f2e4;
+        color: #1e5f39;
+    }
+
     @media (max-width: 1100px) {
         .header-row {
             min-height: 0;
@@ -283,11 +296,15 @@
                             <td>
                                 <div class="action-stack">
                                     <a href="{% url 'om_view_invoice' invoice.id %}?back={% url 'om_invoices' %}" class="action-btn estimated">View Invoice</a>
-                                    <a href="{% url 'om_edit_invoice' invoice.id %}" class="action-btn update">Update Invoice</a>
-                                    <form method="POST" action="{% url 'om_delete_invoice' invoice.id %}" style="margin:0;" class="delete-invoice-form">
-                                        {% csrf_token %}
-                                        <button type="submit" class="action-btn delete">Delete</button>
-                                    </form>
+                                    {% if invoice.payment_locked %}
+                                        <span class="action-note">Locked by Confirmed Payment</span>
+                                    {% else %}
+                                        <a href="{% url 'om_edit_invoice' invoice.id %}" class="action-btn update">Update Invoice</a>
+                                        <form method="POST" action="{% url 'om_delete_invoice' invoice.id %}" style="margin:0;" class="delete-invoice-form">
+                                            {% csrf_token %}
+                                            <button type="submit" class="action-btn delete">Delete</button>
+                                        </form>
+                                    {% endif %}
                                 </div>
                             </td>
                         </tr>

@@ -279,6 +279,12 @@
             <div class="error" style="margin-bottom: 12px;">{{ errors.service_id }}</div>
         {% endif %}
 
+        {% if is_locked %}
+            <div class="hint" style="margin: 0 0 14px; color: #1e5f39; font-weight: 700;">
+                This proof of payment is already validated and read-only.
+            </div>
+        {% endif %}
+
         <form method="POST" enctype="multipart/form-data" id="paymentProofForm">
             {% csrf_token %}
             <input type="hidden" name="service_id" value="{{ service.id }}">
@@ -286,7 +292,7 @@
             <div class="form-grid">
                 <div class="form-group">
                     <label for="payment_type">Payment Type</label>
-                    <select id="payment_type" name="payment_type" class="field field-select" required>
+                    <select id="payment_type" name="payment_type" class="field field-select" {% if is_locked %}disabled{% else %}required{% endif %}>
                         <option value="">Select payment type</option>
                         {% for option in payment_type_options %}
                         <option value="{{ option.option_value }}" {% if form_data.payment_type == option.option_value %}selected{% endif %}>{{ option.option_value }}</option>
@@ -297,7 +303,7 @@
 
                 <div class="form-group">
                     <label for="bank_used">Bank Used for Payment</label>
-                    <select id="bank_used" name="bank_used" class="field field-select" required>
+                    <select id="bank_used" name="bank_used" class="field field-select" {% if is_locked %}disabled{% else %}required{% endif %}>
                         <option value="">Select bank</option>
                         {% for option in bank_options %}
                         <option value="{{ option.option_value }}" data-account-number="{{ option.account_number|default:'' }}" {% if form_data.bank_used == option.option_value %}selected{% endif %}>{{ option.option_value }}</option>
@@ -315,20 +321,20 @@
 
                 <div class="form-group">
                     <label for="reference_number">Reference Number</label>
-                    <input type="text" id="reference_number" name="reference_number" value="{{ form_data.reference_number }}" required>
+                    <input type="text" id="reference_number" name="reference_number" value="{{ form_data.reference_number }}" {% if is_locked %}readonly{% else %}required{% endif %}>
                     {% if errors.reference_number %}<div class="error">{{ errors.reference_number }}</div>{% endif %}
                 </div>
 
                 <div class="form-group">
                     <label for="amount_paid">Amount Paid</label>
-                    <input type="number" id="amount_paid" name="amount_paid" step="0.01" min="0" value="{{ form_data.amount_paid }}" required>
+                    <input type="number" id="amount_paid" name="amount_paid" step="0.01" min="0" value="{{ form_data.amount_paid }}" {% if is_locked %}readonly{% else %}required{% endif %}>
                     <div class="hint">Use the invoice amount as the basis for payment.</div>
                     {% if errors.amount_paid %}<div class="error">{{ errors.amount_paid }}</div>{% endif %}
                 </div>
 
                 <div class="form-group file-group">
                     <label for="proof_file">Upload Proof of Payment</label>
-                    <input type="file" id="proof_file" name="proof_file" accept=".jpg,.jpeg,.png,.pdf" {% if not is_edit_mode %}required{% endif %}>
+                    <input type="file" id="proof_file" name="proof_file" accept=".jpg,.jpeg,.png,.pdf" {% if is_locked %}disabled{% elif not is_edit_mode %}required{% endif %}>
                     <div class="hint">
                         {% if is_edit_mode %}
                             Upload a new file only if you want to replace the current proof.
@@ -342,7 +348,9 @@
             </div>
 
             <div class="actions">
-                <button type="submit" class="btn btn-primary">{% if is_edit_mode %}Save Changes{% else %}Submit Proof{% endif %}</button>
+                {% if not is_locked %}
+                    <button type="submit" class="btn btn-primary">{% if is_edit_mode %}Save Changes{% else %}Submit Proof{% endif %}</button>
+                {% endif %}
             </div>
         </form>
     </div>
