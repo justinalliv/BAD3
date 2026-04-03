@@ -117,21 +117,28 @@
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        min-height: 38px;
+        min-height: 40px;
         padding: 0 16px;
-        border-radius: 8px;
+        border-radius: 10px;
         text-decoration: none;
-        font-weight: 700;
+        font-weight: 600;
+        font-size: 0.95em;
+        transition: all 0.2s;
     }
 
     .back-link {
-        border: 1px solid #cfd3df;
-        background: #fff;
+        border: none;
+        background: #eef1fb;
         color: #1a2a5e;
         position: absolute;
         left: 0;
         top: 50%;
         transform: translateY(-50%);
+    }
+
+    .back-link:hover {
+        background: #dde3f6;
+        box-shadow: 0 2px 4px rgba(26, 42, 94, 0.1);
     }
 
     .action-link {
