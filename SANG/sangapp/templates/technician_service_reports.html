@@ -111,7 +111,7 @@
         padding: 11px 12px;
         text-align: left;
         color: #333;
-        font-size: 0.92em;
+        font-size: 0.88em;
         border-bottom: 1px solid #e9ebf1;
         vertical-align: top;
         word-break: break-word;
@@ -121,12 +121,17 @@
     #reportTable th {
         background: #1a2a5e;
         color: #fff;
-        font-size: 0.95em;
+        font-size: 0.9em;
         font-weight: 600;
     }
 
     tbody tr:last-child td {
         border-bottom: none;
+    }
+
+    #reportTable th:last-child,
+    #reportTable td:last-child {
+        text-align: center;
     }
 
     .report-link {
@@ -138,43 +143,62 @@
     .action-stack {
         display: flex;
         flex-direction: column;
-        gap: 7px;
-        align-items: center;
-        padding-right: 6px;
-        box-sizing: border-box;
+        gap: 6px;
+        align-items: stretch;
+        width: 100%;
+        max-width: 172px;
+        margin: 0 auto;
     }
 
     .action-btn {
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        min-width: 128px;
-        min-height: 34px;
-        padding: 6px 10px;
+        width: 100%;
+        min-width: 0;
+        min-height: 36px;
+        padding: 0 8px;
         border-radius: 8px;
         color: #fff;
         text-decoration: none;
-        font-size: 0.84em;
+        font-size: 0.82em;
         font-weight: 700;
+        white-space: nowrap;
         border: none;
         cursor: pointer;
         transition: background-color 0.2s;
     }
 
-    .action-btn.view {
+    .action-btn.update {
         background: #1a2a5e;
     }
 
-    .action-btn.view:hover {
+    .action-btn.update:hover {
         background: #0d1535;
     }
 
-    .action-btn.edit {
-        background: #6c7293;
+    .action-btn.booking {
+        background: #2f9e57;
     }
 
-    .action-btn.edit:hover {
-        background: #585e7a;
+    .action-btn.booking:hover {
+        background: #267f47;
+    }
+
+    .action-btn.estimated {
+        background: #5f6789;
+    }
+
+    .action-btn.estimated:hover {
+        background: #505775;
+    }
+
+    .action-btn.report {
+        background: #2b7a78;
+    }
+
+    .action-btn.report:hover {
+        background: #236765;
     }
 
     .action-btn.delete {
@@ -254,12 +278,12 @@
                 <table id="reportTable">
                 <thead>
                     <tr>
-                        <th style="width:12%;">Service ID</th>
+                        <th style="width:11%;">Service ID</th>
                         <th style="width:18%;">Customer Name</th>
                         <th style="width:30%;">Property Address</th>
-                        <th style="width:16%;">Service Type</th>
-                        <th style="width:12%;">Service Date</th>
-                        <th style="width:12%;">Action</th>
+                        <th style="width:14%;">Service Type</th>
+                        <th style="width:11%;">Service Date</th>
+                        <th style="width:18%;">Action</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -272,9 +296,9 @@
                         <td>{{ report.service.confirmed_date|default:report.service.date|date:'M d, Y' }}</td>
                         <td>
                             <div class="action-stack">
-                                <a href="{% url 'technician_view_booking' report.service.id %}?back={% url 'technician_service_reports' %}" class="action-btn view">View Booking</a>
-                                <a href="{% url 'technician_view_service_report' report.id %}?back={% url 'technician_service_reports' %}" class="action-btn view">View</a>
-                                <a href="{% url 'technician_edit_service_report' report.id %}" class="action-btn edit">Edit</a>
+                                <a href="{% url 'technician_view_booking' report.service.id %}?back={% url 'technician_service_reports' %}" class="action-btn booking">View Booking</a>
+                                <a href="{% url 'technician_view_service_report' report.id %}?back={% url 'technician_service_reports' %}" class="action-btn report">View</a>
+                                <a href="{% url 'technician_edit_service_report' report.id %}" class="action-btn estimated">Edit</a>
                                 <form method="POST" action="{% url 'technician_delete_service_report' report.id %}" style="margin:0;" class="delete-report-form">
                                     {% csrf_token %}
                                     <button type="submit" class="action-btn delete">Delete</button>

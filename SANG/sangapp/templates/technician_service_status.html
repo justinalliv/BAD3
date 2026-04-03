@@ -52,8 +52,8 @@
 
     #serviceTable th,
     #serviceTable td {
-        font-size: 0.92em;
-        padding: 11px 12px;
+        font-size: 0.85em;
+        padding: 9px 8px;
         vertical-align: middle;
         word-break: break-word;
         overflow-wrap: anywhere;
@@ -64,13 +64,18 @@
         white-space: normal;
         background: #1a2a5e;
         color: #fff;
-        font-size: 0.95em;
+        font-size: 0.88em;
         font-weight: 600;
         border-bottom: none;
     }
 
     #serviceTable tbody tr:last-child td {
         border-bottom: none;
+    }
+
+    #serviceTable th:last-child,
+    #serviceTable td:last-child {
+        text-align: center;
     }
 
     .top-actions {
@@ -124,9 +129,11 @@
     .action-stack {
         display: flex;
         flex-direction: column;
-        gap: 7px;
+        gap: 6px;
         align-items: stretch;
         width: 100%;
+        max-width: 172px;
+        margin: 0 auto;
     }
 
     .action-btn {
@@ -135,12 +142,12 @@
         justify-content: center;
         width: 100%;
         min-width: 0;
-        min-height: 32px;
-        padding: 6px 8px;
+        min-height: 36px;
+        padding: 0 8px;
         border-radius: 8px;
         color: white;
         text-decoration: none;
-        font-size: 0.78em;
+        font-size: 0.82em;
         font-weight: 700;
         white-space: nowrap;
         border: none;
@@ -207,7 +214,7 @@
         }
 
         #serviceTable {
-            min-width: 980px;
+            min-width: 1120px;
         }
     }
 
@@ -254,14 +261,14 @@
                 <table id="serviceTable">
                     <thead>
                         <tr>
-                            <th>Service ID</th>
-                            <th>Customer Name</th>
-                            <th>Confirmed Inspection Date</th>
-                            <th>Confirmed Treatment Date</th>
-                            <th>Confirmed Treatment</th>
-                            <th>Created At</th>
-                            <th>Status</th>
-                            <th>Action</th>
+                            <th style="width:8%;">Service ID</th>
+                            <th style="width:13%;">Customer Name</th>
+                            <th style="width:11%;">Confirmed Inspection Date</th>
+                            <th style="width:11%;">Confirmed Treatment Date</th>
+                            <th style="width:12%;">Confirmed Treatment</th>
+                            <th style="width:10%;">Created At</th>
+                            <th style="width:10%;">Status</th>
+                            <th style="width:18%;">Action</th>
                         </tr>
                     </thead>
                     <tbody>
