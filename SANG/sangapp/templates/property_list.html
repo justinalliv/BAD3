@@ -258,7 +258,7 @@
                             <td>{{ property.property_type }}</td>
                             <td>{{ property.floor_area }} sqm</td>
                             <td class="action-cell">
-                                <a href="{% url 'edit_property' property.id %}" class="action-btn edit">Edit Property</a>
+                                <a href="{% url 'edit_property' property.id %}" class="action-btn edit">Update Property</a>
                                 <button type="button" class="action-btn delete delete-action" data-property-id="{{ property.id }}" data-property-name="{{ property.property_name|escapejs }}">Delete Property</button>
                             </td>
                         </tr>
