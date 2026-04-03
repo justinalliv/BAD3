@@ -111,7 +111,7 @@
 
     <div class="sheet">
         <form method="GET" class="toolbar">
-            <input type="text" class="search-box" name="q" value="{{ search }}" placeholder="Search">
+            <input type="text" class="search-box search-box-unified" name="q" value="{{ search }}" placeholder="Search">
             {% if request.session.om_id %}
                 <select name="status" class="filter-box" onchange="this.form.submit()">
                     <option value="">All Statuses</option>

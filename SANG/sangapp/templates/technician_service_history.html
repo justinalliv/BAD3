@@ -124,7 +124,7 @@
 
     <div class="sheet">
         <form method="GET" class="toolbar">
-            <input type="text" class="search-box" name="q" value="{{ search }}" placeholder="Search">
+            <input type="text" class="search-box search-box-unified" name="q" value="{{ search }}" placeholder="Search">
             <select name="status" class="filter-box" onchange="this.form.submit()">
                 <option value="">All Statuses</option>
                 {% for status in status_choices %}
