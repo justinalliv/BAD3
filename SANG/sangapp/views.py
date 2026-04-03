@@ -1,5 +1,4 @@
 from django.shortcuts import render, redirect
-from django.contrib import messages
 from django.db import transaction
 from django.db.models import Case, When, IntegerField, Count, Max, Q
 from django.core.mail import send_mail
@@ -34,6 +33,20 @@ from .models import (
     ServiceFormOption,
 )
 from .forms import CustomerRegistrationForm
+
+
+def _noop_message(*args, **kwargs):
+    return None
+
+
+class _SilentMessages:
+    success = staticmethod(_noop_message)
+    error = staticmethod(_noop_message)
+    info = staticmethod(_noop_message)
+    warning = staticmethod(_noop_message)
+
+
+messages = _SilentMessages()
 
 
 OM_STATUS_WORKFLOW = [

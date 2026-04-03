@@ -394,16 +394,16 @@
 
         <div class="section-heading">Account Categories</div>
         <div class="account-options">
-            <button type="button" class="option-btn js-account-tab" data-tab="technician" aria-controls="panel-technician" aria-selected="true">
+            <a href="?tab=technician" class="option-btn js-account-tab" data-tab="technician" aria-controls="panel-technician" aria-selected="true">
                 <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
                     <circle cx="12" cy="7" r="4"></circle>
                 </svg>
                 <span class="card-title">Technician</span>
                 <span class="card-sub">Create and manage technician accounts</span>
-            </button>
+            </a>
 
-            <button type="button" class="option-btn js-account-tab" data-tab="sales" aria-controls="panel-sales" aria-selected="false">
+            <a href="?tab=sales" class="option-btn js-account-tab" data-tab="sales" aria-controls="panel-sales" aria-selected="false">
                 <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
                     <circle cx="8.5" cy="7" r="4"></circle>
@@ -412,9 +412,9 @@
                 </svg>
                 <span class="card-title">Sales Representative</span>
                 <span class="card-sub">Create and manage sales representative accounts</span>
-            </button>
+            </a>
 
-            <button type="button" class="option-btn js-account-tab" data-tab="customer" aria-controls="panel-customer" aria-selected="false">
+            <a href="?tab=customer" class="option-btn js-account-tab" data-tab="customer" aria-controls="panel-customer" aria-selected="false">
                 <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M3 7h18"></path>
                     <path d="M5 7v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7"></path>
@@ -423,7 +423,7 @@
                 </svg>
                 <span class="card-title">Customer</span>
                 <span class="card-sub">Review and archive, reactivate, or hard delete customer accounts</span>
-            </button>
+            </a>
         </div>
 
         <div id="panel-technician" class="panel active" data-panel="technician">
@@ -717,12 +717,15 @@
 
     let defaultPanel = 'technician';
     const savedPanel = localStorage.getItem('manageAccountsPanel');
+    const queryPanel = new URLSearchParams(window.location.search).get('tab');
     const hasSalesErrors = document.querySelector('.error') && (
         document.getElementById('sr_first_name')?.value ||
         document.getElementById('sr_last_name')?.value
     );
     if (hasSalesErrors) {
         defaultPanel = 'sales';
+    } else if (queryPanel === 'technician' || queryPanel === 'sales' || queryPanel === 'customer') {
+        defaultPanel = queryPanel;
     } else if (savedPanel === 'technician' || savedPanel === 'sales' || savedPanel === 'customer') {
         defaultPanel = savedPanel;
     }
