@@ -4,30 +4,23 @@
 
 {% block extra_css %}
     .container {
-        max-width: 1120px;
+           max-width: 1360px;
         margin: 24px auto 40px;
         padding: 0 24px;
-    }
-
-    .identified-top {
-        text-align: right;
-        color: #333;
-        margin: 10px 0 8px;
-        font-size: 0.9em;
     }
 
     .title {
         text-align: center;
         color: #1a2a5e;
         margin: 0 0 14px;
-        font-size: 2.2em;
+        font-size: 1.9em;
     }
 
     .sheet {
         background: #fff;
         border: 1px solid #ddd;
         border-radius: 12px;
-        padding: 24px;
+            padding: 24px;
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
     }
 
@@ -39,11 +32,16 @@
         margin-bottom: 18px;
     }
 
+        .table-layout {
+            width: 100%;
+            table-layout: fixed;
+        }
+
     .subtitle {
         color: #1a2a5e;
         font-weight: 700;
         margin: 0;
-        font-size: 1.1em;
+        font-size: 1em;
         line-height: 1.2;
     }
 
@@ -112,9 +110,9 @@
     }
 
     th, td {
-        padding: 12px 14px;
+        padding: 9px 10px;
         text-align: left;
-        font-size: 0.9em;
+        font-size: 0.82em;
         color: #333;
         vertical-align: middle;
         border-bottom: 1px solid #e9ebf1;
@@ -123,7 +121,7 @@
     th {
         background: #1a2a5e;
         color: #fff;
-        font-size: 0.95em;
+        font-size: 0.82em;
         font-weight: 600;
         border-bottom: none;
     }
@@ -136,11 +134,11 @@
     .row-select,
     .row-number {
         width: 100%;
-        min-height: 42px;
+        min-height: 36px;
         border: 1px solid #d7d7d7;
         border-radius: 10px;
         padding: 0 12px;
-        font-size: 0.9em;
+        font-size: 0.82em;
         background: #fff;
         color: #333;
         transition: border-color 0.2s, box-shadow 0.2s;
@@ -205,8 +203,8 @@
     .trait-check {
         appearance: none;
         -webkit-appearance: none;
-        width: 22px;
-        height: 22px;
+        width: 20px;
+        height: 20px;
         border: 2px solid #9aa6d1;
         border-radius: 6px;
         background: #fff;
@@ -240,18 +238,26 @@
         display: block;
         width: 100%;
         max-width: 100%;
-        min-height: 34px;
-        font-size: 0.84em;
+        min-height: 30px;
+        font-size: 0.78em;
         color: #555;
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
-        padding: 7px 10px;
+        padding: 5px 8px;
         border-radius: 8px;
         background: #f4f6fb;
         cursor: pointer;
         border: 1px solid transparent;
     }
+
+        .area-preview {
+        min-height: 36px;
+            display: flex;
+            align-items: center;
+        font-size: 0.82em;
+        padding: 5px 8px;
+        }
 
     .note-preview:hover {
         border-color: #c9d2ee;
@@ -272,11 +278,11 @@
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        min-height: 34px;
+        min-height: 32px;
         padding: 0 12px;
         border-radius: 8px;
         border: none;
-        font-size: 0.84em;
+        font-size: 0.78em;
         font-weight: 700;
         cursor: pointer;
     }
@@ -302,6 +308,11 @@
     }
 
     .btn-delete {
+        min-width: 0;
+        width: 100%;
+        padding: 0 8px;
+        white-space: nowrap;
+        font-size: 0.72em;
         background: #d9534f;
         color: #fff;
     }
@@ -324,11 +335,11 @@
     }
 
     .main-btn {
-        min-width: 178px;
-        min-height: 46px;
+        min-width: 160px;
+        min-height: 42px;
         border: none;
         border-radius: 12px;
-        font-size: 0.98em;
+        font-size: 0.86em;
         font-weight: 700;
         cursor: pointer;
     }
@@ -384,14 +395,21 @@
         color: #1a2a5e;
         margin: 0 0 10px;
     }
+
+    @media (max-width: 760px) {
+        .container {
+            padding: 0 12px;
+        }
+
+        .sheet {
+            padding: 16px;
+        }
+    }
 {% endblock %}
 
 {% block content %}
 <div class="container">
-    <p class="identified-top">User Identified As: {{ identified_as|default:'Technician' }}</p>
-
     <div class="sheet">
-
     {% if step == 'select' %}
         <h1 class="title">Service Report Submission</h1>
         <div class="form-shell">
@@ -480,18 +498,18 @@
                     </div>
                     <p class="error" id="treatedAreasClientError" style="display:none;margin-top:0;"></p>
                     <div class="table-card">
-                        <table>
+                        <table class="table-layout">
                             <thead>
                                 <tr>
-                                    <th style="width:18%;">Areas</th>
+                                    <th style="width:16%;">Areas</th>
                                     <th style="width:10%;">Date</th>
-                                    <th style="width:13%;">Levels of Infestation</th>
+                                    <th style="width:12%;">Levels of Infestation</th>
                                     <th style="width:6%;">Spray</th>
                                     <th style="width:6%;">Mist</th>
-                                    <th style="width:9%;">Rat&nbsp;Bait</th>
+                                    <th style="width:8%;">Rat&nbsp;Bait</th>
                                     <th style="width:7%;">Powder</th>
-                                    <th style="width:14%;">Remarks</th>
-                                    <th style="width:14%;">Recommendation</th>
+                                    <th style="width:15%;">Remarks</th>
+                                    <th style="width:16%;">Recommendation</th>
                                     <th style="width:7%;">Action</th>
                                 </tr>
                             </thead>
@@ -733,7 +751,11 @@
             treatedAreas.forEach((area, index) => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
-                    <td><input class="row-input" type="text" value="${(area.area_name || '').replace(/"/g, '&quot;')}" data-index="${index}" data-field="area_name"></td>
+                    <td>
+                        <div class="note-cell">
+                            <span class="note-preview area-preview ${area.area_name ? '' : 'is-empty'}" role="button" tabindex="0" data-edit-index="${index}" data-edit-field="area_name">${area.area_name ? escapeHtml(truncatePreview(area.area_name, 22)) : '&nbsp;'}</span>
+                        </div>
+                    </td>
                     <td><input class="row-input" type="date" value="${(area.date || defaultTreatmentDate).replace(/"/g, '&quot;')}" data-index="${index}" data-field="date"></td>
                     <td>
                         <select class="row-select infestation-box" data-index="${index}" data-field="infestation_level">
@@ -786,7 +808,7 @@
                 const openEditor = function () {
                     editingAreaIndex = Number(this.dataset.editIndex);
                     editingField = this.dataset.editField;
-                    textModalTitle.textContent = editingField === 'remarks' ? 'Edit Remarks' : 'Edit Recommendation';
+                    textModalTitle.textContent = editingField === 'remarks' ? 'Edit Remarks' : editingField === 'recommendation' ? 'Edit Recommendation' : 'Edit Area';
                     textModalValue.value = treatedAreas[editingAreaIndex][editingField] || '';
                     textModal.classList.add('show');
                 };
