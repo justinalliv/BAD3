@@ -35,22 +35,6 @@ from .models import (
 )
 from .forms import CustomerRegistrationForm
 
-class _SilentMessages:
-    def success(self, *args, **kwargs):
-        return None
-
-    def error(self, *args, **kwargs):
-        return None
-
-    def info(self, *args, **kwargs):
-        return None
-
-    def warning(self, *args, **kwargs):
-        return None
-
-
-messages = _SilentMessages()
-
 
 OM_STATUS_WORKFLOW = [
     'For Confirmation',
@@ -453,7 +437,7 @@ def login(request):
             request.session['om_display_id'] = str(om.id)
             return redirect('om_home')
 
-        technician = Technician.objects.filter(email__iexact=email).only('id', 'technician_id', 'password', 'first_name', 'last_name').first()
+        technician = Technician.objects.filter(email__iexact=email, is_active=True).only('id', 'technician_id', 'password', 'first_name', 'last_name').first()
         if technician and technician.password == password:
             request.session.flush()
             request.session['technician_id'] = technician.id
@@ -461,7 +445,7 @@ def login(request):
             request.session['technician_display_id'] = technician.technician_id or str(technician.id)
             return redirect('technician_home')
 
-        sales_representative = SalesRepresentative.objects.filter(email__iexact=email).only('id', 'password', 'first_name', 'last_name').first()
+        sales_representative = SalesRepresentative.objects.filter(email__iexact=email, is_active=True).only('id', 'password', 'first_name', 'last_name').first()
         if sales_representative and sales_representative.password == password:
             request.session.flush()
             request.session['sales_representative_id'] = sales_representative.id
@@ -469,13 +453,19 @@ def login(request):
             request.session['sales_representative_display_id'] = str(sales_representative.id)
             return redirect('sales_representative_payment_proofs')
 
-        customer = Customer.objects.filter(email=email).only('id', 'password', 'first_name', 'last_name').first()
+        customer = Customer.objects.filter(email=email, is_active=True).only('id', 'password', 'first_name', 'last_name').first()
         if customer and customer.password == password:
             request.session.flush()
             request.session['customer_id'] = customer.id
             request.session['customer_name'] = f"{customer.first_name} {customer.last_name}"
             request.session['customer_display_id'] = str(customer.id)
             return redirect('home')
+
+        if Technician.objects.filter(email__iexact=email, is_active=False).exists() or SalesRepresentative.objects.filter(email__iexact=email, is_active=False).exists() or Customer.objects.filter(email__iexact=email, is_active=False).exists():
+            return render(request, 'login.html', {
+                'error_message': 'This account has been archived. Please contact the Operations Manager.',
+                'form_data': {'email': email},
+            }, status=403)
 
         return render(request, 'login.html', {
             'error_message': 'Invalid email or password.',
@@ -3606,9 +3596,13 @@ def om_manage_accounts(request):
                 messages.error(request, 'Technician account not found.')
                 return redirect('om_manage_accounts')
 
-            deleted_email = technician.email
-            technician.delete()
-            messages.success(request, f'Technician account deleted: {deleted_email}')
+            if not technician.is_active:
+                messages.info(request, f'Technician account already archived: {technician.email}')
+                return redirect('om_manage_accounts')
+
+            technician.is_active = False
+            technician.save(update_fields=['is_active'])
+            messages.success(request, f'Technician account archived: {technician.email}')
             return redirect('om_manage_accounts')
 
         if action == 'create_sales_representative':
@@ -3652,7 +3646,13 @@ def om_manage_accounts(request):
             if not sales_representative:
                 return redirect('om_manage_accounts')
 
-            sales_representative.delete()
+            if not sales_representative.is_active:
+                messages.info(request, f'Sales representative account already archived: {sales_representative.email}')
+                return redirect('om_manage_accounts')
+
+            sales_representative.is_active = False
+            sales_representative.save(update_fields=['is_active'])
+            messages.success(request, f'Sales representative account archived: {sales_representative.email}')
             return redirect('om_manage_accounts')
 
         if action == 'delete_customer':
@@ -3666,13 +3666,17 @@ def om_manage_accounts(request):
                 messages.error(request, 'Customer account not found.')
                 return redirect('om_manage_accounts')
 
-            if customer.properties.exists() or customer.services.exists() or customer.payment_proofs.exists():
-                messages.error(request, 'Only unused customer accounts can be deleted. This account has linked records.')
+            has_links = customer.properties.exists() or customer.services.exists() or customer.payment_proofs.exists()
+            if not customer.is_active:
+                messages.info(request, f'Customer account already archived: {customer.email}')
                 return redirect('om_manage_accounts')
 
-            deleted_email = customer.email
-            customer.delete()
-            messages.success(request, f'Customer account deleted: {deleted_email}')
+            customer.is_active = False
+            customer.save(update_fields=['is_active'])
+            if has_links:
+                messages.success(request, f'Customer account archived: {customer.email}. Linked records were kept for history.')
+            else:
+                messages.success(request, f'Customer account archived: {customer.email}')
             return redirect('om_manage_accounts')
 
     return render(request, 'om_manage_accounts.html', _manage_accounts_context())

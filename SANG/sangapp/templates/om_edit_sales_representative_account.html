@@ -5,52 +5,86 @@
 {% block extra_css %}
     .container {
         max-width: 760px;
-        margin: 30px auto 48px;
+        margin: 24px auto 40px;
         padding: 0 24px;
     }
 
-    .identified {
-        text-align: right;
-        margin-bottom: 12px;
-        color: #333;
-        font-size: 0.95em;
-    }
-
-    .card {
+    .sheet {
         background: #fff;
         border: 1px solid #ddd;
         border-radius: 12px;
-        padding: 20px;
+        padding: 24px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
     }
 
-    h1 {
+    .page-head {
+        position: relative;
+        min-height: 44px;
+        margin-bottom: 18px;
+    }
+
+    .back-link {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 40px;
+        padding: 0 16px;
+        border-radius: 10px;
+        border: none;
+        background: #eef1fb;
         color: #1a2a5e;
-        margin: 0 0 16px;
-        font-size: 2em;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.95em;
+        transition: all 0.2s;
+        position: absolute;
+        left: 0;
+        top: 50%;
+        transform: translateY(-50%);
+    }
+
+    .back-link:hover {
+        background: #dde3f6;
+        box-shadow: 0 2px 4px rgba(26, 42, 94, 0.1);
+    }
+
+    .title {
+        color: #1a2a5e;
+        text-align: center;
+        margin: 0;
+        font-size: 2.1em;
+    }
+
+    .form-shell {
+        border: 1px solid #dfe3ee;
+        border-radius: 10px;
+        background: #f9fafc;
+        padding: 16px;
     }
 
     .form-group {
         margin-bottom: 12px;
     }
 
-    label {
+    .form-group label {
         display: block;
-        margin-bottom: 6px;
+        color: #1a2a5e;
+        font-size: 0.9em;
         font-weight: 600;
-        color: #484848;
-        font-size: 0.93em;
+        margin-bottom: 6px;
     }
 
-    input {
+    .form-group input {
         width: 100%;
-        min-height: 44px;
-        border: 1px solid #d7d7d7;
-        border-radius: 9px;
-        padding: 10px 12px;
-        font-size: 0.93em;
+        min-height: 42px;
+        padding: 0 12px;
+        border: 1px solid #d2d7e6;
+        border-radius: 10px;
+        font-size: 0.94em;
+        background: #fff;
     }
 
-    input:focus {
+    .form-group input:focus {
         outline: none;
         border-color: #1a2a5e;
         box-shadow: 0 0 0 3px rgba(26, 42, 94, 0.12);
@@ -63,7 +97,7 @@
     }
 
     .error {
-        color: #c62828;
+        color: #d32f2f;
         margin-top: 6px;
         font-size: 0.85em;
     }
@@ -71,13 +105,15 @@
     .actions {
         display: flex;
         gap: 10px;
-        margin-top: 16px;
+        justify-content: center;
+        margin-top: 18px;
     }
 
     .btn {
-        min-height: 44px;
+        min-width: 180px;
+        min-height: 42px;
         border: none;
-        border-radius: 9px;
+        border-radius: 10px;
         padding: 0 16px;
         font-weight: 700;
         font-size: 0.92em;
@@ -90,49 +126,86 @@
     }
 
     .btn-secondary {
-        background: #e5e7ef;
+        background: #eef1fb;
         color: #1a2a5e;
+    }
+
+    .btn-primary:hover {
+        background: #0d1535;
+    }
+
+    .btn-secondary:hover {
+        background: #dde3f6;
+    }
+
+    @media (max-width: 640px) {
+        .page-head {
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+            gap: 10px;
+            min-height: 0;
+        }
+
+        .back-link {
+            position: static;
+            transform: none;
+            width: fit-content;
+        }
+
+        .actions {
+            flex-direction: column;
+        }
+
+        .btn {
+            width: 100%;
+            min-width: 0;
+        }
     }
 {% endblock %}
 
 {% block content %}
 <div class="container">
-    <p class="identified">User Identified As: Operations Manager</p>
-    <div class="card">
-        <h1>Edit Sales Representative Account</h1>
+    <div class="sheet">
+        <div class="page-head">
+            <a href="{% url 'om_manage_accounts' %}" class="back-link">← Back</a>
+            <h1 class="title">Edit Sales Representative Account</h1>
+        </div>
 
-        <form method="POST">
-            {% csrf_token %}
+        <div class="form-shell">
+            <form method="POST">
+                {% csrf_token %}
 
-            <div class="form-group">
-                <label for="first_name">First Name</label>
-                <input id="first_name" name="first_name" type="text" value="{{ form_data.first_name|default:'' }}">
-                {% if errors.first_name %}<div class="error">{{ errors.first_name }}</div>{% endif %}
-            </div>
+                <div class="form-group">
+                    <label for="first_name">First Name</label>
+                    <input id="first_name" name="first_name" type="text" value="{{ form_data.first_name|default:'' }}">
+                    {% if errors.first_name %}<div class="error">{{ errors.first_name }}</div>{% endif %}
+                </div>
 
-            <div class="form-group">
-                <label for="last_name">Last Name</label>
-                <input id="last_name" name="last_name" type="text" value="{{ form_data.last_name|default:'' }}">
-                {% if errors.last_name %}<div class="error">{{ errors.last_name }}</div>{% endif %}
-            </div>
+                <div class="form-group">
+                    <label for="last_name">Last Name</label>
+                    <input id="last_name" name="last_name" type="text" value="{{ form_data.last_name|default:'' }}">
+                    {% if errors.last_name %}<div class="error">{{ errors.last_name }}</div>{% endif %}
+                </div>
 
-            <div class="form-group">
-                <label for="email">Email</label>
-                <input id="email" name="email" type="email" value="{{ form_data.email|default:'' }}">
-                {% if errors.email %}<div class="error">{{ errors.email }}</div>{% endif %}
-            </div>
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input id="email" name="email" type="email" value="{{ form_data.email|default:'' }}">
+                    {% if errors.email %}<div class="error">{{ errors.email }}</div>{% endif %}
+                </div>
 
-            <div class="form-group">
-                <label for="password">New Password</label>
-                <input id="password" name="password" type="password">
-                <div class="hint">Leave blank to keep the current password.</div>
-            </div>
+                <div class="form-group">
+                    <label for="password">New Password</label>
+                    <input id="password" name="password" type="password">
+                    <div class="hint">Leave blank to keep the current password.</div>
+                </div>
 
-            <div class="actions">
-                <button type="submit" class="btn btn-primary">Save</button>
-                <button type="submit" class="btn btn-secondary" name="action" value="cancel">Cancel</button>
-            </div>
-        </form>
+                <div class="actions">
+                    <button type="submit" class="btn btn-primary">Save</button>
+                    <button type="submit" class="btn btn-secondary" name="action" value="cancel">Cancel</button>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
 {% endblock %}
