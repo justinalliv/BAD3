@@ -298,6 +298,8 @@ class EstimatedBillItem(models.Model):
     service_type = models.CharField(max_length=255)
     quantity = models.PositiveIntegerField()
     unit_price = models.DecimalField(max_digits=12, decimal_places=2)
+    problem_text = models.TextField(blank=True)
+    recommendation_text = models.TextField(blank=True)
 
     def __str__(self):
         return f"{self.service_type} x{self.quantity}"

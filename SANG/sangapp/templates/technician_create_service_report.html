@@ -66,10 +66,19 @@
 
     .table-wrap {
         border: 1px solid #e0e0e0;
-        border-top: none;
         max-height: 220px;
         overflow-y: auto;
         background: #fff;
+    }
+
+    #selectTable {
+        table-layout: fixed;
+    }
+
+    #selectTable thead th {
+        position: sticky;
+        top: 0;
+        z-index: 1;
     }
 
     table {
@@ -305,20 +314,18 @@
                 <input type="hidden" name="step" value="select">
                 <input type="hidden" name="action" id="selectAction" value="continue">
 
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Select</th>
-                            <th>Service ID</th>
-                            <th>Customer Name</th>
-                            <th>Address</th>
-                            <th>Service Type</th>
-                            <th>Treatment Date</th>
-                        </tr>
-                    </thead>
-                </table>
                 <div class="table-wrap">
                     <table id="selectTable">
+                        <thead>
+                            <tr>
+                                <th>Select</th>
+                                <th>Service ID</th>
+                                <th>Customer Name</th>
+                                <th>Address</th>
+                                <th>Service Type</th>
+                                <th>Treatment Date</th>
+                            </tr>
+                        </thead>
                         <tbody>
                             {% for service in services %}
                             <tr>
@@ -356,6 +363,7 @@
                 <input type="hidden" name="treated_areas_json" id="treatedAreasJsonInput">
 
                 <div class="subtitle">Add chemicals used</div>
+                <p style="margin:6px 0 10px;color:#5a5f6d;font-size:0.86em;">Optional: you can submit this report without chemicals used.</p>
                 <table>
                     <thead>
                         <tr>
@@ -568,8 +576,8 @@
             treatedAreas = [];
         }
 
-        if (!Array.isArray(chemicals) || chemicals.length === 0) {
-            chemicals = [{ chemical_id: '', amount: '' }];
+        if (!Array.isArray(chemicals)) {
+            chemicals = [];
         }
 
         if (!Array.isArray(treatedAreas) || treatedAreas.length === 0) {
@@ -615,9 +623,6 @@
                 button.addEventListener('click', function () {
                     const index = Number(this.dataset.deleteChemical);
                     chemicals.splice(index, 1);
-                    if (chemicals.length === 0) {
-                        chemicals.push({ chemical_id: '', amount: '' });
-                    }
                     renderChemicals();
                 });
             });

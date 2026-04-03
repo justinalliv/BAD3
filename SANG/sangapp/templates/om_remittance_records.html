@@ -102,16 +102,23 @@
 
 {% block content %}
 <div class="container">
+    {% if request.session.om_id %}
+    <p style="text-align:right;color:#333;margin:10px 0 8px;font-size:0.9em;">User Identified As: Operations Manager</p>
+    {% elif request.session.sales_representative_id %}
+    <p style="text-align:right;color:#333;margin:10px 0 8px;font-size:0.9em;">User Identified As: Sales Representative</p>
+    {% endif %}
     <h1 class="title">Remittance Records</h1>
 
     <div class="sheet">
         <form method="GET" class="toolbar">
             <input type="text" class="search-box" name="q" value="{{ search }}" placeholder="Search">
-            <select name="status" class="filter-box" onchange="this.form.submit()">
-                <option value="">All Statuses</option>
-                <option value="validated" {% if status_filter == 'validated' %}selected{% endif %}>Validated</option>
-                <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>For Validation</option>
-            </select>
+            {% if request.session.om_id %}
+                <select name="status" class="filter-box" onchange="this.form.submit()">
+                    <option value="">All Statuses</option>
+                    <option value="validated" {% if status_filter == 'validated' %}selected{% endif %}>Validated</option>
+                    <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>For Validation</option>
+                </select>
+            {% endif %}
         </form>
 
         {% if records %}
@@ -145,7 +152,7 @@
     </div>
 
     <div class="back-row">
-        <a href="{% url 'om_home' %}" class="back-link">Back</a>
+        <a href="{{ back_url|default:request.META.HTTP_REFERER|default:'#' }}" class="back-link">Back</a>
     </div>
 </div>
 {% endblock %}

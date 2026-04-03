@@ -167,7 +167,16 @@
             <h2>Submission Details</h2>
             <div class="row"><div class="label">Service ID</div><div class="value">{{ proof.service.id|stringformat:'07d' }}</div></div>
             <div class="row"><div class="label">Customer</div><div class="value">{{ proof.customer.first_name }} {{ proof.customer.last_name }}</div></div>
-            <div class="row"><div class="label">Invoice ID</div><div class="value">{% if proof.invoice %}{{ proof.invoice.id|stringformat:'07d' }}{% else %}-{% endif %}</div></div>
+            <div class="row">
+                <div class="label">Invoice</div>
+                <div class="value">
+                    {% if proof.invoice %}
+                        <a class="proof-link" href="{% url 'sales_representative_view_invoice' proof.invoice.id %}?back={% url 'sales_representative_review_payment_proof' proof.id %}">View Invoice</a>
+                    {% else %}
+                        -
+                    {% endif %}
+                </div>
+            </div>
             <div class="row"><div class="label">Property</div><div class="value">{{ proof.service.property.street_number }} {{ proof.service.property.street }}, {{ proof.service.property.city }}</div></div>
             <div class="row"><div class="label">Payment Type</div><div class="value">{{ proof.payment_type }}</div></div>
             <div class="row"><div class="label">Bank Used</div><div class="value">{{ proof.bank_used }}</div></div>

@@ -557,46 +557,6 @@
             color: #383d41;
         }
 
-        /* Success Message */
-        .success-message {
-            background-color: #d4edda;
-            border: 1px solid #c3e6cb;
-            color: #155724;
-            padding: 15px;
-            border-radius: 5px;
-            margin-bottom: 20px;
-            text-align: center;
-        }
-
-        .success-container {
-            text-align: center;
-            padding: 40px 20px;
-        }
-
-        .success-icon {
-            width: 60px;
-            height: 60px;
-            background-color: #28a745;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 20px;
-            color: white;
-            font-size: 2em;
-            font-weight: bold;
-        }
-
-        .success-icon::before {
-            content: "✓";
-        }
-
-        .success-text {
-            color: #1a2a5e;
-            font-size: 1.1em;
-            margin-bottom: 30px;
-        }
-
         /* Search Box */
         .search-box {
             padding: 10px 15px;
@@ -669,7 +629,10 @@
         {% elif request.session.sales_representative_id %}
         <ul class="nav-links">
             <li><a href="{% url 'sales_representative_home' %}" {% if current == 'sales_representative_home' %}class="active"{% endif %}>Home</a></li>
-            <li><a href="{% url 'sales_representative_payment_proofs' %}" {% if current == 'sales_representative_payment_proofs' or current == 'sales_representative_review_payment_proof' %}class="active"{% endif %}>Payment Proofs</a></li>
+            <li><a href="{% url 'sales_representative_service_history' %}" {% if current == 'sales_representative_service_history' %}class="active"{% endif %}>Service History</a></li>
+            <li><a href="{% url 'sales_representative_service_status' %}" {% if current == 'sales_representative_service_status' %}class="active"{% endif %}>Service Status</a></li>
+            <li><a href="{% url 'sales_representative_payment_proofs' %}" {% if current == 'sales_representative_payment_proofs' or current == 'sales_representative_review_payment_proof' %}class="active"{% endif %}>Proof of Payment</a></li>
+            <li><a href="{% url 'sales_representative_remittance_records' %}" {% if current == 'sales_representative_remittance_records' %}class="active"{% endif %}>Remittance Records</a></li>
         </ul>
 
         <a href="{% url 'logout' %}" class="profile-btn">

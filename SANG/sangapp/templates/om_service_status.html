@@ -249,11 +249,11 @@
                             {% endif %}
 
                             {% if service.estimated_bill %}
-                                <a href="{% url 'om_view_estimated_bill' service.estimated_bill.id %}" class="action-btn update">View Estimated Bill</a>
+                                <a href="{% url 'om_view_estimated_bill' service.estimated_bill.id %}?back={% url 'om_service_status' %}" class="action-btn update">View Estimated Bill</a>
                             {% endif %}
 
                             {% if service.service_report %}
-                                <a href="{% url 'om_view_service_report' service.service_report.id %}" class="action-btn update">View Service Report</a>
+                                <a href="{% url 'om_view_service_report' service.service_report.id %}?back={% url 'om_service_status' %}" class="action-btn update">View Service Report</a>
                             {% endif %}
 
                             {% if service.status == 'For Booking' %}

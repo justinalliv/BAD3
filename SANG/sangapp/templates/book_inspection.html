@@ -403,19 +403,25 @@
             const preferredServiceOther = document.getElementById('preferred_service_other').value.trim();
             
             if (preferredService === 'Other' && !preferredServiceOther) {
-                alert('Please specify the service type.');
-                document.getElementById('preferred_service_other').focus();
+                const preferredServiceOtherInput = document.getElementById('preferred_service_other');
+                preferredServiceOtherInput.setCustomValidity('Please specify the service type.');
+                preferredServiceOtherInput.reportValidity();
+                preferredServiceOtherInput.focus();
                 return;
             }
+            document.getElementById('preferred_service_other').setCustomValidity('');
 
             const pestProblem = document.getElementById('pest_problem').value;
             const pestProblemOther = document.getElementById('pest_problem_other').value.trim();
             
             if (pestProblem === 'Other' && !pestProblemOther) {
-                alert('Please specify the pest problem.');
-                document.getElementById('pest_problem_other').focus();
+                const pestProblemOtherInput = document.getElementById('pest_problem_other');
+                pestProblemOtherInput.setCustomValidity('Please specify the pest problem.');
+                pestProblemOtherInput.reportValidity();
+                pestProblemOtherInput.focus();
                 return;
             }
+            document.getElementById('pest_problem_other').setCustomValidity('');
 
             // Show confirmation modal
             document.getElementById('confirmModal').classList.add('active');

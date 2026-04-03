@@ -215,10 +215,12 @@
             // Check phone format: 11 digits starting with 09
             const phoneRegex = /^09\d{9}$/;
             if (!phoneRegex.test(phone)) {
-                alert('Phone Number must be 11 digits and start with 09-');
+                phoneInput.setCustomValidity('Phone Number must be 11 digits and start with 09.');
+                phoneInput.reportValidity();
                 phoneInput.focus();
                 return;
             }
+            phoneInput.setCustomValidity('');
             
             document.getElementById('confirmModal').classList.add('active');
         }

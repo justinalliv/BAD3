@@ -104,18 +104,23 @@
 
     table {
         width: 100%;
+        table-layout: fixed;
         border-collapse: collapse;
     }
 
-    th, td {
+    #invoiceTable th,
+    #invoiceTable td {
         padding: 15px;
         text-align: left;
         color: #333;
-        font-size: 0.95em;
+        font-size: 0.9em;
         border-bottom: 1px solid #e0e0e0;
+        vertical-align: top;
+        word-break: break-word;
+        overflow-wrap: anywhere;
     }
 
-    th {
+    #invoiceTable th {
         background: #1a2a5e;
         color: #fff;
         font-size: 0.95em;
@@ -156,23 +161,23 @@
 
     <div class="list-shell">
         <div class="toolbar">
-            <input type="text" id="searchBox" class="search-box" placeholder="Search">
+            <form method="GET" style="margin:0;display:flex;justify-content:flex-end;">
+                <input type="text" id="searchBox" name="q" value="{{ search }}" class="search-box" placeholder="Search">
+            </form>
         </div>
 
-        <table>
-            <thead>
-                    <tr>
-                        <th>Service ID</th>
-                        <th>Customer Name</th>
-                        <th>Property Address</th>
-                        <th>Service Type</th>
-                        <th>Invoice ID</th>
-                        <th>Action</th>
-                    </tr>
-            </thead>
-        </table>
         <div class="table-wrap">
             <table id="invoiceTable">
+                <thead>
+                    <tr>
+                        <th style="width:12%;">Service ID</th>
+                        <th style="width:18%;">Customer Name</th>
+                        <th style="width:26%;">Property Address</th>
+                        <th style="width:16%;">Service Type</th>
+                        <th style="width:12%;">Invoice ID</th>
+                        <th style="width:16%;">Action</th>
+                    </tr>
+                </thead>
                 <tbody>
                     {% for invoice in invoices %}
                     <tr>
@@ -183,7 +188,7 @@
                         <td>INV{{ invoice.id|stringformat:'04d' }}</td>
                         <td>
                             <div style="display:flex;gap:6px;flex-wrap:wrap;">
-                                <a href="{% url 'om_view_invoice' invoice.id %}" class="action-chip">View</a>
+                                <a href="{% url 'om_view_invoice' invoice.id %}?back={% url 'om_invoices' %}" class="action-chip">View</a>
                                 <a href="{% url 'om_edit_invoice' invoice.id %}" class="action-chip" style="background:#6c7293;">Edit</a>
                                 <form method="POST" action="{% url 'om_delete_invoice' invoice.id %}" style="margin:0;" onsubmit="return confirm('Delete this invoice?');">
                                     {% csrf_token %}

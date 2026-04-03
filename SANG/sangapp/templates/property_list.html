@@ -192,7 +192,9 @@
         <!-- Property List Section -->
         <div class="section">
             <div class="section-header">
-                <input type="text" id="searchBox" class="search-box" placeholder="Search">
+                <form method="GET" style="margin:0;display:flex;justify-content:flex-end;">
+                    <input type="text" id="searchBox" name="q" value="{{ search }}" class="search-box" placeholder="Search">
+                </form>
             </div>
 
             <table id="propertyTable">

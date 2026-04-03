@@ -171,7 +171,9 @@
 
     <div class="list-shell">
         <div class="toolbar">
-            <input type="text" id="searchBox" class="search-box" placeholder="Search">
+            <form method="GET" style="margin:0;display:flex;justify-content:flex-end;">
+                <input type="text" id="searchBox" name="q" value="{{ search }}" class="search-box" placeholder="Search">
+            </form>
         </div>
 
         <div class="table-wrap">
@@ -196,7 +198,7 @@
                         <td>{{ report.service.confirmed_date|default:report.service.date|date:'m/d/Y' }}</td>
                         <td>
                             <div class="action-stack">
-                                <a href="{% url 'om_view_service_report' report.id %}" class="action-btn view">View</a>
+                                <a href="{% url 'om_view_service_report' report.id %}?back={% url 'om_service_reports' %}" class="action-btn view">View</a>
                                 <a href="{% url 'om_edit_service_report' report.id %}" class="action-btn edit">Edit</a>
                                 <form method="POST" action="{% url 'om_delete_service_report' report.id %}" style="margin:0;" onsubmit="return confirm('Delete this service report?');">
                                     {% csrf_token %}

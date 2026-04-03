@@ -59,15 +59,22 @@
 
     .treatment-row {
         display: grid;
-        grid-template-columns: 1fr 1fr 140px;
+        grid-template-columns: 1.2fr 150px 1fr 1fr 128px;
         gap: 12px;
         margin-bottom: 10px;
-        align-items: center;
+        align-items: stretch;
         max-width: 100%;
         background: #f9fafc;
         border: 1px solid #dfe3ee;
         border-radius: 10px;
         padding: 10px;
+    }
+
+    .field-textarea {
+        min-height: 72px;
+        padding: 10px 12px;
+        resize: vertical;
+        font-family: inherit;
     }
 
     .field {
@@ -237,19 +244,18 @@
 
 {% block extra_js %}
 <script>
-    const choices = [
-        { value: 'General Pest Control Treatment', label: 'General Pest Control Treatment' },
-        { value: 'Termite Control', label: 'Termite Control' },
-        { value: 'Rodent Control', label: 'Rodent Control' },
-        { value: 'Mosquito Control', label: 'Mosquito Control' },
-        { value: 'Bed Bug Treatment', label: 'Bed Bug Treatment' },
-        { value: 'Cockroach Control', label: 'Cockroach Control' },
-        { value: 'Other', label: 'Other' },
-    ];
+    const choices = JSON.parse('{{ service_type_choices_json|default:"[]"|escapejs }}');
+    const treatmentMetaByName = Object.fromEntries(choices.map((choice) => [
+        (choice.value || '').trim().toLowerCase(),
+        {
+            problem_text: choice.problem_text || '',
+            recommendation_text: choice.recommendation_text || '',
+        }
+    ]));
 
     let items = [];
     try { items = JSON.parse('{{ items_json|escapejs }}'); } catch (error) { items = []; }
-    if (!Array.isArray(items) || !items.length) items = [{ service_type: '', quantity: '' }];
+    if (!Array.isArray(items) || !items.length) items = [{ service_type: '', quantity: '', problem_text: '', recommendation_text: '' }];
 
     const rows = document.getElementById('rows');
     const itemsJsonInput = document.getElementById('itemsJsonInput');
@@ -266,6 +272,8 @@
             row.innerHTML = `
                 <select class="field field-select" data-index="${index}" data-field="service_type">${options}</select>
                 <input type="number" min="1" class="field" data-index="${index}" data-field="quantity" value="${item.quantity || ''}" placeholder="Quantity">
+                <textarea class="field field-textarea" data-index="${index}" data-field="problem_text" placeholder="Problem">${item.problem_text || ''}</textarea>
+                <textarea class="field field-textarea" data-index="${index}" data-field="recommendation_text" placeholder="Recommendation">${item.recommendation_text || ''}</textarea>
                 <button type="button" class="delete-btn" data-delete-index="${index}">Delete</button>
             `;
             rows.appendChild(row);
@@ -276,6 +284,12 @@
                 const index = Number(this.dataset.index);
                 const field = this.dataset.field;
                 items[index][field] = this.value;
+                if (field === 'service_type') {
+                    const selectedMeta = treatmentMetaByName[(this.value || '').trim().toLowerCase()] || {};
+                    items[index].problem_text = selectedMeta.problem_text || '';
+                    items[index].recommendation_text = selectedMeta.recommendation_text || '';
+                    renderRows();
+                }
             });
             element.addEventListener('input', function () {
                 const index = Number(this.dataset.index);
@@ -288,7 +302,7 @@
             button.addEventListener('click', function () {
                 const index = Number(this.dataset.deleteIndex);
                 items.splice(index, 1);
-                if (!items.length) items.push({ service_type: '', quantity: '' });
+                if (!items.length) items.push({ service_type: '', quantity: '', problem_text: '', recommendation_text: '' });
                 renderRows();
             });
         });
@@ -299,7 +313,7 @@
     }
 
     document.getElementById('addBtn').addEventListener('click', function () {
-        items.push({ service_type: '', quantity: '' });
+        items.push({ service_type: '', quantity: '', problem_text: '', recommendation_text: '' });
         renderRows();
     });
 

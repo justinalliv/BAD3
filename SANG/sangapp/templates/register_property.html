@@ -334,7 +334,7 @@
             if (allFilled) {
                 document.getElementById('confirmModal').classList.add('show');
             } else {
-                alert('Please fill in all required fields.');
+                form.reportValidity();
             }
         }
 

@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+
+{% block title %}Service Status - Supreme Biotech Solutions{% endblock %}
+
+{% block extra_css %}
+.container { max-width: 1200px; margin: 28px auto 48px; padding: 0 24px; }
+.identified { text-align: right; color: #333; margin: 10px 0 8px; font-size: 0.9em; }
+.title { color: #1a2a5e; font-size: 2.3em; margin-bottom: 16px; text-align: center; }
+.sheet { background: #fff; border: 1px solid #dfe3ee; border-radius: 12px; padding: 20px; }
+.toolbar { margin-bottom: 12px; display: flex; justify-content: flex-end; }
+.search { width: 320px; min-height: 40px; border: 1px solid #d6dbe8; border-radius: 12px; padding: 0 12px; font-size: 0.92em; }
+.search:focus { outline: none; border-color: #1a2a5e; box-shadow: 0 0 0 3px rgba(26, 42, 94, 0.12); }
+table { width: 100%; border-collapse: collapse; }
+th, td { padding: 12px 10px; border-bottom: 1px solid #edf0f6; font-size: 0.92em; text-align: left; }
+th { background: #1a2a5e; color: #fff; font-weight: 700; }
+.empty { text-align: center; color: #6b7280; padding: 24px 0; }
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <p class="identified">User Identified As: Sales Representative</p>
+    <h1 class="title">Service Status</h1>
+
+    <div class="sheet">
+        <form method="GET" class="toolbar">
+            <input type="text" name="q" class="search" value="{{ search }}" placeholder="Search">
+        </form>
+
+        {% if services %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Service ID</th>
+                    <th>Customer Name</th>
+                    <th>Property Address</th>
+                    <th>Service Type</th>
+                    <th>Status</th>
+                    <th>Date Created</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for service in services %}
+                <tr>
+                    <td>{{ service.id|stringformat:'07d' }}</td>
+                    <td>{{ service.customer.first_name }} {{ service.customer.last_name }}</td>
+                    <td>{{ service.property.street_number }} {{ service.property.street }}, {{ service.property.city }}</td>
+                    <td>{{ service.treatment_summary }}</td>
+                    <td>{{ service.status }}</td>
+                    <td>{{ service.created_at|date:'M d, Y' }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="empty">No service status records found.</div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

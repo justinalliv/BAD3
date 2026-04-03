@@ -116,13 +116,7 @@
 
     <div class="sheet">
         <form method="GET" class="toolbar">
-            <input type="text" class="search" name="q" value="{{ search }}" placeholder="Search by service ID, customer, bank, or reference number">
-            <select name="status" class="status-filter" onchange="this.form.submit()">
-                <option value="">All Statuses</option>
-                {% for status in status_choices %}
-                <option value="{{ status }}" {% if status_filter == status %}selected{% endif %}>{{ status }}</option>
-                {% endfor %}
-            </select>
+            <input type="text" class="search" name="q" value="{{ search }}" placeholder="Search by service ID, customer, or property">
         </form>
 
         {% if proofs %}
@@ -130,13 +124,10 @@
             <thead>
                 <tr>
                     <th>Service ID</th>
-                    <th>Customer</th>
-                    <th>Bank Used</th>
-                    <th>Reference Number</th>
-                    <th>Amount Paid</th>
-                    <th>Status</th>
-                    <th>Uploaded At</th>
-                    <th></th>
+                    <th>Customer Name</th>
+                    <th>Property Address</th>
+                    <th>Payment Date</th>
+                    <th>Action</th>
                 </tr>
             </thead>
             <tbody>
@@ -144,20 +135,15 @@
                 <tr>
                     <td>{{ proof.service.id|stringformat:'07d' }}</td>
                     <td>{{ proof.customer.first_name }} {{ proof.customer.last_name }}</td>
-                    <td>{{ proof.bank_used }}</td>
-                    <td>{{ proof.reference_number }}</td>
-                    <td>PHP {{ proof.amount_paid }}</td>
-                    <td>
-                        <span class="status-chip {% if proof.status == 'For Validation' %}status-pending{% elif proof.status == 'Validated' %}status-validated{% else %}status-rejected{% endif %}">{{ proof.status }}</span>
-                    </td>
-                    <td>{{ proof.uploaded_at|date:'M d, Y h:i A' }}</td>
-                    <td><a href="{% url 'sales_representative_review_payment_proof' proof.id %}" class="review-link">Review</a></td>
+                    <td>{{ proof.service.property.street_number }} {{ proof.service.property.street }}, {{ proof.service.property.city }}</td>
+                    <td>{{ proof.uploaded_at|date:'M d, Y' }}</td>
+                    <td><a href="{% url 'sales_representative_review_payment_proof' proof.id %}" class="review-link">Validate</a></td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
         {% else %}
-            <p class="empty">No payment proofs found for your filters.</p>
+            <p class="empty">No payment proofs currently for validation.</p>
         {% endif %}
     </div>
 </div>

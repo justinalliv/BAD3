@@ -104,6 +104,20 @@
         text-decoration: none;
     }
 
+    .confirm-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 38px;
+        padding: 0 16px;
+        border-radius: 8px;
+        border: none;
+        background: #1a2a5e;
+        color: #fff;
+        font-weight: 700;
+        cursor: pointer;
+    }
+
     .detail-note {
         margin-top: 12px;
         background: #f9fafc;
@@ -184,7 +198,15 @@
         <p class="total">Total Estimated Amount: ₱ {{ estimated_bill.total_amount }}</p>
     </div>
 
-    <div class="back-row">
+    <div class="back-row" style="gap:10px;">
+        {% if role == 'customer' %}
+            {% if estimated_bill.service.status == 'Estimated Bill Created' %}
+                <form method="POST" action="{% url 'customer_confirm_estimated_bill' estimated_bill.id %}" style="margin:0;">
+                    {% csrf_token %}
+                    <button type="submit" class="confirm-btn">Confirm Estimated Bill</button>
+                </form>
+            {% endif %}
+        {% endif %}
         <a href="{{ back_url|default:'#' }}" class="back-link">Back</a>
     </div>
 </div>

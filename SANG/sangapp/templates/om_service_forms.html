@@ -253,13 +253,15 @@
                     type="text"
                     name="option_value"
                     class="field"
-                    placeholder="{% if selected_section == 'Service Report Submission' and section_filter == 'Chemicals Used' %}Manage chemicals in Chemicals page{% else %}Enter new option{% endif %}"
-                    {% if selected_section == 'Service Report Submission' and section_filter == 'Chemicals Used' %}readonly{% else %}required{% endif %}
+                    placeholder="{% if selected_section == 'Service Report Submission' and section_filter == 'Chemicals Used' %}Manage chemicals in Chemicals page{% elif is_managed_by_treatment %}Manage options in Treatment{% else %}Enter new option{% endif %}"
+                    {% if selected_section == 'Service Report Submission' and section_filter == 'Chemicals Used' or is_managed_by_treatment %}readonly{% else %}required{% endif %}
                 >
-                <button type="submit" class="btn btn-primary" {% if selected_section == 'Service Report Submission' and section_filter == 'Chemicals Used' %}disabled title="Manage Chemicals Used under Chemicals"{% endif %}>Add Option</button>
+                <button type="submit" class="btn btn-primary" {% if selected_section == 'Service Report Submission' and section_filter == 'Chemicals Used' %}disabled title="Manage Chemicals Used under Chemicals"{% elif is_managed_by_treatment %}disabled title="Manage these options under Treatment"{% endif %}>Add Option</button>
             </div>
             {% if selected_section == 'Service Report Submission' and section_filter == 'Chemicals Used' %}
             <p style="margin:10px 0 0;color:#666;font-size:0.88em;">Chemicals Used options are managed in Chemicals.</p>
+            {% elif is_managed_by_treatment %}
+            <p style="margin:10px 0 0;color:#666;font-size:0.88em;">{{ section_filter }} options are managed in Treatment.</p>
             {% endif %}
             {% else %}
             <div class="create-grid">
