@@ -3624,7 +3624,6 @@ def om_manage_accounts(request):
         if action == 'create_sales_representative':
             first_name = request.POST.get('sr_first_name', '').strip()
             last_name = request.POST.get('sr_last_name', '').strip()
-            email = request.POST.get('sr_email', '').strip().lower()
             password = request.POST.get('sr_password', '').strip()
 
             errors = {}
@@ -3632,10 +3631,6 @@ def om_manage_accounts(request):
                 errors['sr_first_name'] = 'First name is required.'
             if not last_name:
                 errors['sr_last_name'] = 'Last name is required.'
-            if not email:
-                errors['sr_email'] = 'Email is required.'
-            elif SalesRepresentative.objects.filter(email__iexact=email).exists():
-                errors['sr_email'] = 'Email already exists.'
             if not password:
                 errors['sr_password'] = 'Password is required.'
 
@@ -3645,12 +3640,17 @@ def om_manage_accounts(request):
                     form_data=request.POST,
                 ))
 
-            SalesRepresentative.objects.create(
+            pending_email = f"pending-sales-{timezone.now().strftime('%Y%m%d%H%M%S%f')}@companyemail.com"
+            sales_representative = SalesRepresentative.objects.create(
                 first_name=first_name,
                 last_name=last_name,
-                email=email,
                 password=password,
+                email=pending_email,
             )
+            generated_email = f'sales{sales_representative.id}@companyemail.com'
+            sales_representative.email = generated_email
+            sales_representative.save(update_fields=['email'])
+            messages.success(request, f'Sales representative account created: ID {sales_representative.id} ({generated_email})')
             return redirect('om_manage_accounts')
 
         if action == 'delete_sales_representative':
@@ -3710,6 +3710,26 @@ def om_manage_accounts(request):
                 messages.success(request, f'Customer account archived: {customer.email}')
             return redirect('om_manage_accounts')
 
+        if action == 'reactivate_customer':
+            customer_pk = request.POST.get('customer_pk', '').strip()
+            if not customer_pk:
+                messages.error(request, 'Customer account not found.')
+                return redirect('om_manage_accounts')
+
+            customer = Customer.objects.filter(id=customer_pk).first()
+            if not customer:
+                messages.error(request, 'Customer account not found.')
+                return redirect('om_manage_accounts')
+
+            if customer.is_active:
+                messages.info(request, f'Customer account is already active: {customer.email}')
+                return redirect('om_manage_accounts')
+
+            customer.is_active = True
+            customer.save(update_fields=['is_active'])
+            messages.success(request, f'Customer account reactivated: {customer.email}')
+            return redirect('om_manage_accounts')
+
         if action == 'hard_delete_customer':
             customer_pk = request.POST.get('customer_pk', '').strip()
             if not customer_pk:
@@ -3754,7 +3774,6 @@ def om_edit_sales_representative_account(request, sales_representative_pk):
 
         first_name = request.POST.get('first_name', '').strip()
         last_name = request.POST.get('last_name', '').strip()
-        email = request.POST.get('email', '').strip().lower()
         new_password = request.POST.get('password', '').strip()
 
         errors = {}
@@ -3762,10 +3781,6 @@ def om_edit_sales_representative_account(request, sales_representative_pk):
             errors['first_name'] = 'First name is required.'
         if not last_name:
             errors['last_name'] = 'Last name is required.'
-        if not email:
-            errors['email'] = 'Email is required.'
-        elif SalesRepresentative.objects.filter(email__iexact=email).exclude(id=sales_representative.id).exists():
-            errors['email'] = 'Email already exists.'
 
         if errors:
             return render(request, 'om_edit_sales_representative_account.html', {
@@ -3777,8 +3792,7 @@ def om_edit_sales_representative_account(request, sales_representative_pk):
 
         sales_representative.first_name = first_name
         sales_representative.last_name = last_name
-        sales_representative.email = email
-        update_fields = ['first_name', 'last_name', 'email']
+        update_fields = ['first_name', 'last_name']
 
         if new_password:
             sales_representative.password = new_password
@@ -3793,7 +3807,6 @@ def om_edit_sales_representative_account(request, sales_representative_pk):
         'form_data': {
             'first_name': sales_representative.first_name,
             'last_name': sales_representative.last_name,
-            'email': sales_representative.email,
         },
     })
 
