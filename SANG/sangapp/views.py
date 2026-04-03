@@ -673,6 +673,46 @@ def submit_payment_proof(request):
 
         service_item_total = sum((item.line_total for item in inv.items.all()), Decimal('0.00'))
         return treatment_total + service_item_total
+
+    def _proof_form_data(proof):
+        if not proof:
+            return {}
+
+        return {
+            'payment_type': proof.payment_type,
+            'bank_used': proof.bank_used,
+            'account_number': proof.account_number,
+            'reference_number': proof.reference_number,
+            'amount_paid': str(proof.amount_paid),
+        }
+
+    def _proof_context(service, invoice, errors=None, form_data=None, existing_proof=None):
+        proof = existing_proof or getattr(service, 'payment_proof', None)
+        proof_file_name = ''
+        if proof and getattr(proof, 'proof_file', None):
+            proof_file_name = proof.proof_file.name.split('/')[-1]
+
+        return {
+            'service': service,
+            'invoice': invoice,
+            'errors': errors or {},
+            'form_data': form_data if form_data is not None else _proof_form_data(proof),
+            'bank_options': list(ServiceFormOption.objects.filter(
+                form_section='Payment Proof Submission',
+                field_name='Bank Used for Payment',
+                is_active=True,
+            ).order_by('option_value')),
+            'payment_type_options': list(ServiceFormOption.objects.filter(
+                form_section='Payment Proof Submission',
+                field_name='Payment Type',
+                is_active=True,
+            ).order_by('option_value')),
+            'back_url': _resolve_back_url(request, 'service_status'),
+            'display_total_amount': _combined_invoice_total(invoice),
+            'existing_proof': proof,
+            'proof_file_name': proof_file_name,
+            'is_edit_mode': proof is not None,
+        }
     
     if request.method == 'POST':
         payment_type = request.POST.get('payment_type', '').strip()
@@ -682,7 +722,17 @@ def submit_payment_proof(request):
         amount_paid = request.POST.get('amount_paid', '').strip()
         proof_file = request.FILES.get('proof_file')
         service_id = request.POST.get('service_id', '').strip()
-        
+
+        service = None
+        invoice = None
+        existing_proof = None
+
+        if service_id:
+            service = Service.objects.filter(id=service_id, customer_id=request.session['customer_id']).select_related('property').first()
+            if service:
+                invoice = service.invoices.order_by('-created_at').first()
+                existing_proof = PaymentProof.objects.filter(service=service).first()
+
         # Validate all fields
         errors = {}
         if not payment_type:
@@ -695,7 +745,7 @@ def submit_payment_proof(request):
             errors['reference_number'] = 'Reference number is required'
         if not amount_paid:
             errors['amount_paid'] = 'Amount paid is required'
-        if not proof_file:
+        if not proof_file and not existing_proof:
             errors['file'] = 'Proof of payment is required'
         
         # Validate file format and size
@@ -711,83 +761,59 @@ def submit_payment_proof(request):
                 errors['file'] = 'File size exceeds 10 MB limit.'
         
         if errors:
-            return render(request, 'submit_payment_proof.html', {
-                'errors': errors,
-                'form_data': request.POST,
-                'back_url': _resolve_back_url(request, 'service_status'),
-                'display_total_amount': _combined_invoice_total(invoice),
-            })
-
-        service = None
-        invoice = None
-        if service_id:
-            service = Service.objects.filter(id=service_id, customer_id=request.session['customer_id']).first()
-            if service:
-                invoice = service.invoices.order_by('-created_at').first()
+            return render(request, 'submit_payment_proof.html', _proof_context(
+                service,
+                invoice,
+                errors=errors,
+                form_data=request.POST,
+                existing_proof=existing_proof,
+            ))
 
         if not service:
             errors['service_id'] = 'A valid pending payment service is required.'
-            return render(request, 'submit_payment_proof.html', {
-                'errors': errors,
-                'form_data': request.POST,
-                'back_url': _resolve_back_url(request, 'service_status'),
-                'display_total_amount': _combined_invoice_total(invoice),
-            })
+            return render(request, 'submit_payment_proof.html', _proof_context(
+                service,
+                invoice,
+                errors=errors,
+                form_data=request.POST,
+                existing_proof=existing_proof,
+            ))
 
         if not invoice:
             errors['service_id'] = 'Invoice is not yet available for this service.'
-            return render(request, 'submit_payment_proof.html', {
-                'errors': errors,
-                'form_data': request.POST,
-                'service': service,
-                'invoice': invoice,
-                'bank_options': list(ServiceFormOption.objects.filter(
-                    form_section='Payment Proof Submission',
-                    field_name='Bank Used for Payment',
-                    is_active=True,
-                ).order_by('option_value')),
-                'payment_type_options': list(ServiceFormOption.objects.filter(
-                    form_section='Payment Proof Submission',
-                    field_name='Payment Type',
-                    is_active=True,
-                ).order_by('option_value')),
-                'back_url': _resolve_back_url(request, 'service_status'),
-                'display_total_amount': _combined_invoice_total(invoice),
-            })
+            return render(request, 'submit_payment_proof.html', _proof_context(
+                service,
+                invoice,
+                errors=errors,
+                form_data=request.POST,
+                existing_proof=existing_proof,
+            ))
 
-        existing_proof = PaymentProof.objects.filter(service=service).first()
+        if existing_proof and existing_proof.status == PaymentProof.STATUS_VALIDATED:
+            errors['service_id'] = 'Payment proof has already been submitted for this service.'
+            return render(request, 'submit_payment_proof.html', _proof_context(
+                service,
+                invoice,
+                errors=errors,
+                form_data=request.POST,
+                existing_proof=existing_proof,
+            ))
+
         if existing_proof and existing_proof.status in {
             PaymentProof.STATUS_FOR_VALIDATION,
-            PaymentProof.STATUS_VALIDATED,
         }:
-            errors['service_id'] = 'Payment proof has already been submitted for this service.'
-            return render(request, 'submit_payment_proof.html', {
-                'errors': errors,
-                'form_data': request.POST,
-                'service': service,
-                'invoice': invoice,
-                'bank_options': list(ServiceFormOption.objects.filter(
-                    form_section='Payment Proof Submission',
-                    field_name='Bank Used for Payment',
-                    is_active=True,
-                ).order_by('option_value')),
-                'payment_type_options': list(ServiceFormOption.objects.filter(
-                    form_section='Payment Proof Submission',
-                    field_name='Payment Type',
-                    is_active=True,
-                ).order_by('option_value')),
-                'back_url': _resolve_back_url(request, 'service_status'),
-                'display_total_amount': _combined_invoice_total(invoice),
-            })
+            # Allow editing while preserving existing content.
+            pass
 
-        if existing_proof and existing_proof.status == PaymentProof.STATUS_REJECTED:
+        if existing_proof:
             existing_proof.invoice = invoice
             existing_proof.payment_type = payment_type
             existing_proof.bank_used = bank_used
             existing_proof.account_number = account_number
             existing_proof.reference_number = reference_number
             existing_proof.amount_paid = amount_paid
-            existing_proof.proof_file = proof_file
+            if proof_file:
+                existing_proof.proof_file = proof_file
             existing_proof.status = PaymentProof.STATUS_FOR_VALIDATION
             existing_proof.validated_at = None
             existing_proof.validated_by = None
@@ -799,7 +825,7 @@ def submit_payment_proof(request):
                 'account_number',
                 'reference_number',
                 'amount_paid',
-                'proof_file',
+                'proof_file' if proof_file else 'amount_paid',
                 'status',
                 'validated_at',
                 'validated_by',
@@ -845,15 +871,13 @@ def submit_payment_proof(request):
         is_active=True,
     ).order_by('option_value'))
 
-    return render(request, 'submit_payment_proof.html', {
-        'service': service,
-        'invoice': invoice,
-        'bank_options': bank_options,
-        'payment_type_options': payment_type_options,
-        'form_data': {},
-        'back_url': _resolve_back_url(request, 'service_status'),
-        'display_total_amount': _combined_invoice_total(invoice),
-    })
+    existing_proof = PaymentProof.objects.filter(service=service).first() if service else None
+    return render(request, 'submit_payment_proof.html', _proof_context(
+        service,
+        invoice,
+        form_data=_proof_form_data(existing_proof),
+        existing_proof=existing_proof,
+    ))
 
 
 def property_list(request):
@@ -1864,6 +1888,8 @@ def customer_view_invoice(request, service_id):
 
     treatment_total = sum((row['line_total'] for row in treatment_rows), Decimal('0.00'))
     service_item_total = sum((row['line_total'] for row in service_item_rows), Decimal('0.00'))
+    payment_proof = getattr(invoice.service, 'payment_proof', None)
+    payment_proof_exists = payment_proof is not None
 
     return render(request, 'om_invoice_view.html', {
         'invoice': invoice,
@@ -1873,7 +1899,8 @@ def customer_view_invoice(request, service_id):
         'service_item_rows': service_item_rows,
         'display_total_amount': treatment_total + service_item_total,
         'service_type_display': invoice.service.treatment_summary,
-        'allow_customer_payment': True,
+        'allow_customer_payment': not (payment_proof and payment_proof.status == PaymentProof.STATUS_VALIDATED),
+        'customer_payment_action_label': 'Edit Proof of Payment' if payment_proof_exists else 'Submit Proof of Payment',
     })
 
 

@@ -105,6 +105,17 @@
         font-size: 0.94em;
     }
 
+    .form-group.file-group {
+        align-self: start;
+    }
+
+    .current-file {
+        color: #1a2a5e;
+        font-size: 0.88em;
+        font-weight: 700;
+        margin-top: 2px;
+    }
+
     .field:focus,
     .form-group select:focus,
     .form-group input:focus {
@@ -224,6 +235,10 @@
             grid-column: auto;
         }
 
+        .form-group.file-group {
+            align-self: stretch;
+        }
+
         .actions {
             flex-direction: column;
         }
@@ -311,16 +326,23 @@
                     {% if errors.amount_paid %}<div class="error">{{ errors.amount_paid }}</div>{% endif %}
                 </div>
 
-                <div class="form-group">
+                <div class="form-group file-group">
                     <label for="proof_file">Upload Proof of Payment</label>
-                    <input type="file" id="proof_file" name="proof_file" accept=".jpg,.jpeg,.png,.pdf" required>
-                    <div class="hint">Accepted formats: JPG, PNG, PDF. Maximum file size: 10 MB.</div>
+                    <input type="file" id="proof_file" name="proof_file" accept=".jpg,.jpeg,.png,.pdf" {% if not is_edit_mode %}required{% endif %}>
+                    <div class="hint">
+                        {% if is_edit_mode %}
+                            Upload a new file only if you want to replace the current proof.
+                        {% else %}
+                            Accepted formats: JPG, PNG, PDF. Maximum file size: 10 MB.
+                        {% endif %}
+                    </div>
+                    {% if proof_file_name %}<div class="current-file">Current file: {{ proof_file_name }}</div>{% endif %}
                     {% if errors.file %}<div class="error">{{ errors.file }}</div>{% endif %}
                 </div>
             </div>
 
             <div class="actions">
-                <button type="submit" class="btn btn-primary">Submit Proof</button>
+                <button type="submit" class="btn btn-primary">{% if is_edit_mode %}Save Changes{% else %}Submit Proof{% endif %}</button>
             </div>
         </form>
     </div>

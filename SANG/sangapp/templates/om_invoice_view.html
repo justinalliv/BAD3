@@ -206,7 +206,7 @@
             <a href="{{ back_url|default:'#' }}" class="back-link">← Back</a>
             <h1 class="title">Invoice</h1>
             {% if allow_customer_payment %}
-                <a href="{% url 'submit_payment_proof' %}?service_id={{ invoice.service.id }}" class="action-link">Submit Proof of Payment</a>
+                <a href="{% url 'submit_payment_proof' %}?service_id={{ invoice.service.id }}" class="action-link">{{ customer_payment_action_label|default:'Submit Proof of Payment' }}</a>
             {% endif %}
         </div>
 
