@@ -2516,6 +2516,8 @@ def om_service_reports(request):
 
     reports = ServiceReport.objects.select_related(
         'service__customer', 'service__property'
+    ).exclude(
+        service__status__in=['Payment Confirmed', 'Completed', 'Cancelled']
     ).order_by('-created_at')
 
     if search:
@@ -4159,6 +4161,8 @@ def technician_service_reports(request):
 
     reports = ServiceReport.objects.select_related(
         'service__customer', 'service__property'
+    ).exclude(
+        service__status__in=['Payment Confirmed', 'Completed', 'Cancelled']
     ).order_by('-created_at')
 
     if search:
