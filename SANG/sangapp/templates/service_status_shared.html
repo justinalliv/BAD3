@@ -336,8 +336,20 @@
                         <tr>
                             <td>{{ service.id|stringformat:"07d" }}</td>
                             <td>{{ service.customer.first_name }} {{ service.customer.last_name }}</td>
-                            <td>{% if service.inspection_confirmed_date %}{{ service.inspection_confirmed_date|date:'M d, Y' }}{% else %}-{% endif %}</td>
-                            <td>{% if service.treatment_confirmed_date %}{{ service.treatment_confirmed_date|date:'M d, Y' }}{% else %}-{% endif %}</td>
+                            <td>
+                                {% if service.inspection_confirmed_date %}
+                                    {{ service.inspection_confirmed_date|date:'M d, Y' }}{% if service.inspection_confirmed_time %}<br>{{ service.inspection_confirmed_time }}{% endif %}
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if service.treatment_confirmed_date %}
+                                    {{ service.treatment_confirmed_date|date:'M d, Y' }}{% if service.treatment_confirmed_time %}<br>{{ service.treatment_confirmed_time }}{% endif %}
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
                             <td>
                                 {% if service.status == 'For Treatment Booking' or service.status == 'Ongoing Treatment' or service.status == 'Pending Payment' or service.status == 'Payment Confirmed' or service.status == 'Completed' or service.status == 'Cancelled' %}
                                     {{ service.treatment_summary }}

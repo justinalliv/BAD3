@@ -285,9 +285,21 @@
                         <td>{{ service.id|stringformat:"07d" }}</td>
                         <td>{{ service.property.street_number }} {{ service.property.street }}, {{ service.property.city }}</td>
                         <td>{{ service.date|date:'M d, Y' }}</td>
-                        <td>{% if service.inspection_confirmed_date %}{{ service.inspection_confirmed_date|date:'M d, Y' }}{% else %}-{% endif %}</td>
+                        <td>
+                            {% if service.inspection_confirmed_date %}
+                                {{ service.inspection_confirmed_date|date:'M d, Y' }}{% if service.inspection_confirmed_time %}<br>{{ service.inspection_confirmed_time }}{% endif %}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
                         <td>{{ service.treatment_summary }}</td>
-                        <td>{% if service.treatment_confirmed_date %}{{ service.treatment_confirmed_date|date:'M d, Y' }}{% else %}-{% endif %}</td>
+                        <td>
+                            {% if service.treatment_confirmed_date %}
+                                {{ service.treatment_confirmed_date|date:'M d, Y' }}{% if service.treatment_confirmed_time %}<br>{{ service.treatment_confirmed_time }}{% endif %}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
                         <td>
                             <span class="status-badge status-{{ service.status|lower|cut:' ' }}">
                                 {{ service.status }}
