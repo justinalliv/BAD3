@@ -222,6 +222,7 @@
                     <th>Service Type</th>
                     <th>Confirmed Inspection Date</th>
                     <th>Confirmed Treatment Date</th>
+                    <th>Confirmed Treatment</th>
                     <th>Created At</th>
                     <th>Status</th>
                     <th>Action</th>
@@ -235,6 +236,13 @@
                     <td>{{ service.treatment_summary }}</td>
                     <td>{% if service.inspection_confirmed_date %}{{ service.inspection_confirmed_date|date:'M d, Y' }}{% else %}-{% endif %}</td>
                     <td>{% if service.treatment_confirmed_date %}{{ service.treatment_confirmed_date|date:'M d, Y' }}{% else %}-{% endif %}</td>
+                    <td>
+                        {% if service.status == 'For Treatment Booking' or service.status == 'Ongoing Treatment' or service.status == 'Pending Payment' or service.status == 'Payment Confirmed' or service.status == 'Completed' or service.status == 'Cancelled' %}
+                            {{ service.treatment_summary }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
                     <td>{{ service.created_at|date:'M d, Y h:i A' }}</td>
                     <td>
                         <span class="status-badge status-{{ service.status|lower|cut:' ' }}">{{ service.status }}</span>

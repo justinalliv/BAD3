@@ -236,7 +236,7 @@
             <div><strong>Date:</strong> {{ report.created_at|date:'m/d/Y' }}</div>
             <div><strong>Client Name:</strong> {{ report.service.customer.first_name }} {{ report.service.customer.last_name }}</div>
             <div><strong>Address:</strong> {{ report.service.property.street_number }} {{ report.service.property.street }}, {{ report.service.property.city }}, {{ report.service.property.province }}</div>
-            <div><strong>Service Type:</strong> {{ report.service.preferred_service }}</div>
+            <div><strong>Service Type:</strong> {{ report.service.treatment_summary }}</div>
             <div><strong>Service Date:</strong> {{ report.service.confirmed_date|default:report.service.date|date:'m/d/Y' }}</div>
         </div>
 

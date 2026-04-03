@@ -268,7 +268,7 @@
                         <td>{{ report.service.id|stringformat:'07d' }}</td>
                         <td>{{ report.service.customer.first_name }} {{ report.service.customer.last_name }}</td>
                         <td>{{ report.service.property.street_number }} {{ report.service.property.street }}, {{ report.service.property.city }}</td>
-                        <td>{{ report.service.preferred_service }}</td>
+                        <td>{{ report.service.treatment_summary }}</td>
                         <td>{{ report.service.confirmed_date|default:report.service.date|date:'M d, Y' }}</td>
                         <td>
                             <div class="action-stack">
