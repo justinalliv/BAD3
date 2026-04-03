@@ -9,13 +9,6 @@
         padding: 0 24px;
     }
 
-    .identified-top {
-        text-align: right;
-        color: #333;
-        margin: 10px 0 10px;
-        font-size: 0.9em;
-    }
-
     .sheet {
         background: #fff;
         border: 1px solid #ddd;
@@ -24,10 +17,16 @@
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
     }
 
+    .page-head {
+        position: relative;
+        min-height: 44px;
+        margin-bottom: 8px;
+    }
+
     .title {
         color: #1a2a5e;
         text-align: center;
-        margin: 0 0 14px;
+        margin: 0;
         font-size: 2.2em;
     }
 
@@ -85,7 +84,7 @@
         color: #222;
     }
 
-    .back-row {
+    .action-row {
         margin-top: 14px;
         display: flex;
         justify-content: center;
@@ -95,13 +94,25 @@
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        min-height: 38px;
+        min-height: 40px;
         padding: 0 16px;
-        border-radius: 8px;
-        border: 1px solid #cfd3df;
-        background: #fff;
+        border-radius: 10px;
+        border: none;
+        background: #eef1fb;
         color: #1a2a5e;
         text-decoration: none;
+        font-weight: 600;
+        font-size: 0.95em;
+        transition: all 0.2s;
+        position: absolute;
+        left: 0;
+        top: 50%;
+        transform: translateY(-50%);
+    }
+
+    .back-link:hover {
+        background: #dde3f6;
+        box-shadow: 0 2px 4px rgba(26, 42, 94, 0.1);
     }
 
     .confirm-btn {
@@ -138,6 +149,21 @@
     }
 
     @media (max-width: 760px) {
+        .page-head {
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+            gap: 10px;
+            min-height: 0;
+            margin-bottom: 10px;
+        }
+
+        .back-link {
+            position: static;
+            transform: none;
+            width: fit-content;
+        }
+
         .meta {
             grid-template-columns: 1fr;
         }
@@ -146,12 +172,11 @@
 
 {% block content %}
 <div class="container">
-    {% if role == 'om' %}
-        <p class="identified-top">User Identified As: Operations Manager</p>
-    {% endif %}
-
     <div class="sheet">
-        <h1 class="title">Estimated Bill</h1>
+        <div class="page-head">
+            <a href="{{ back_url|default:'#' }}" class="back-link">← Back</a>
+            <h1 class="title">Estimated Bill</h1>
+        </div>
 
         <div class="meta">
             <div><strong>Estimated Bill ID:</strong> {{ estimated_bill.id|stringformat:'07d' }}</div>
@@ -198,7 +223,7 @@
         <p class="total">Total Estimated Amount: ₱ {{ estimated_bill.total_amount }}</p>
     </div>
 
-    <div class="back-row" style="gap:10px;">
+    <div class="action-row" style="gap:10px;">
         {% if role == 'customer' %}
             {% if estimated_bill.service.status == 'Estimated Bill Created' %}
                 <form method="POST" action="{% url 'customer_confirm_estimated_bill' estimated_bill.id %}" style="margin:0;">
@@ -207,7 +232,6 @@
                 </form>
             {% endif %}
         {% endif %}
-        <a href="{{ back_url|default:'#' }}" class="back-link">Back</a>
     </div>
 </div>
 {% endblock %}
