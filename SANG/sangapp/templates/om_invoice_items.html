@@ -9,13 +9,6 @@
         padding: 0 24px;
     }
 
-    .identified-top {
-        text-align: right;
-        color: #333;
-        margin: 10px 0 8px;
-        font-size: 0.9em;
-    }
-
     .sheet {
         background: #fff;
         border: 1px solid #ddd;
@@ -29,6 +22,37 @@
         text-align: center;
         margin: 0 0 14px;
         font-size: 2.1em;
+    }
+
+    .page-head {
+        position: relative;
+        min-height: 44px;
+        margin-bottom: 8px;
+    }
+
+    .back-link {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 40px;
+        padding: 0 16px;
+        border-radius: 10px;
+        border: none;
+        background: #eef1fb;
+        color: #1a2a5e;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.95em;
+        transition: all 0.2s;
+        position: absolute;
+        left: 0;
+        top: 50%;
+        transform: translateY(-50%);
+    }
+
+    .back-link:hover {
+        background: #dde3f6;
+        box-shadow: 0 2px 4px rgba(26, 42, 94, 0.1);
     }
 
     .sub {
@@ -153,8 +177,12 @@
     }
 
     .btn-edit {
-        background: #eef1fb;
-        color: #1a2a5e;
+        background: #1a2a5e;
+        color: #fff;
+    }
+
+    .btn-edit:hover {
+        background: #0d1535;
     }
 
     .btn-delete {
@@ -179,26 +207,22 @@
         margin-bottom: 14px;
     }
 
-    .back-row {
-        margin-top: 14px;
-        display: flex;
-        justify-content: center;
-    }
-
-    .back-link {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        min-height: 38px;
-        padding: 0 16px;
-        border-radius: 8px;
-        border: 1px solid #cfd3df;
-        background: #fff;
-        color: #1a2a5e;
-        text-decoration: none;
-    }
-
     @media (max-width: 900px) {
+        .page-head {
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+            gap: 10px;
+            min-height: 0;
+            margin-bottom: 10px;
+        }
+
+        .back-link {
+            position: static;
+            transform: none;
+            width: fit-content;
+        }
+
         .create-grid {
             grid-template-columns: 1fr;
         }
@@ -211,10 +235,11 @@
 
 {% block content %}
 <div class="container">
-    <p class="identified-top">User Identified As: Operations Manager</p>
-
     <div class="sheet">
-        <h1 class="title">Service Items</h1>
+        <div class="page-head">
+            <a href="{% url 'om_manage_service_forms' %}" class="back-link">← Back</a>
+            <h1 class="title">Service Items</h1>
+        </div>
         <p class="sub">Create and manage reusable Service Items used in Invoice generation.</p>
 
         <form method="POST" class="create-card">
@@ -263,7 +288,7 @@
                                     data-edit-name="{{ item.name|escape }}"
                                     data-edit-price="{{ item.default_unit_price }}"
                                     data-edit-active="{{ item.is_active|yesno:'true,false' }}"
-                                >Edit</button>
+                                >Update</button>
                             </div>
                         </td>
                     </tr>
@@ -305,9 +330,6 @@
         </div>
     </div>
 
-    <div class="back-row">
-        <a href="{% url 'om_manage_service_forms' %}" class="back-link">Back</a>
-    </div>
 </div>
 {% endblock %}
 
