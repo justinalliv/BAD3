@@ -52,8 +52,9 @@
 
     #serviceTable th,
     #serviceTable td {
-        font-size: 0.85em;
-        padding: 9px 8px;
+        font-size: 0.8em;
+        padding: 8px 7px;
+        text-align: left;
         vertical-align: middle;
         border-bottom: 1px solid #e9ebf1;
     }
@@ -135,10 +136,10 @@
     .action-stack {
         display: flex;
         flex-direction: column;
-        gap: 6px;
+        gap: 5px;
         align-items: stretch;
         width: 100%;
-        max-width: 172px;
+        max-width: 132px;
         margin: 0 auto;
     }
 
@@ -148,12 +149,12 @@
         justify-content: center;
         width: 100%;
         min-width: 0;
-        min-height: 36px;
+        min-height: 32px;
         padding: 0 8px;
         border-radius: 8px;
         color: white;
         text-decoration: none;
-        font-size: 0.82em;
+        font-size: 0.72em;
         font-weight: 700;
         white-space: nowrap;
         border: none;
@@ -219,58 +220,58 @@
             max-width: 320px;
         }
 
-        #serviceTable {
-            min-width: 1120px;
-        }
-    }
-
-    @media (max-width: 760px) {
-        .container {
-            padding: 0 12px;
-        }
-
-        .sheet {
-            padding: 16px;
-        }
-
-        .list-shell {
-            padding: 12px;
-        }
-
-        .title {
-            font-size: 1.7em;
-        }
-    }
-{% endblock %}
-
-{% block content %}
-<div class="container">
-    <div class="sheet">
-        <div class="header-row">
-            <h1 class="title">Service Status</h1>
-        </div>
-
-        <div class="list-shell">
-            <div class="top-actions">
-                <form method="GET" style="margin:0;display:flex;align-items:center;gap:8px;">
-                    <label for="created_order" style="font-size:0.88em;color:#444;">Created:</label>
-                    <select id="created_order" name="created_order" class="filter-box" onchange="this.form.submit()">
-                        <option value="newest" {% if created_order != 'oldest' %}selected{% endif %}>Newest First</option>
-                        <option value="oldest" {% if created_order == 'oldest' %}selected{% endif %}>Oldest First</option>
-                    </select>
-                </form>
-                <input type="text" class="search-box search-box-unified" id="searchInput" placeholder="Search">
-            </div>
-
             <div class="table-wrap">
                 {% if services %}
                 <table id="serviceTable">
                     <thead>
                         <tr>
                             <th style="width:8%;">Service<br>ID</th>
-                            <th style="width:13%;">Customer Name</th>
+                            <th style="width:13%">Customer Name</th>
                             <th style="width:11%;">Confirmed<br>Inspection&nbsp;Date</th>
                             <th style="width:11%;">Confirmed<br>Treatment&nbsp;Date</th>
+                            <th style="width:12%;">Confirmed<br>Treatment</th>
+                            <th style="width:10%;">Created At</th>
+                            <th style="width:10%;">Status</th>
+                            <th style="width:18%;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for service in services %}
+                        <tr>
+                            <td>{{ service.id|stringformat:"07d" }}</td>
+                            <td>{{ service.customer.first_name }} {{ service.customer.last_name }}</td>
+                            <td>{% if service.inspection_confirmed_date %}{{ service.inspection_confirmed_date|date:'M d, Y' }}{% else %}-{% endif %}</td>
+                            <td>{% if service.treatment_confirmed_date %}{{ service.treatment_confirmed_date|date:'M d, Y' }}{% else %}-{% endif %}</td>
+                            <td>
+                                {% if service.status == 'For Treatment Booking' or service.status == 'Ongoing Treatment' or service.status == 'Pending Payment' or service.status == 'Payment Confirmed' or service.status == 'Completed' or service.status == 'Cancelled' %}
+                                    {{ service.treatment_summary }}
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
+                            <td>{{ service.created_at|date:'M d, Y h:i A' }}</td>
+                            <td>
+                                <span class="status-badge status-{{ service.status|lower|cut:' ' }}">{{ service.status }}</span>
+                            </td>
+                            <td>
+                                <div class="action-stack">
+                                    <a href="{% url 'technician_update_service_status' service.id %}" class="action-btn update">Update Status</a>
+                                    <a href="{% url 'technician_view_booking' service.id %}" class="action-btn booking">View Booking</a>
+                                    {% if service.estimated_bill %}
+                                        <a href="{% url 'technician_view_estimated_bill' service.estimated_bill.id %}?back={% url 'technician_service_status' %}" class="action-btn estimated">View Estimated Bill</a>
+                                    {% endif %}
+                                    {% if service.service_report %}
+                                        <a href="{% url 'technician_view_service_report' service.service_report.id %}" class="action-btn report">View Service Report</a>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                    <div class="empty">No service records available.</div>
+                {% endif %}
                             <th style="width:12%;">Confirmed<br>Treatment</th>
                             <th style="width:10%;">Created At</th>
                             <th style="width:10%;">Status</th>

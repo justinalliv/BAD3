@@ -55,6 +55,7 @@
     #serviceTable td {
         font-size: 0.8em;
         padding: 8px 7px;
+        text-align: left;
         vertical-align: middle;
         border-bottom: 1px solid #e9ebf1;
     }
@@ -140,7 +141,7 @@
         min-height: 32px;
         padding: 0 8px;
         border-radius: 8px;
-        color: white;
+        color: #fff;
         text-decoration: none;
         font-size: 0.72em;
         font-weight: 700;
@@ -266,65 +267,63 @@
             </div>
             {% if services %}
             <div class="table-wrap">
-            <table id="serviceTable">
-            <thead>
-                <tr>
-                    <th style="width:7%;">Service<br>ID</th>
-                    <th style="width:12%;">Customer Name</th>
-                    <th style="width:10%;">Service Type</th>
-                    <th style="width:10%;">Confirmed<br>Inspection&nbsp;Date</th>
-                    <th style="width:10%;">Confirmed<br>Treatment&nbsp;Date</th>
-                    <th style="width:10%;">Confirmed<br>Treatment</th>
-                    <th style="width:10%;">Created At</th>
-                    <th style="width:9%;">Status</th>
-                    <th style="width:22%;">Action</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for service in services %}
-                <tr>
-                    <td>{{ service.id|stringformat:"07d" }}</td>
-                    <td>{{ service.customer.first_name }} {{ service.customer.last_name }}</td>
-                    <td>{{ service.treatment_summary }}</td>
-                    <td>{% if service.inspection_confirmed_date %}{{ service.inspection_confirmed_date|date:'M d, Y' }}{% else %}-{% endif %}</td>
-                    <td>{% if service.treatment_confirmed_date %}{{ service.treatment_confirmed_date|date:'M d, Y' }}{% else %}-{% endif %}</td>
-                    <td>
-                        {% if service.status == 'For Treatment Booking' or service.status == 'Ongoing Treatment' or service.status == 'Pending Payment' or service.status == 'Payment Confirmed' or service.status == 'Completed' or service.status == 'Cancelled' %}
-                            {{ service.treatment_summary }}
-                        {% else %}
-                            -
-                        {% endif %}
-                    </td>
-                    <td>{{ service.created_at|date:'M d, Y h:i A' }}</td>
-                    <td>
-                        <span class="status-badge status-{{ service.status|lower|cut:' ' }}">{{ service.status }}</span>
-                    </td>
-                    <td>
-                        <div class="action-stack">
-                            <a href="{% url 'om_update_service_status' service.id %}" class="action-btn update">Update Status</a>
-                            <a href="{% url 'om_view_booking' service.id %}" class="action-btn booking">View Booking</a>
+                <table id="serviceTable">
+                    <thead>
+                        <tr>
+                            <th style="width:8%;">Service<br>ID</th>
+                            <th style="width:13%;">Customer Name</th>
+                            <th style="width:11%;">Confirmed<br>Inspection&nbsp;Date</th>
+                            <th style="width:11%;">Confirmed<br>Treatment&nbsp;Date</th>
+                            <th style="width:12%;">Confirmed<br>Treatment</th>
+                            <th style="width:10%;">Created At</th>
+                            <th style="width:10%;">Status</th>
+                            <th style="width:18%;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for service in services %}
+                        <tr>
+                            <td>{{ service.id|stringformat:"07d" }}</td>
+                            <td>{{ service.customer.first_name }} {{ service.customer.last_name }}</td>
+                            <td>{% if service.inspection_confirmed_date %}{{ service.inspection_confirmed_date|date:'M d, Y' }}{% else %}-{% endif %}</td>
+                            <td>{% if service.treatment_confirmed_date %}{{ service.treatment_confirmed_date|date:'M d, Y' }}{% else %}-{% endif %}</td>
+                            <td>
+                                {% if service.status == 'For Treatment Booking' or service.status == 'Ongoing Treatment' or service.status == 'Pending Payment' or service.status == 'Payment Confirmed' or service.status == 'Completed' or service.status == 'Cancelled' %}
+                                    {{ service.treatment_summary }}
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
+                            <td>{{ service.created_at|date:'M d, Y h:i A' }}</td>
+                            <td>
+                                <span class="status-badge status-{{ service.status|lower|cut:' ' }}">{{ service.status }}</span>
+                            </td>
+                            <td>
+                                <div class="action-stack">
+                                    <a href="{% url 'om_update_service_status' service.id %}" class="action-btn update">Update Status</a>
+                                    <a href="{% url 'om_view_booking' service.id %}" class="action-btn booking">View Booking</a>
 
-                            {% if service.status == 'For Confirmation' or service.status == 'For Inspection' or service.status == 'For Treatment' or service.status == 'For Booking' %}
-                                <button type="button" class="action-btn delete" onclick="openDeleteModal('{{ service.id }}')">Delete Service</button>
-                            {% endif %}
+                                    {% if service.status == 'For Confirmation' or service.status == 'For Inspection' or service.status == 'For Treatment' or service.status == 'For Booking' %}
+                                        <button type="button" class="action-btn delete" onclick="openDeleteModal('{{ service.id }}')">Delete Service</button>
+                                    {% endif %}
 
-                            {% if service.estimated_bill %}
-                                <a href="{% url 'om_view_estimated_bill' service.estimated_bill.id %}?back={% url 'om_service_status' %}" class="action-btn estimated">View Estimated Bill</a>
-                            {% endif %}
+                                    {% if service.estimated_bill %}
+                                        <a href="{% url 'om_view_estimated_bill' service.estimated_bill.id %}?back={% url 'om_service_status' %}" class="action-btn estimated">View Estimated Bill</a>
+                                    {% endif %}
 
-                            {% if service.service_report %}
-                                <a href="{% url 'om_view_service_report' service.service_report.id %}?back={% url 'om_service_status' %}" class="action-btn report">View Service Report</a>
-                            {% endif %}
+                                    {% if service.service_report %}
+                                        <a href="{% url 'om_view_service_report' service.service_report.id %}?back={% url 'om_service_status' %}" class="action-btn report">View Service Report</a>
+                                    {% endif %}
 
-                            {% if service.status == 'For Booking' %}
-                                <a href="{% url 'om_book_treatment' service.id %}" class="action-btn update">Book Treatment</a>
-                            {% endif %}
-                        </div>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+                                    {% if service.status == 'For Booking' %}
+                                        <a href="{% url 'om_book_treatment' service.id %}" class="action-btn update">Book Treatment</a>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
             </div>
             {% else %}
             <div class="empty">No service records available.</div>

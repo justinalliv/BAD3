@@ -4,22 +4,15 @@
 
 {% block extra_css %}
     .container {
-        max-width: 1120px;
+        max-width: 1220px;
         margin: 24px auto 40px;
         padding: 0 24px;
-    }
-
-    .identified-top {
-        text-align: right;
-        color: #333;
-        margin: 10px 0 8px;
-        font-size: 0.9em;
     }
 
     .title {
         text-align: center;
         color: #1a2a5e;
-        font-size: 2.2em;
+        font-size: 2.05em;
         margin: 0;
     }
 
@@ -36,8 +29,8 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        min-height: 44px;
-        margin-bottom: 20px;
+        min-height: 46px;
+        margin-bottom: 18px;
     }
 
     .list-shell {
@@ -62,6 +55,7 @@
         display: inline-flex;
         align-items: center;
         justify-content: center;
+        gap: 8px;
         min-height: 40px;
         padding: 0 16px;
         border-radius: 10px;
@@ -79,23 +73,7 @@
     }
 
     .search-box {
-        width: 280px;
-        min-height: 40px;
-        border: 1px solid #d2d7e6;
-        border-radius: 12px;
-        padding: 0 38px 0 12px;
-        font-size: 0.9em;
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%23444' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cline x1='21' y1='21' x2='16.65' y2='16.65'/%3E%3C/svg%3E");
-        background-repeat: no-repeat;
-        background-position: right 12px center;
-        background-size: 18px;
-        background-color: #fff;
-    }
-
-    .search-box:focus {
-        outline: none;
-        border-color: #1a2a5e;
-        box-shadow: 0 0 0 3px rgba(26, 42, 94, 0.12);
+        width: 300px;
     }
 
     .table-wrap {
@@ -114,12 +92,12 @@
 
     #reportTable th,
     #reportTable td {
-        padding: 12px 14px;
+        padding: 11px 12px;
         text-align: left;
         color: #333;
-        font-size: 0.9em;
+        font-size: 0.88em;
         border-bottom: 1px solid #e9ebf1;
-        vertical-align: top;
+        vertical-align: middle;
         word-break: break-word;
         overflow-wrap: anywhere;
     }
@@ -129,10 +107,18 @@
         color: #fff;
         font-size: 0.9em;
         font-weight: 600;
+        line-height: 1.2;
+        word-break: normal;
+        overflow-wrap: normal;
     }
 
     tbody tr:last-child td {
         border-bottom: none;
+    }
+
+    #reportTable th:last-child,
+    #reportTable td:last-child {
+        text-align: center;
     }
 
     .report-link {
@@ -144,22 +130,27 @@
     .action-stack {
         display: flex;
         flex-direction: column;
-        gap: 8px;
-        align-items: center;
+        gap: 6px;
+        align-items: stretch;
+        width: 100%;
+        max-width: 172px;
+        margin: 0 auto;
     }
 
     .action-btn {
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        min-width: 132px;
-        min-height: 34px;
-        padding: 6px 10px;
+        width: 100%;
+        min-width: 0;
+        min-height: 36px;
+        padding: 0 8px;
         border-radius: 8px;
         color: #fff;
         text-decoration: none;
-        font-size: 0.84em;
+        font-size: 0.82em;
         font-weight: 700;
+        white-space: nowrap;
         border: none;
         cursor: pointer;
         transition: background-color 0.2s;
@@ -214,15 +205,37 @@
             min-width: 980px;
         }
     }
+
+    @media (max-width: 760px) {
+        .container {
+            padding: 0 12px;
+        }
+
+        .sheet {
+            padding: 16px;
+        }
+
+        .list-shell {
+            padding: 12px;
+        }
+
+        .title {
+            font-size: 1.7em;
+        }
+    }
 {% endblock %}
 
 {% block content %}
 <div class="container">
-    <p class="identified-top">User Identified As: Operations Manager</p>
     <div class="sheet">
         <div class="header-row">
             <h1 class="title">Service Reports</h1>
-            <a href="{% url 'om_create_service_report' %}" class="create-btn">Create Service Report</a>
+            <a href="{% url 'om_create_service_report' %}" class="create-btn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="margin-right:4px;">
+                    <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14h-2v-4h-4v-2h4V7h2v4h4v2h-4z"/>
+                </svg>
+                Create Service Report
+            </a>
         </div>
 
         <div class="list-shell">
@@ -236,12 +249,12 @@
                 <table id="reportTable">
                 <thead>
                     <tr>
-                        <th style="width:12%;">Service ID</th>
+                        <th style="width:11%;">Service ID</th>
                         <th style="width:18%;">Customer Name</th>
                         <th style="width:30%;">Property Address</th>
-                        <th style="width:16%;">Service Type</th>
-                        <th style="width:12%;">Service Date</th>
-                        <th style="width:12%;">Action</th>
+                        <th style="width:14%;">Service Type</th>
+                        <th style="width:11%;">Service Date</th>
+                        <th style="width:18%;">Action</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -251,9 +264,10 @@
                         <td>{{ report.service.customer.first_name }} {{ report.service.customer.last_name }}</td>
                         <td>{{ report.service.property.street_number }} {{ report.service.property.street }}, {{ report.service.property.city }}</td>
                         <td>{{ report.service.treatment_summary }}</td>
-                        <td>{{ report.service.confirmed_date|default:report.service.date|date:'m/d/Y' }}</td>
+                        <td>{{ report.service.confirmed_date|default:report.service.date|date:'M d, Y' }}</td>
                         <td>
                             <div class="action-stack">
+                                <a href="{% url 'om_view_booking' report.service.id %}?back={% url 'om_service_reports' %}" class="action-btn booking">View Booking</a>
                                 <a href="{% url 'om_view_service_report' report.id %}?back={% url 'om_service_reports' %}" class="action-btn view">View</a>
                                 <a href="{% url 'om_edit_service_report' report.id %}" class="action-btn edit">Edit</a>
                                 <form method="POST" action="{% url 'om_delete_service_report' report.id %}" style="margin:0;" class="delete-report-form">
