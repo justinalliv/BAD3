@@ -2120,6 +2120,9 @@ def om_create_invoice(request):
 
     service_candidates = _get_invoice_eligible_services_queryset()
     selectable_services = _filter_invoice_eligible_services(service_candidates)
+    for selectable_service in selectable_services:
+        selectable_service.service_type_display = _service_display_treatments(selectable_service)
+
     treatment_names = _get_treatment_service_names()
     service_item_options = [
         option
@@ -2159,12 +2162,7 @@ def om_create_invoice(request):
         if not selected_service:
             errors['general'] = 'Required fields must be filled in.'
 
-        if not service_item_choices:
-            errors['general'] = 'Please create at least one Service Item in Service Configuration first.'
-
-        if not cleaned_items:
-            errors['general'] = 'Required fields must be filled in.'
-        elif has_invalid:
+        if has_invalid:
             errors['general'] = 'Required fields must be filled in.'
 
         if errors:

@@ -4,30 +4,35 @@
 
 {% block extra_css %}
     .container {
-        max-width: 1160px;
-        margin: 0 auto;
-        padding: 0 24px 28px;
-    }
-
-    .identified-top {
-        text-align: right;
-        color: #333;
-        margin: 10px 0 8px;
-        font-size: 0.9em;
+        max-width: 1220px;
+        margin: 24px auto 40px;
+        padding: 0 24px;
     }
 
     .title {
         text-align: center;
         color: #1a2a5e;
-        font-size: clamp(2rem, 4.8vh, 3rem);
-        margin: 8px 0 16px;
+        font-size: 2.05em;
+        margin: 0;
+    }
+
+    .sheet {
+        background: #fff;
+        border: 1px solid #ddd;
+        border-radius: 12px;
+        padding: 24px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+    }
+
+    .header-row {
+        margin-bottom: 18px;
     }
 
     .section-card {
-        background-color: white;
+        background: #f9fafc;
+        border: 1px solid #dfe3ee;
         border-radius: 10px;
         padding: 24px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         margin-bottom: 18px;
     }
 
@@ -53,21 +58,12 @@
 
     .search-box {
         width: 300px;
-        min-height: 40px;
-        border: 1px solid #ddd;
-        border-radius: 12px;
-        padding: 0 38px 0 12px;
-        font-size: 0.9em;
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%23444' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cline x1='21' y1='21' x2='16.65' y2='16.65'/%3E%3C/svg%3E");
-        background-repeat: no-repeat;
-        background-position: right 12px center;
-        background-size: 18px;
     }
 
     .table-wrap {
-        border: 1px solid #e0e0e0;
+        border: 1px solid #dfe3ee;
         max-height: 220px;
-        overflow-y: auto;
+        overflow: auto;
         background: #fff;
         border-radius: 10px;
     }
@@ -81,24 +77,29 @@
 
     .service-table th,
     .service-table td {
-        padding: 15px;
+        padding: 10px 11px;
         text-align: left;
         color: #333;
-        font-size: 0.95em;
+        font-size: 0.86em;
+        vertical-align: middle;
     }
 
     .service-table th {
         background: #1a2a5e;
         color: #fff;
-        font-size: 0.95em;
+        font-size: 0.88em;
+        line-height: 1.2;
         font-weight: 600;
         position: sticky;
         top: 0;
         z-index: 1;
+        white-space: normal;
+        word-break: normal;
+        overflow-wrap: normal;
     }
 
     .service-table td {
-        border-bottom: 1px solid #e0e0e0;
+        border-bottom: 1px solid #e9ebf1;
     }
 
     .service-table tbody tr:last-child td {
@@ -109,17 +110,24 @@
         text-align: center;
     }
 
+    .service-table input[type="radio"] {
+        width: 18px;
+        height: 18px;
+        accent-color: #1a2a5e;
+        cursor: pointer;
+    }
+
     .invoice-row {
         display: grid;
-        grid-template-columns: 1.3fr 0.9fr 140px;
-        gap: 12px;
-        margin-bottom: 10px;
+        grid-template-columns: 1.3fr 0.9fr 120px;
+        gap: 10px;
+        margin-bottom: 8px;
         align-items: center;
         max-width: 100%;
         background: #f9fafc;
         border: 1px solid #dfe3ee;
         border-radius: 10px;
-        padding: 10px;
+        padding: 8px;
     }
 
     .field {
@@ -151,11 +159,11 @@
     }
 
     .delete-btn {
-        min-width: 128px;
-        min-height: 34px;
-        padding: 7px 12px;
+        min-width: 90px;
+        min-height: 40px;
+        padding: 6px 12px;
         border: none;
-        border-radius: 8px;
+        border-radius: 10px;
         background: #d9534f;
         color: #fff;
         font-weight: 700;
@@ -167,13 +175,18 @@
         background: #c74743;
     }
 
+    .delete-btn:focus-visible {
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(26, 42, 94, 0.12);
+    }
+
     .add-btn {
         display: inline-flex;
         align-items: center;
         justify-content: center;
         gap: 6px;
-        min-height: 36px;
-        padding: 0 14px;
+        min-height: 40px;
+        padding: 0 16px;
         border-radius: 999px;
         border: 1px solid #c5cce5;
         background: #eef1fb;
@@ -221,8 +234,9 @@
     }
 
     .btn-cancel {
-        background: #e2e2e2;
-        color: #333;
+        background: #eef3f9;
+        color: #34405b;
+        border: 1px solid #d4deec;
     }
 
     .btn-submit {
@@ -230,9 +244,60 @@
         color: #fff;
     }
 
+    .btn-cancel:hover {
+        background: #e4edf8;
+        color: #273453;
+    }
+
+    .btn-submit:hover {
+        background: #0d1535;
+    }
+
     @media (max-width: 900px) {
         .invoice-row {
             grid-template-columns: 1fr;
+        }
+
+        .actions {
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .btn {
+            width: 100%;
+            max-width: 320px;
+        }
+    }
+
+    @media (max-width: 760px) {
+        .container {
+            padding: 0 12px;
+        }
+
+        .sheet {
+            padding: 16px;
+        }
+
+        .section-card {
+            padding: 14px;
+        }
+
+        .section-header {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .search-box {
+            width: 100%;
+            max-width: 320px;
+        }
+
+        .service-table {
+            min-width: 980px;
+        }
+
+        .title {
+            font-size: 1.7em;
         }
     }
 
@@ -240,76 +305,79 @@
 
 {% block content %}
 <div class="container">
-    <p class="identified-top">User Identified As: Operations Manager</p>
-    <h1 class="title">Create Invoice</h1>
+    <div class="sheet">
+        <div class="header-row">
+            <h1 class="title">Create Invoice</h1>
+        </div>
 
-    <form method="POST" id="createInvoiceForm">
-        {% csrf_token %}
-        <input type="hidden" name="items_json" id="itemsJsonInput">
-        <input type="hidden" name="action" id="formAction" value="submit">
+        <form method="POST" id="createInvoiceForm">
+            {% csrf_token %}
+            <input type="hidden" name="items_json" id="itemsJsonInput">
+            <input type="hidden" name="action" id="formAction" value="submit">
 
-        <div class="section-card">
-            <div class="section-header">
-                <h2 class="section-label">Select Service Record</h2>
-                <div class="search-wrap">
-                    <input type="text" id="searchBox" class="search-box search-box-unified" placeholder="Search">
+            <div class="section-card">
+                <div class="section-header">
+                    <h2 class="section-label">Select Service Record</h2>
+                    <div class="search-wrap">
+                        <input type="text" id="searchBox" class="search-box search-box-unified" placeholder="Search">
+                    </div>
                 </div>
-            </div>
-            <div class="table-wrap">
-                <table id="serviceTable" class="service-table">
-                    <colgroup>
-                        <col style="width:12%;">
-                        <col style="width:15%;">
-                        <col style="width:18%;">
-                        <col style="width:23%;">
-                        <col style="width:16%;">
-                        <col style="width:16%;">
-                    </colgroup>
-                    <thead>
-                        <tr>
-                            <th class="center">Select</th>
-                            <th>Service ID</th>
-                            <th>Customer Name</th>
-                            <th>Address</th>
-                            <th>Service Type</th>
-                            <th>Treatment Date</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for service in services %}
-                        <tr>
-                            <td class="center"><input type="radio" name="selected_service_id" value="{{ service.id }}" {% if selected_service_id == service.id|stringformat:'s' %}checked{% endif %}></td>
-                            <td>{{ service.id|stringformat:'07d' }}</td>
-                            <td>{{ service.customer.first_name }} {{ service.customer.last_name }}</td>
-                            <td>{{ service.property.street_number }} {{ service.property.street }}, {{ service.property.city }}</td>
-                            <td>{{ service.preferred_service }}</td>
-                            <td>{{ service.confirmed_date|default:service.date|date:'m/d/Y' }}</td>
-                        </tr>
-                        {% empty %}
-                        <tr><td colspan="6" class="center">No services available for invoice generation.</td></tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
+                <div class="table-wrap">
+                    <table id="serviceTable" class="service-table">
+                        <colgroup>
+                            <col style="width:12%;">
+                            <col style="width:15%;">
+                            <col style="width:18%;">
+                            <col style="width:23%;">
+                            <col style="width:16%;">
+                            <col style="width:16%;">
+                        </colgroup>
+                        <thead>
+                            <tr>
+                                <th class="center">Select</th>
+                                <th>Service<br>ID</th>
+                                <th>Customer Name</th>
+                                <th>Address</th>
+                                <th>Service Type</th>
+                                <th>Treatment Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for service in services %}
+                            <tr>
+                                <td class="center"><input type="radio" name="selected_service_id" value="{{ service.id }}" {% if selected_service_id == service.id|stringformat:'s' %}checked{% endif %}></td>
+                                <td>{{ service.id|stringformat:'07d' }}</td>
+                                <td>{{ service.customer.first_name }} {{ service.customer.last_name }}</td>
+                                <td>{{ service.property.street_number }} {{ service.property.street }}, {{ service.property.city }}</td>
+                                <td>{{ service.service_type_display }}</td>
+                                <td>{{ service.confirmed_date|default:service.date|date:'m/d/Y' }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="6" class="center">No services available for invoice generation.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
 
-        </div>
-
-        <div class="section-card">
-            <div class="section-header" style="margin-bottom:12px;">
-                <h2 class="section-label">Service Items</h2>
             </div>
 
-            <div id="invoiceRows"></div>
-            <button type="button" class="add-btn" id="addItemBtn">+ Add an item</button>
+            <div class="section-card">
+                <div class="section-header" style="margin-bottom:12px;">
+                    <h2 class="section-label">Service Items</h2>
+                </div>
 
-            {% if errors.general %}<p class="error">{{ errors.general }}</p>{% endif %}
-        </div>
+                <div id="invoiceRows"></div>
+                <button type="button" class="add-btn" id="addItemBtn">+ Add an item</button>
 
-        <div class="actions">
-            <button type="submit" class="btn btn-cancel" onclick="document.getElementById('formAction').value='cancel'">Cancel</button>
-            <button type="button" class="btn btn-submit" id="openConfirmModal">Submit</button>
-        </div>
-    </form>
+                {% if errors.general %}<p class="error">{{ errors.general }}</p>{% endif %}
+            </div>
+
+            <div class="actions">
+                <button type="submit" class="btn btn-cancel" onclick="document.getElementById('formAction').value='cancel'">Cancel</button>
+                <button type="button" class="btn btn-submit" id="openConfirmModal">Submit</button>
+            </div>
+        </form>
+    </div>
 
     <div id="confirmModal" class="modal">
         <div class="modal-content">
