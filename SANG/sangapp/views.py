@@ -1646,7 +1646,9 @@ def om_estimated_bills(request):
 
     estimated_bills = EstimatedBill.objects.select_related(
         'service__customer', 'service__property'
-    ).prefetch_related('items').order_by('-created_at')
+    ).prefetch_related('items').exclude(
+        service__status__in=['Payment Confirmed', 'Completed', 'Cancelled']
+    ).order_by('-created_at')
 
     if search:
         estimated_bills = estimated_bills.filter(
@@ -1819,7 +1821,9 @@ def om_invoices(request):
 
     invoices = Invoice.objects.select_related(
         'service__customer', 'service__property', 'service__payment_proof'
-    ).prefetch_related('items').order_by('-created_at')
+    ).prefetch_related('items').exclude(
+        service__status__in=['Payment Confirmed', 'Completed', 'Cancelled']
+    ).order_by('-created_at')
 
     if search:
         invoices = invoices.filter(
@@ -3822,7 +3826,9 @@ def technician_view_estimated_bill(request, estimated_bill_id):
 
     estimated_bill = EstimatedBill.objects.select_related(
         'service__customer', 'service__property', 'operations_manager'
-    ).prefetch_related('items').filter(id=estimated_bill_id).first()
+    ).prefetch_related('items').exclude(
+        service__status='Completed'
+    ).order_by('-created_at')
 
     if not estimated_bill:
         return redirect('technician_service_status')
