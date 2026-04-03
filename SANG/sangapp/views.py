@@ -356,6 +356,18 @@ def _resolve_back_url(request, default_name, *, fallback_query_param='back'):
     return reverse(default_name)
 
 
+def _service_payment_proof(service):
+    try:
+        return service.payment_proof
+    except PaymentProof.DoesNotExist:
+        return None
+
+
+def _is_service_payment_locked(service):
+    proof = _service_payment_proof(service)
+    return bool(proof and proof.status == PaymentProof.STATUS_VALIDATED)
+
+
 def _service_display_treatments(service):
     bill = getattr(service, 'estimated_bill', None)
     if bill:
@@ -687,7 +699,8 @@ def submit_payment_proof(request):
         }
 
     def _proof_context(service, invoice, errors=None, form_data=None, existing_proof=None):
-        proof = existing_proof or getattr(service, 'payment_proof', None)
+        proof = existing_proof or (_service_payment_proof(service) if service else None)
+        is_locked = bool(proof and proof.status == PaymentProof.STATUS_VALIDATED)
         proof_file_name = ''
         if proof and getattr(proof, 'proof_file', None):
             proof_file_name = proof.proof_file.name.split('/')[-1]
@@ -712,6 +725,7 @@ def submit_payment_proof(request):
             'existing_proof': proof,
             'proof_file_name': proof_file_name,
             'is_edit_mode': proof is not None,
+            'is_locked': is_locked,
         }
     
     if request.method == 'POST':
@@ -790,7 +804,7 @@ def submit_payment_proof(request):
             ))
 
         if existing_proof and existing_proof.status == PaymentProof.STATUS_VALIDATED:
-            errors['service_id'] = 'Payment proof has already been submitted for this service.'
+            errors['service_id'] = 'Payment proof is already validated and is now read-only.'
             return render(request, 'submit_payment_proof.html', _proof_context(
                 service,
                 invoice,
@@ -1788,7 +1802,7 @@ def om_invoices(request):
     search = request.GET.get('q', '').strip()
 
     invoices = Invoice.objects.select_related(
-        'service__customer', 'service__property'
+        'service__customer', 'service__property', 'service__payment_proof'
     ).prefetch_related('items').order_by('-created_at')
 
     if search:
@@ -1801,6 +1815,10 @@ def om_invoices(request):
             | Q(service__property__city__icontains=search)
             | Q(items__item_type__icontains=search)
         ).distinct()
+
+    invoices = list(invoices)
+    for invoice in invoices:
+        invoice.payment_locked = _is_service_payment_locked(invoice.service)
 
     return render(request, 'om_invoices.html', {
         'om': om,
@@ -1943,6 +1961,10 @@ def om_edit_invoice(request, invoice_id):
         messages.error(request, 'Invoice not found.')
         return redirect('om_invoices')
 
+    if _is_service_payment_locked(invoice.service):
+        messages.error(request, 'Invoice is locked because payment has already been confirmed in remittance records.')
+        return redirect('om_view_invoice', invoice_id=invoice.id)
+
     existing_item_ids = list(
         invoice.items.exclude(service_item_id__isnull=True).values_list('service_item_id', flat=True)
     )
@@ -2030,6 +2052,10 @@ def om_delete_invoice(request, invoice_id):
     invoice = Invoice.objects.select_related('service').filter(id=invoice_id).first()
     if not invoice:
         messages.error(request, 'Invoice not found.')
+        return redirect('om_invoices')
+
+    if _is_service_payment_locked(invoice.service):
+        messages.error(request, 'Invoice is locked because payment has already been confirmed in remittance records.')
         return redirect('om_invoices')
 
     service = invoice.service
@@ -2500,8 +2526,6 @@ def om_remittance_records(request):
         return redirect('login')
 
     search = request.GET.get('q', '').strip()
-    status_filter = request.GET.get('status', '').strip()
-
     records = RemittanceRecord.objects.select_related(
         'service__customer',
         'service__property',
@@ -2520,16 +2544,60 @@ def om_remittance_records(request):
             | Q(invoice__id__icontains=search)
         )
 
-    if status_filter == 'validated':
-        records = records.filter(payment_proof__status=PaymentProof.STATUS_VALIDATED)
-    elif status_filter == 'pending':
-        records = records.filter(payment_proof__status=PaymentProof.STATUS_FOR_VALIDATION)
-
     return render(request, 'om_remittance_records.html', {
         'om': om,
         'records': records,
         'search': search,
-        'status_filter': status_filter,
+        'back_url': reverse('om_billing'),
+    })
+
+
+def remittance_record_details(request, record_id):
+    is_om = 'om_id' in request.session
+    is_sales = 'sales_representative_id' in request.session
+
+    if not (is_om or is_sales):
+        return redirect('login')
+
+    record = RemittanceRecord.objects.select_related(
+        'service__customer',
+        'service__property',
+        'invoice',
+        'payment_proof',
+        'confirmed_by',
+    ).filter(id=record_id).first()
+
+    if not record:
+        if is_om:
+            return redirect('om_remittance_records')
+        return redirect('sales_representative_remittance_records')
+
+    payment_proof = record.payment_proof
+    property_obj = record.service.property
+    customer = record.service.customer
+    bank_used = payment_proof.bank_used or ''
+    bank_initials = ''.join(part[0] for part in bank_used.split() if part).upper()
+
+    details = {
+        'customer_name': f"{customer.first_name} {customer.last_name}",
+        'address': f"{property_obj.street_number} {property_obj.street}, {property_obj.city}",
+        'or_number': f"OR-{record.id:06d}",
+        'bank_initials_used': f"{bank_initials} / {bank_used}" if bank_initials else bank_used,
+        'payment_type': payment_proof.payment_type,
+        'check_or_reference_number': payment_proof.reference_number,
+        'payment_date': payment_proof.validated_at or payment_proof.uploaded_at,
+        'account_number': payment_proof.account_number,
+        'amount': payment_proof.amount_paid,
+        'treatment_date': record.service.treatment_confirmed_date,
+        'invoice_id': record.invoice.id if record.invoice else None,
+    }
+
+    back_url_name = 'om_remittance_records' if is_om else 'sales_representative_remittance_records'
+
+    return render(request, 'remittance_record_details.html', {
+        'record': record,
+        'details': details,
+        'back_url': reverse(back_url_name),
     })
 
 
@@ -2693,8 +2761,7 @@ def sales_representative_remittance_records(request):
     return render(request, 'om_remittance_records.html', {
         'records': records,
         'search': search,
-        'status_filter': 'validated',
-        'back_url': reverse('sales_representative_home'),
+        'back_url': reverse('sales_representative_payment_proofs'),
     })
 
 
@@ -2754,6 +2821,14 @@ def sales_representative_review_payment_proof(request, payment_proof_id):
 
     errors = {}
     if request.method == 'POST':
+        if proof.status != PaymentProof.STATUS_FOR_VALIDATION:
+            errors['action'] = 'Validation status is final and can no longer be changed.'
+            return render(request, 'sales_representative_review_payment_proof.html', {
+                'sales_representative': sales_representative,
+                'proof': proof,
+                'errors': errors,
+            })
+
         action = request.POST.get('action', '').strip()
         rejection_reason = request.POST.get('rejection_reason', '').strip()
 

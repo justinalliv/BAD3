@@ -4,69 +4,134 @@
 
 {% block extra_css %}
     .container {
-        max-width: 1200px;
-        margin: 28px auto 48px;
+        max-width: 1220px;
+        margin: 24px auto 40px;
         padding: 0 24px;
     }
 
     .title {
         color: #1a2a5e;
-        font-size: 2.5em;
-        margin-bottom: 20px;
+        font-size: 2.05em;
+        margin: 0;
         text-align: center;
     }
 
     .sheet {
         background: #fff;
-        border: 1px solid #dfe3ee;
+        border: 1px solid #ddd;
         border-radius: 12px;
         padding: 24px;
-        box-shadow: 0 2px 10px rgba(10, 24, 68, 0.06);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+    }
+
+    .header-row {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 46px;
+        margin-bottom: 18px;
+    }
+
+    .back-link {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 40px;
+        padding: 0 16px;
+        border-radius: 10px;
+        border: none;
+        background: #eef1fb;
+        color: #1a2a5e;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.95em;
+        transition: all 0.2s;
+        position: absolute;
+        left: 0;
+        top: 50%;
+        transform: translateY(-50%);
+    }
+
+    .back-link:hover {
+        background: #dde3f6;
+        box-shadow: 0 2px 4px rgba(26, 42, 94, 0.1);
+    }
+
+    .list-shell {
+        border: 1px solid #dfe3ee;
+        border-radius: 10px;
+        padding: 16px;
+        background: #f9fafc;
+    }
+
+    .table-wrap {
+        border: 1px solid #dfe3ee;
+        border-radius: 10px;
+        background: #fff;
+        overflow-x: auto;
     }
 
     .toolbar {
         display: flex;
-        justify-content: space-between;
-        gap: 12px;
+        justify-content: flex-end;
+        align-items: center;
+        gap: 10px;
         flex-wrap: wrap;
-        margin-bottom: 18px;
+        margin-bottom: 12px;
     }
 
-    .search-box,
     .filter-box {
         min-height: 40px;
         border: 1px solid #d6dbe8;
         border-radius: 12px;
-        padding: 0 12px;
-        font-size: 0.92em;
+        padding: 0 38px 0 12px;
+        font-size: 0.9em;
         background: #fff;
-    }
-
-    .search-box {
-        width: 320px;
+        color: #333;
+        appearance: none;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='10' viewBox='0 0 14 10'%3E%3Cpath fill='none' stroke='%234a4a4a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M1 1l6 6 6-6'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 12px center;
+        background-size: 14px 10px;
     }
 
     .filter-box {
-        width: 180px;
+        width: 164px;
+    }
+
+    .filter-box:focus {
+        outline: none;
+        border-color: #1a2a5e;
+        box-shadow: 0 0 0 3px rgba(26, 42, 94, 0.12);
     }
 
     table {
         width: 100%;
+        min-width: 980px;
+        table-layout: fixed;
         border-collapse: collapse;
     }
 
     th, td {
-        padding: 14px 12px;
+        padding: 10px 8px;
         border-bottom: 1px solid #edf0f6;
         text-align: left;
-        vertical-align: top;
-        font-size: 0.92em;
+        vertical-align: middle;
+        font-size: 0.86em;
+        word-break: break-word;
+        overflow-wrap: anywhere;
     }
 
     th {
         background: #1a2a5e;
         color: #fff;
-        font-weight: 700;
+        font-size: 0.86em;
+        font-weight: 600;
+        line-height: 1.2;
+        border-bottom: none;
     }
 
     tbody tr:last-child td {
@@ -79,80 +144,107 @@
         padding: 28px 10px;
     }
 
-    .back-row {
-        margin-top: 14px;
-        display: flex;
-        justify-content: center;
+    @media (max-width: 1100px) {
+        .toolbar {
+            justify-content: flex-start;
+        }
+
+        .search-box-unified,
+        .filter-box {
+            width: 100%;
+            max-width: 320px;
+        }
+
+        table {
+            min-width: 980px;
+        }
     }
 
-    .back-link {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        min-height: 38px;
-        padding: 0 16px;
-        border-radius: 8px;
-        border: 1px solid #cfd3df;
-        background: #fff;
-        color: #1a2a5e;
-        text-decoration: none;
-        font-weight: 700;
+    @media (max-width: 760px) {
+        .container {
+            padding: 0 12px;
+        }
+
+        .sheet {
+            padding: 16px;
+        }
+
+        .header-row {
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+            gap: 10px;
+            min-height: 0;
+            margin-bottom: 10px;
+        }
+
+        .back-link {
+            width: fit-content;
+            position: static;
+            transform: none;
+        }
+
+        .list-shell {
+            padding: 12px;
+        }
+
+        .title {
+            font-size: 1.7em;
+        }
     }
 {% endblock %}
 
 {% block content %}
 <div class="container">
-    {% if request.session.om_id %}
-    <p style="text-align:right;color:#333;margin:10px 0 8px;font-size:0.9em;">User Identified As: Operations Manager</p>
-    {% elif request.session.sales_representative_id %}
-    <p style="text-align:right;color:#333;margin:10px 0 8px;font-size:0.9em;">User Identified As: Sales Representative</p>
-    {% endif %}
-    <h1 class="title">Remittance Records</h1>
-
     <div class="sheet">
-        <form method="GET" class="toolbar">
-            <input type="text" class="search-box search-box-unified" name="q" value="{{ search }}" placeholder="Search">
-            {% if request.session.om_id %}
-                <select name="status" class="filter-box" onchange="this.form.submit()">
-                    <option value="">All Statuses</option>
-                    <option value="validated" {% if status_filter == 'validated' %}selected{% endif %}>Validated</option>
-                    <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>For Validation</option>
-                </select>
+        <div class="header-row">
+            <a href="{{ back_url|default:request.META.HTTP_REFERER|default:'#' }}" class="back-link">← Back</a>
+            <h1 class="title">Remittance Records</h1>
+        </div>
+
+        <div class="list-shell">
+            <form method="GET" class="toolbar">
+                <input type="text" class="search-box search-box-unified" name="q" value="{{ search }}" placeholder="Search">
+                {% if request.session.om_id %}
+                    <select name="status" class="filter-box" onchange="this.form.submit()">
+                        <option value="">All Statuses</option>
+                        <option value="validated" {% if status_filter == 'validated' %}selected{% endif %}>Validated</option>
+                        <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>For Validation</option>
+                    </select>
+                {% endif %}
+            </form>
+
+            <div class="table-wrap">
+            {% if records %}
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width:14%;">Service ID</th>
+                            <th style="width:18%;">Customer Name</th>
+                            <th style="width:32%;">Property Address</th>
+                            <th style="width:14%;">Payment Date</th>
+                            <th style="width:12%;">Amount Paid</th>
+                            <th style="width:10%;">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for record in records %}
+                        <tr>
+                            <td>{{ record.service.id|stringformat:'07d' }}</td>
+                            <td>{{ record.service.customer.first_name }} {{ record.service.customer.last_name }}</td>
+                            <td>{{ record.service.property.street_number }} {{ record.service.property.street }}, {{ record.service.property.city }}</td>
+                            <td>{{ record.payment_proof.uploaded_at|date:'M d, Y' }}</td>
+                            <td>PHP {{ record.payment_proof.amount_paid }}</td>
+                            <td>{{ record.payment_proof.status }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <div class="empty">No remittance records available.</div>
             {% endif %}
-        </form>
-
-        {% if records %}
-        <table>
-            <thead>
-                <tr>
-                    <th>Service ID</th>
-                    <th>Customer Name</th>
-                    <th>Property Address</th>
-                    <th>Payment Date</th>
-                    <th>Amount Paid</th>
-                    <th>Status</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for record in records %}
-                <tr>
-                    <td>{{ record.service.id|stringformat:'07d' }}</td>
-                    <td>{{ record.service.customer.first_name }} {{ record.service.customer.last_name }}</td>
-                    <td>{{ record.service.property.street_number }} {{ record.service.property.street }}, {{ record.service.property.city }}</td>
-                    <td>{{ record.payment_proof.uploaded_at|date:'M d, Y' }}</td>
-                    <td>PHP {{ record.payment_proof.amount_paid }}</td>
-                    <td>{{ record.payment_proof.status }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-        {% else %}
-            <div class="empty">No remittance records available.</div>
-        {% endif %}
-    </div>
-
-    <div class="back-row">
-        <a href="{{ back_url|default:request.META.HTTP_REFERER|default:'#' }}" class="back-link">Back</a>
+            </div>
+        </div>
     </div>
 </div>
 {% endblock %}
