@@ -275,7 +275,7 @@
                                 <a href="{% url 'technician_view_booking' report.service.id %}?back={% url 'technician_service_reports' %}" class="action-btn view">View Booking</a>
                                 <a href="{% url 'technician_view_service_report' report.id %}?back={% url 'technician_service_reports' %}" class="action-btn view">View</a>
                                 <a href="{% url 'technician_edit_service_report' report.id %}" class="action-btn edit">Edit</a>
-                                <form method="POST" action="{% url 'technician_delete_service_report' report.id %}" style="margin:0;" onsubmit="return confirm('Delete this service report?');">
+                                <form method="POST" action="{% url 'technician_delete_service_report' report.id %}" style="margin:0;" class="delete-report-form">
                                     {% csrf_token %}
                                     <button type="submit" class="action-btn delete">Delete</button>
                                 </form>
@@ -290,6 +290,17 @@
             </div>
         </div>
     </div>
+
+    <div id="deleteReportModal" class="modal">
+        <div class="modal-content">
+            <h2>Delete service report</h2>
+            <p>Are you sure you want to delete this service report?</p>
+            <div class="modal-buttons">
+                <button type="button" class="modal-btn modal-btn-cancel" id="cancelDeleteReport">Cancel</button>
+                <button type="button" class="modal-btn modal-btn-danger" id="confirmDeleteReport">Delete</button>
+            </div>
+        </div>
+    </div>
 </div>
 {% endblock %}
 
@@ -297,6 +308,10 @@
 <script>
     const searchBox = document.getElementById('searchBox');
     const reportTable = document.getElementById('reportTable');
+    const deleteReportModal = document.getElementById('deleteReportModal');
+    const cancelDeleteReport = document.getElementById('cancelDeleteReport');
+    const confirmDeleteReport = document.getElementById('confirmDeleteReport');
+    let pendingDeleteForm = null;
 
     if (searchBox && reportTable) {
         searchBox.addEventListener('keyup', function () {
@@ -304,6 +319,33 @@
             reportTable.querySelectorAll('tbody tr').forEach((row) => {
                 row.style.display = row.textContent.toLowerCase().includes(term) ? '' : 'none';
             });
+        });
+    }
+
+    document.querySelectorAll('.delete-report-form').forEach((form) => {
+        form.addEventListener('submit', function (event) {
+            event.preventDefault();
+            pendingDeleteForm = form;
+            if (deleteReportModal) {
+                deleteReportModal.classList.add('show');
+            }
+        });
+    });
+
+    if (cancelDeleteReport && deleteReportModal) {
+        cancelDeleteReport.addEventListener('click', function () {
+            pendingDeleteForm = null;
+            deleteReportModal.classList.remove('show');
+        });
+    }
+
+    if (confirmDeleteReport && deleteReportModal) {
+        confirmDeleteReport.addEventListener('click', function () {
+            if (pendingDeleteForm) {
+                pendingDeleteForm.submit();
+            }
+            pendingDeleteForm = null;
+            deleteReportModal.classList.remove('show');
         });
     }
 </script>
