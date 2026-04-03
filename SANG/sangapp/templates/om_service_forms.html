@@ -223,16 +223,6 @@
                 <input type="number" name="option_rate" class="field" min="0.01" step="0.01" placeholder="Treatment rate" required>
                 <button type="submit" class="btn btn-primary">Add Treatment</button>
             </div>
-            <div class="create-grid" style="grid-template-columns: repeat(3, 1fr); margin-top:10px;">
-                <input type="text" name="problem_text" class="field" placeholder="Problem text">
-                <input type="text" name="recommendation_text" class="field" placeholder="Recommendation text">
-                <input type="text" name="target_pest" class="field" placeholder="Target pest">
-            </div>
-            <div class="create-grid" style="grid-template-columns: repeat(3, 1fr); margin-top:10px;">
-                <input type="text" name="application_method" class="field" placeholder="Application method">
-                <input type="text" name="additional_information" class="field" placeholder="Additional information">
-                <input type="text" name="dilution_rate" class="field" placeholder="Dilution rate">
-            </div>
             {% elif selected_section == 'Payment Proof Submission' and section_filter == 'Bank Used for Payment' %}
             <input type="hidden" name="form_section" value="Payment Proof Submission">
             <input type="hidden" name="field_name" value="Bank Used for Payment">
@@ -312,6 +302,12 @@
                                     data-edit-value="{{ option.option_value|escape }}"
                                     data-edit-description="{{ option.option_description|escape }}"
                                     data-edit-rate="{{ option.option_rate|default:'' }}"
+                                    data-edit-problem="{{ option.problem_text|default:''|escape }}"
+                                    data-edit-recommendation="{{ option.recommendation_text|default:''|escape }}"
+                                    data-edit-target-pest="{{ option.target_pest|default:''|escape }}"
+                                    data-edit-application-method="{{ option.application_method|default:''|escape }}"
+                                    data-edit-additional-information="{{ option.additional_information|default:''|escape }}"
+                                    data-edit-dilution-rate="{{ option.dilution_rate|default:''|escape }}"
                                     data-edit-active="{{ option.is_active|yesno:'true,false' }}"
                                 >Edit</button>
                             </div>
@@ -413,27 +409,30 @@
                 {% csrf_token %}
                 <input type="hidden" name="action" id="editAction" value="update">
                 <input type="hidden" name="option_id" id="editOptionId">
+                <input type="hidden" name="problem_text" id="editProblemText">
+                <input type="hidden" name="recommendation_text" id="editRecommendationText">
+                <input type="hidden" name="target_pest" id="editTargetPest">
+                <input type="hidden" name="application_method" id="editApplicationMethod">
+                <input type="hidden" name="additional_information" id="editAdditionalInformation">
+                <input type="hidden" name="dilution_rate" id="editDilutionRate">
                 {% if selected_section == 'Treatment' %}
                 <input type="hidden" name="form_section" value="Treatment">
                 <input type="hidden" name="field_name" value="Treatment Service">
-                <div style="margin-bottom:10px;">
+                <div style="margin-bottom:16px;">
+                    <label style="display:block;font-size:0.88em;color:#555;margin-bottom:4px;font-weight:600;">Treatment Name</label>
                     <input type="text" name="option_value" id="editOptionValue" class="field" placeholder="Treatment name" required>
                 </div>
-                <div style="margin-bottom:10px;">
+                <div style="margin-bottom:16px;">
+                    <label style="display:block;font-size:0.88em;color:#555;margin-bottom:4px;font-weight:600;">Treatment Description</label>
                     <input type="text" name="option_description" id="editOptionDescription" class="field" placeholder="Treatment description" required>
                 </div>
-                <div style="margin-bottom:10px;">
+                <div style="margin-bottom:16px;">
+                    <label style="display:block;font-size:0.88em;color:#555;margin-bottom:4px;font-weight:600;">Treatment Rate</label>
                     <input type="number" name="option_rate" id="editOptionRate" class="field" min="0.01" step="0.01" placeholder="Treatment rate" required>
                 </div>
-                <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:10px;">
-                    <input type="text" name="problem_text" id="editProblemText" class="field" placeholder="Problem text">
-                    <input type="text" name="recommendation_text" id="editRecommendationText" class="field" placeholder="Recommendation text">
-                    <input type="text" name="target_pest" id="editTargetPest" class="field" placeholder="Target pest">
-                </div>
-                <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px;">
-                    <input type="text" name="application_method" id="editApplicationMethod" class="field" placeholder="Application method">
-                    <input type="text" name="additional_information" id="editAdditionalInformation" class="field" placeholder="Additional information">
-                    <input type="text" name="dilution_rate" id="editDilutionRate" class="field" placeholder="Dilution rate">
+                <div style="margin-bottom:16px;border-top:1px solid #e9ebf1;padding-top:12px;">
+                    <label style="display:block;font-size:0.88em;color:#555;margin-bottom:8px;font-weight:600;">Additional Details (click to edit)</label>
+                    <div id="treatmentDetailsGrid" style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;"></div>
                 </div>
                 <div class="edit-controls-row">
                     <label style="display:flex;align-items:center;gap:8px;font-size:0.92em;color:#333;">
@@ -505,6 +504,17 @@
                     <button type="submit" class="modal-btn modal-btn-confirm">Save</button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <div id="treatmentDetailsModal" class="modal">
+        <div class="modal-content" style="max-width:540px;">
+            <h2 id="treatmentDetailsTitle">Edit Detail</h2>
+            <textarea id="treatmentDetailsValue" style="width:100%;min-height:130px;border:1px solid #d0d0d0;border-radius:10px;padding:10px;font-size:0.92em;font-family:inherit;resize:vertical;"></textarea>
+            <div class="modal-buttons" style="margin-top:10px;">
+                <button type="button" class="modal-btn modal-btn-cancel" id="closeTreatmentDetailsModal">Cancel</button>
+                <button type="button" class="modal-btn modal-btn-confirm" id="confirmTreatmentDetails">Confirm</button>
+            </div>
         </div>
     </div>
 
@@ -613,8 +623,85 @@
                 editOptionActive.checked = this.dataset.editActive !== 'false';
             }
             editModal.classList.add('show');
+
+            // Render treatment details grid if this is a Treatment
+            const treatmentDetailsGrid = document.getElementById('treatmentDetailsGrid');
+            if (treatmentDetailsGrid && this.dataset.editSection === 'Treatment') {
+                const detailsConfig = [
+                    { field: 'problem_text', label: 'Problem', id: 'editProblemText' },
+                    { field: 'recommendation_text', label: 'Recommendation', id: 'editRecommendationText' },
+                    { field: 'target_pest', label: 'Target Pest', id: 'editTargetPest' },
+                    { field: 'application_method', label: 'Application Method', id: 'editApplicationMethod' },
+                    { field: 'additional_information', label: 'Additional Info', id: 'editAdditionalInformation' },
+                    { field: 'dilution_rate', label: 'Dilution Rate', id: 'editDilutionRate' }
+                ];
+
+                treatmentDetailsGrid.innerHTML = '';
+                detailsConfig.forEach((config) => {
+                    const fieldElement = document.getElementById(config.id);
+                    const value = fieldElement ? fieldElement.value : '';
+                    const box = document.createElement('div');
+                    box.style.cssText = 'padding:10px;border:1px solid #d7d7d7;border-radius:10px;cursor:pointer;background:#fff;font-size:0.92em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:border-color 0.2s,box-shadow 0.2s;';
+                    box.textContent = value || config.label;
+                    if (!value) {
+                        box.style.color = '#999';
+                    }
+                    box.setAttribute('data-field', config.id);
+                    box.addEventListener('mouseenter', () => {
+                        box.style.borderColor = '#1a2a5e';
+                        box.style.boxShadow = '0 0 0 2px rgba(26, 42, 94, 0.08)';
+                    });
+                    box.addEventListener('mouseleave', () => {
+                        box.style.borderColor = '#d7d7d7';
+                        box.style.boxShadow = 'none';
+                    });
+                    box.addEventListener('click', () => {
+                        document.getElementById('treatmentDetailsTitle').textContent = `Edit ${config.label}`;
+                        document.getElementById('treatmentDetailsValue').value = value;
+                        document.getElementById('treatmentDetailsValue').dataset.fieldId = config.id;
+                        document.getElementById('treatmentDetailsModal').classList.add('show');
+                    });
+                    treatmentDetailsGrid.appendChild(box);
+                });
+            }
         });
     });
+
+    const treatmentDetailsModal = document.getElementById('treatmentDetailsModal');
+    const closeTreatmentDetailsModal = document.getElementById('closeTreatmentDetailsModal');
+    const confirmTreatmentDetails = document.getElementById('confirmTreatmentDetails');
+
+    if (closeTreatmentDetailsModal && treatmentDetailsModal) {
+        closeTreatmentDetailsModal.addEventListener('click', () => {
+            treatmentDetailsModal.classList.remove('show');
+        });
+    }
+
+    if (confirmTreatmentDetails && treatmentDetailsModal) {
+        confirmTreatmentDetails.addEventListener('click', () => {
+            const fieldId = document.getElementById('treatmentDetailsValue').dataset.fieldId;
+            const fieldElement = document.getElementById(fieldId);
+            if (fieldElement) {
+                fieldElement.value = document.getElementById('treatmentDetailsValue').value;
+            }
+            treatmentDetailsModal.classList.remove('show');
+
+            // Re-render the grid to show the updated value
+            const treatmentDetailsGrid = document.getElementById('treatmentDetailsGrid');
+            const detailBoxes = treatmentDetailsGrid.querySelectorAll('[data-field]');
+            detailBoxes.forEach((box) => {
+                const fieldId = box.getAttribute('data-field');
+                const fieldElement = document.getElementById(fieldId);
+                const value = fieldElement ? fieldElement.value : '';
+                box.textContent = value || box.getAttribute('data-field').replace('edit', '').replace('Text', '').replace(/([A-Z])/g, ' $1');
+                if (!value) {
+                    box.style.color = '#999';
+                } else {
+                    box.style.color = '#333';
+                }
+            });
+        });
+    }
 
     if (hardDeleteOptionBtn && editOptionId && editAction) {
         hardDeleteOptionBtn.addEventListener('click', function () {
@@ -643,6 +730,17 @@
             editModal.classList.remove('show');
         });
     }
+
+    document.addEventListener('keydown', function (event) {
+        if (event.key === 'Escape') {
+            if (editModal && editModal.classList.contains('show')) {
+                editModal.classList.remove('show');
+            }
+            if (treatmentDetailsModal && treatmentDetailsModal.classList.contains('show')) {
+                treatmentDetailsModal.classList.remove('show');
+            }
+        }
+    });
 
     const sectionFilterSelect = document.getElementById('sectionFilterSelect');
     if (sectionFilterSelect) {

@@ -156,7 +156,13 @@
             </select>
             {% if errors.new_status %}<div class="error-message">{{ errors.new_status }}</div>{% endif %}
             {% if not status_choices %}
-                <div class="error-message">No available next status for this service.</div>
+                {% if service.status == 'Ongoing Inspection' %}
+                    <div class="error-message">Please create the estimated bill first to update this status.</div>
+                {% elif service.status == 'Ongoing Treatment' %}
+                    <div class="error-message">Please create the invoice first to update this status.</div>
+                {% else %}
+                    <div class="error-message">No available next status for this service.</div>
+                {% endif %}
             {% endif %}
         </div>
 

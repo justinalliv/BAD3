@@ -118,22 +118,46 @@
 
     .treatment-row {
         display: grid;
-        grid-template-columns: 1.2fr 150px 1fr 1fr 128px;
-        gap: 12px;
-        margin-bottom: 10px;
-        align-items: stretch;
+        grid-template-columns: 1.2fr 110px 0.95fr 0.95fr 90px;
+        gap: 10px;
+        margin-bottom: 8px;
+        align-items: center;
         max-width: 100%;
         background: #f9fafc;
         border: 1px solid #dfe3ee;
         border-radius: 10px;
-        padding: 10px;
+        padding: 8px;
     }
 
-    .field-textarea {
-        min-height: 72px;
-        padding: 10px 12px;
-        resize: vertical;
-        font-family: inherit;
+    .note-preview {
+        min-height: 40px;
+        padding: 8px 12px;
+        border: 1px solid #d7d7d7;
+        border-radius: 12px;
+        background: #fff;
+        color: #333;
+        font-size: 0.96em;
+        line-height: 1.4;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        cursor: pointer;
+        transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .note-preview:hover {
+        border-color: #1a2a5e;
+        box-shadow: 0 0 0 2px rgba(26, 42, 94, 0.08);
+    }
+
+    .note-preview:focus {
+        outline: none;
+        border-color: #1a2a5e;
+        box-shadow: 0 0 0 3px rgba(26, 42, 94, 0.12);
+    }
+
+    .note-preview.is-empty {
+        color: #999;
     }
 
     .field {
@@ -165,9 +189,9 @@
     }
 
     .delete-btn {
-        min-width: 128px;
-        min-height: 34px;
-        padding: 7px 12px;
+        min-width: 90px;
+        min-height: 36px;
+        padding: 6px 12px;
         border: none;
         border-radius: 8px;
         background: #d9534f;
@@ -179,6 +203,17 @@
 
     .delete-btn:hover {
         background: #c74743;
+    }
+
+    .modal textarea {
+        width: 100%;
+        min-height: 130px;
+        border: 1px solid #d0d0d0;
+        border-radius: 10px;
+        padding: 10px;
+        font-size: 0.92em;
+        font-family: inherit;
+        resize: vertical;
     }
 
     .add-btn {
@@ -328,6 +363,17 @@
         </div>
     </div>
 
+    <div id="textModal" class="modal">
+        <div class="modal-content" style="max-width:540px;">
+            <h2 id="textModalTitle">Edit text</h2>
+            <textarea id="textModalValue"></textarea>
+            <div class="modal-buttons" style="margin-top:10px;">
+                <button type="button" class="modal-btn modal-btn-cancel" id="textCancel">Cancel</button>
+                <button type="button" class="modal-btn modal-btn-confirm" id="textConfirm">Confirm</button>
+            </div>
+        </div>
+    </div>
+
     <div id="selectServiceModal" class="modal">
         <div class="modal-content">
             <h2>Service ID Required</h2>
@@ -367,81 +413,129 @@
     const addTreatmentBtn = document.getElementById('addTreatmentBtn');
     const searchBox = document.getElementById('searchBox');
     const serviceTable = document.getElementById('serviceTable');
+        const textModal = document.getElementById('textModal');
+        const textModalTitle = document.getElementById('textModalTitle');
+        const textModalValue = document.getElementById('textModalValue');
+        const textCancel = document.getElementById('textCancel');
+        const textConfirm = document.getElementById('textConfirm');
 
-    function renderRows() {
-        treatmentRows.innerHTML = '';
+        let editingItemIndex = -1;
+        let editingField = '';
 
-        treatmentItems.forEach((item, index) => {
-            const row = document.createElement('div');
-            row.className = 'treatment-row';
+        function escapeHtml(value) {
+            return String(value || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+        }
 
-            const options = ['<option value="">Select an option</option>']
-                .concat(serviceTypeChoices.map(choice => {
-                    const selected = item.service_type === choice.value ? 'selected' : '';
-                    return `<option value="${choice.value}" ${selected}>${choice.label}</option>`;
-                }))
-                .join('');
+        function renderRows() {
+            treatmentRows.innerHTML = '';
 
-            row.innerHTML = `
-                <select class="field field-select" data-index="${index}" data-field="service_type">${options}</select>
-                <input type="number" min="1" class="field" data-index="${index}" data-field="quantity" placeholder="Enter the quantity" value="${item.quantity || ''}">
-                <textarea class="field field-textarea" data-index="${index}" data-field="problem_text" placeholder="Problem">${item.problem_text || ''}</textarea>
-                <textarea class="field field-textarea" data-index="${index}" data-field="recommendation_text" placeholder="Recommendation">${item.recommendation_text || ''}</textarea>
-                <button type="button" class="delete-btn" data-delete-index="${index}">Delete</button>
-            `;
-            treatmentRows.appendChild(row);
-        });
+            treatmentItems.forEach((item, index) => {
+                const row = document.createElement('div');
+                row.className = 'treatment-row';
 
-        treatmentRows.querySelectorAll('[data-field]').forEach((element) => {
-            element.addEventListener('change', function () {
-                const index = Number(this.dataset.index);
-                const field = this.dataset.field;
-                treatmentItems[index][field] = this.value;
-                if (field === 'service_type') {
-                    const selectedMeta = treatmentMetaByName[(this.value || '').trim().toLowerCase()] || {};
-                    treatmentItems[index].problem_text = selectedMeta.problem_text || '';
-                    treatmentItems[index].recommendation_text = selectedMeta.recommendation_text || '';
+                const options = ['<option value="">Select an option</option>']
+                    .concat(serviceTypeChoices.map(choice => {
+                        const selected = item.service_type === choice.value ? 'selected' : '';
+                        return `<option value="${choice.value}" ${selected}>${choice.label}</option>`;
+                    }))
+                    .join('');
+
+                const problemText = item.problem_text || '';
+                const recommendationText = item.recommendation_text || '';
+
+                row.innerHTML = `
+                    <select class="field field-select" data-index="${index}" data-field="service_type">${options}</select>
+                    <input type="number" min="1" class="field" data-index="${index}" data-field="quantity" placeholder="Quantity" value="${item.quantity || ''}">
+                    <div class="note-preview ${problemText ? '' : 'is-empty'}" role="button" tabindex="0" data-edit-index="${index}" data-edit-field="problem_text">${problemText ? escapeHtml(problemText) : 'Problem'}</div>
+                    <div class="note-preview ${recommendationText ? '' : 'is-empty'}" role="button" tabindex="0" data-edit-index="${index}" data-edit-field="recommendation_text">${recommendationText ? escapeHtml(recommendationText) : 'Recommendation'}</div>
+                    <button type="button" class="delete-btn" data-delete-index="${index}">Delete</button>
+                `;
+                treatmentRows.appendChild(row);
+            });
+
+            treatmentRows.querySelectorAll('[data-field]').forEach((element) => {
+                element.addEventListener('change', function () {
+                    const index = Number(this.dataset.index);
+                    const field = this.dataset.field;
+                    treatmentItems[index][field] = this.value;
+                    if (field === 'service_type') {
+                        const selectedMeta = treatmentMetaByName[(this.value || '').trim().toLowerCase()] || {};
+                        treatmentItems[index].problem_text = selectedMeta.problem_text || '';
+                        treatmentItems[index].recommendation_text = selectedMeta.recommendation_text || '';
+                        renderRows();
+                    }
+                });
+                element.addEventListener('input', function () {
+                    const index = Number(this.dataset.index);
+                    const field = this.dataset.field;
+                    treatmentItems[index][field] = this.value;
+                });
+            });
+
+            treatmentRows.querySelectorAll('[data-edit-index]').forEach((element) => {
+                const openEditor = function () {
+                    editingItemIndex = Number(this.dataset.editIndex);
+                    editingField = this.dataset.editField;
+                    textModalTitle.textContent = editingField === 'problem_text' ? 'Edit Problem' : 'Edit Recommendation';
+                    textModalValue.value = treatmentItems[editingItemIndex][editingField] || '';
+                    textModal.classList.add('show');
+                };
+                element.addEventListener('click', openEditor);
+                element.addEventListener('keydown', function (event) {
+                    if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault();
+                        openEditor.call(this);
+                    }
+                });
+            });
+
+            treatmentRows.querySelectorAll('[data-delete-index]').forEach((button) => {
+                button.addEventListener('click', function () {
+                    const index = Number(this.dataset.deleteIndex);
+                    treatmentItems.splice(index, 1);
+                    if (treatmentItems.length === 0) {
+                        treatmentItems.push({ service_type: '', quantity: '', problem_text: '', recommendation_text: '' });
+                    }
                     renderRows();
-                }
+                });
             });
-            element.addEventListener('input', function () {
-                const index = Number(this.dataset.index);
-                const field = this.dataset.field;
-                treatmentItems[index][field] = this.value;
-            });
-        });
+        }
 
-        treatmentRows.querySelectorAll('[data-delete-index]').forEach((button) => {
-            button.addEventListener('click', function () {
-                const index = Number(this.dataset.deleteIndex);
-                treatmentItems.splice(index, 1);
-                if (treatmentItems.length === 0) {
-                    treatmentItems.push({ service_type: '', quantity: '', problem_text: '', recommendation_text: '' });
-                }
+        function serializeItems() {
+            itemsJsonInput.value = JSON.stringify(treatmentItems);
+        }
+
+        if (addTreatmentBtn) {
+            addTreatmentBtn.addEventListener('click', function () {
+                treatmentItems.push({ service_type: '', quantity: '', problem_text: '', recommendation_text: '' });
                 renderRows();
             });
-        });
-    }
+        }
 
-    function serializeItems() {
-        itemsJsonInput.value = JSON.stringify(treatmentItems);
-    }
-
-    if (addTreatmentBtn) {
-        addTreatmentBtn.addEventListener('click', function () {
-            treatmentItems.push({ service_type: '', quantity: '', problem_text: '', recommendation_text: '' });
-            renderRows();
-        });
-    }
-
-    if (searchBox && serviceTable) {
-        searchBox.addEventListener('keyup', function () {
-            const term = this.value.toLowerCase();
-            serviceTable.querySelectorAll('tbody tr').forEach((row) => {
-                row.style.display = row.textContent.toLowerCase().includes(term) ? '' : 'none';
+        if (searchBox && serviceTable) {
+            searchBox.addEventListener('keyup', function () {
+                const term = this.value.toLowerCase();
+                serviceTable.querySelectorAll('tbody tr').forEach((row) => {
+                    row.style.display = row.textContent.toLowerCase().includes(term) ? '' : 'none';
+                });
             });
-        });
-    }
+        }
+
+        if (textCancel && textModal) {
+            textCancel.addEventListener('click', function () {
+                textModal.classList.remove('show');
+            });
+        }
+
+        if (textConfirm && textModal) {
+            textConfirm.addEventListener('click', function () {
+                if (editingItemIndex >= 0 && editingField) {
+                    treatmentItems[editingItemIndex][editingField] = textModalValue.value;
+                    renderRows();
+                }
+                textModal.classList.remove('show');
+            });
+        }
 
     const openConfirmModal = document.getElementById('openConfirmModal');
     const confirmModal = document.getElementById('confirmModal');
