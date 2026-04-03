@@ -4,63 +4,90 @@
 
 {% block extra_css %}
     .container {
-        max-width: 1220px;
-        margin: 24px auto 40px;
+        max-width: 920px;
+        margin: 28px auto 48px;
         padding: 0 24px;
     }
 
     .sheet {
         background: #fff;
-        border: 1px solid #ddd;
-        border-radius: 12px;
+        border: 1px solid #dfe3ee;
+        border-radius: 14px;
         padding: 24px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+        box-shadow: 0 2px 10px rgba(10, 24, 68, 0.06);
     }
 
-    .header-row {
+    .page-head {
+        position: relative;
+        min-height: 44px;
+        margin-bottom: 8px;
+    }
+
+    .title {
+        color: #1a2a5e;
+        text-align: center;
+        margin: 0;
+        font-size: 2.2em;
+    }
+
+    .subtext {
+        text-align: center;
+        color: #5a5f73;
+        margin-bottom: 22px;
+    }
+
+    .back-link {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 40px;
+        padding: 0 16px;
+        border-radius: 10px;
+        border: none;
+        background: #eef1fb;
+        color: #1a2a5e;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.95em;
+        transition: all 0.2s;
+        position: absolute;
+        left: 0;
+        top: 50%;
+        transform: translateY(-50%);
+    }
+
+    .back-link:hover {
+        background: #dde3f6;
+        box-shadow: 0 2px 4px rgba(26, 42, 94, 0.1);
+    }
+
+    .summary-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px 16px;
         margin-bottom: 18px;
     }
 
-    .header-row h1 {
-        color: #1a2a5e;
-        font-size: 2.05em;
-        margin: 0;
-    }
-
-    .layout {
-        display: grid;
-        grid-template-columns: 1.05fr 0.95fr;
-        gap: 16px;
-    }
-
-    .card {
-        border: 1px solid #dfe3ee;
-        border-radius: 10px;
-        padding: 14px;
+    .summary-card {
         background: #f9fafc;
+        border: 1px solid #dfe3ee;
+        border-radius: 12px;
+        padding: 14px 16px;
     }
 
-    .card h2 {
-        margin: 0 0 12px;
+    .summary-label {
+        display: block;
+        color: #5a5f73;
+        font-size: 0.84em;
+        margin-bottom: 4px;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+    }
+
+    .summary-value {
         color: #1a2a5e;
-        font-size: 1.2em;
-    }
-
-    .row {
-        display: grid;
-        grid-template-columns: 170px 1fr;
-        gap: 8px;
-        margin-bottom: 8px;
-        font-size: 0.93em;
-    }
-
-    .label {
-        color: #5a5a5a;
-        font-weight: 600;
-    }
-
-    .value {
-        color: #232323;
+        font-weight: 700;
+        font-size: 1em;
     }
 
     .proof-link {
@@ -73,69 +100,36 @@
         text-decoration: underline;
     }
 
-    .error {
-        color: #c62828;
-        font-size: 0.86em;
-        margin-top: 6px;
+    .action-shell {
+        border: 1px solid #dfe3ee;
+        border-radius: 12px;
+        background: #f9fafc;
+        padding: 16px;
     }
 
-    .actions {
-        display: flex;
-        gap: 10px;
-        align-items: center;
-        margin-top: 14px;
-        flex-wrap: wrap;
-    }
-
-    .btn {
-        min-height: 42px;
-        border: none;
-        border-radius: 10px;
-        padding: 0 14px;
-        font-size: 0.9em;
-        font-weight: 700;
-        cursor: pointer;
-        text-decoration: none;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-    .btn-primary {
-        background: #1a2a5e;
-        color: #fff;
-    }
-
-    .btn-primary:hover {
-        background: #0d1535;
-    }
-
-    .btn-danger {
-        background: #d9534f;
-        color: #fff;
-    }
-
-    .btn-danger:hover {
-        background: #c74743;
-    }
-
-    .btn-secondary {
-        background: #e5e7ef;
+    .action-shell h2 {
+        margin: 0 0 12px;
         color: #1a2a5e;
+        font-size: 1.2em;
     }
 
-    .btn-secondary:hover {
-        background: #d6dceb;
+    .label {
+        display: block;
+        font-weight: 700;
+        color: #1f2b52;
+        font-size: 0.94em;
+        margin-bottom: 6px;
     }
 
     textarea {
         width: 100%;
+        min-height: 130px;
         border: 1px solid #d2d7e6;
         border-radius: 12px;
-        min-height: 130px;
         padding: 10px 12px;
         resize: vertical;
         font-size: 0.92em;
+        background: #fff;
     }
 
     textarea:focus {
@@ -168,28 +162,92 @@
         color: #8a2a2a;
     }
 
-    @media (max-width: 980px) {
-        .layout {
-            grid-template-columns: 1fr;
-        }
+    .error {
+        color: #c81e1e;
+        font-size: 0.86em;
+        margin-top: 6px;
+    }
+
+    .actions {
+        display: flex;
+        justify-content: center;
+        gap: 12px;
+        margin-top: 22px;
+        flex-wrap: wrap;
+    }
+
+    .btn {
+        min-width: 180px;
+        min-height: 46px;
+        border: none;
+        border-radius: 12px;
+        font-size: 0.96em;
+        font-weight: 700;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .btn-secondary {
+        background: #e8e8e8;
+        color: #333;
+    }
+
+    .btn-secondary:hover {
+        background: #d0d0d0;
+    }
+
+    .btn-primary {
+        background: #1a2a5e;
+        color: #fff;
+    }
+
+    .btn-primary:hover {
+        background: #0d1535;
+    }
+
+    .btn-danger {
+        background: #d9534f;
+        color: #fff;
+    }
+
+    .btn-danger:hover {
+        background: #c74743;
+    }
+
+    .validated-note {
+        color: #1e5f39;
+        font-weight: 600;
     }
 
     @media (max-width: 760px) {
-        .container {
-            padding: 0 12px;
+        .page-head {
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+            gap: 10px;
+            min-height: 0;
+            margin-bottom: 10px;
         }
 
-        .sheet {
-            padding: 16px;
+        .title {
+            font-size: 2.2em;
         }
 
-        .header-row h1 {
-            font-size: 1.7em;
+        .back-link {
+            width: fit-content;
+            position: static;
+            transform: none;
         }
 
-        .row {
+        .summary-grid {
             grid-template-columns: 1fr;
-            gap: 3px;
+        }
+
+        .actions {
+            flex-direction: column;
         }
     }
 {% endblock %}
@@ -197,68 +255,100 @@
 {% block content %}
 <div class="container">
     <div class="sheet">
-        <div class="header-row">
-            <h1>Review Payment Proof</h1>
+        <div class="page-head">
+            <a href="{% url 'sales_representative_payment_proofs' %}" class="back-link">← Back</a>
+            <h1 class="title">Review Payment Proof</h1>
+        </div>
+        <p class="subtext">Check submitted payment details and approve or reject the proof.</p>
+
+        <div class="summary-grid">
+            <div class="summary-card">
+                <span class="summary-label">Service ID</span>
+                <span class="summary-value">{{ proof.service.id|stringformat:'07d' }}</span>
+            </div>
+            <div class="summary-card">
+                <span class="summary-label">Customer</span>
+                <span class="summary-value">{{ proof.customer.first_name }} {{ proof.customer.last_name }}</span>
+            </div>
+            <div class="summary-card">
+                <span class="summary-label">Invoice</span>
+                <span class="summary-value">
+                    {% if proof.invoice %}
+                        <a class="proof-link" href="{% url 'sales_representative_view_invoice' proof.invoice.id %}?back={% url 'sales_representative_review_payment_proof' proof.id %}">View Invoice</a>
+                    {% else %}
+                        -
+                    {% endif %}
+                </span>
+            </div>
+            <div class="summary-card">
+                <span class="summary-label">Property</span>
+                <span class="summary-value">{{ proof.service.property.street_number }} {{ proof.service.property.street }}, {{ proof.service.property.city }}</span>
+            </div>
+            <div class="summary-card">
+                <span class="summary-label">Payment Type</span>
+                <span class="summary-value">{{ proof.payment_type }}</span>
+            </div>
+            <div class="summary-card">
+                <span class="summary-label">Bank Used</span>
+                <span class="summary-value">{{ proof.bank_used }}</span>
+            </div>
+            <div class="summary-card">
+                <span class="summary-label">Account Number</span>
+                <span class="summary-value">{{ proof.account_number }}</span>
+            </div>
+            <div class="summary-card">
+                <span class="summary-label">Reference Number</span>
+                <span class="summary-value">{{ proof.reference_number }}</span>
+            </div>
+            <div class="summary-card">
+                <span class="summary-label">Amount Paid</span>
+                <span class="summary-value">PHP {{ proof.amount_paid }}</span>
+            </div>
+            <div class="summary-card">
+                <span class="summary-label">Uploaded</span>
+                <span class="summary-value">{{ proof.uploaded_at|date:'M d, Y h:i A' }}</span>
+            </div>
+            <div class="summary-card">
+                <span class="summary-label">Current Status</span>
+                <span class="summary-value">
+                    <span class="status-chip {% if proof.status == 'For Validation' %}status-pending{% elif proof.status == 'Validated' %}status-validated{% else %}status-rejected{% endif %}">{{ proof.status }}</span>
+                </span>
+            </div>
+            <div class="summary-card">
+                <span class="summary-label">Proof File</span>
+                <span class="summary-value">
+                    {% if proof.proof_file %}
+                        <a href="{{ proof.proof_file.url }}" target="_blank" rel="noopener" class="proof-link">Open uploaded proof</a>
+                    {% else %}
+                        -
+                    {% endif %}
+                </span>
+            </div>
+            {% if proof.rejection_reason %}
+            <div class="summary-card" style="grid-column: 1 / -1;">
+                <span class="summary-label">Previous Rejection</span>
+                <span class="summary-value">{{ proof.rejection_reason }}</span>
+            </div>
+            {% endif %}
         </div>
 
-        <div class="layout">
-            <div class="card">
-                <h2>Submission Details</h2>
-                <div class="row"><div class="label">Service ID</div><div class="value">{{ proof.service.id|stringformat:'07d' }}</div></div>
-                <div class="row"><div class="label">Customer</div><div class="value">{{ proof.customer.first_name }} {{ proof.customer.last_name }}</div></div>
-                <div class="row">
-                    <div class="label">Invoice</div>
-                    <div class="value">
-                        {% if proof.invoice %}
-                            <a class="proof-link" href="{% url 'sales_representative_view_invoice' proof.invoice.id %}?back={% url 'sales_representative_review_payment_proof' proof.id %}">View Invoice</a>
-                        {% else %}
-                            -
-                        {% endif %}
-                    </div>
-                </div>
-                <div class="row"><div class="label">Property</div><div class="value">{{ proof.service.property.street_number }} {{ proof.service.property.street }}, {{ proof.service.property.city }}</div></div>
-                <div class="row"><div class="label">Payment Type</div><div class="value">{{ proof.payment_type }}</div></div>
-                <div class="row"><div class="label">Bank Used</div><div class="value">{{ proof.bank_used }}</div></div>
-                <div class="row"><div class="label">Account Number</div><div class="value">{{ proof.account_number }}</div></div>
-                <div class="row"><div class="label">Reference Number</div><div class="value">{{ proof.reference_number }}</div></div>
-                <div class="row"><div class="label">Amount Paid</div><div class="value">PHP {{ proof.amount_paid }}</div></div>
-                <div class="row"><div class="label">Uploaded</div><div class="value">{{ proof.uploaded_at|date:'M d, Y h:i A' }}</div></div>
-                <div class="row">
-                    <div class="label">Current Status</div>
-                    <div class="value">
-                        <span class="status-chip {% if proof.status == 'For Validation' %}status-pending{% elif proof.status == 'Validated' %}status-validated{% else %}status-rejected{% endif %}">{{ proof.status }}</span>
-                    </div>
-                </div>
-                {% if proof.proof_file %}
-                <div class="row"><div class="label">Proof File</div><div class="value"><a href="{{ proof.proof_file.url }}" target="_blank" rel="noopener" class="proof-link">Open uploaded proof</a></div></div>
-                {% endif %}
-                {% if proof.rejection_reason %}
-                <div class="row"><div class="label">Previous Rejection</div><div class="value">{{ proof.rejection_reason }}</div></div>
-                {% endif %}
-            </div>
+        <div class="action-shell">
+            <h2>Validation Action</h2>
+            {% if proof.status == 'Validated' %}
+                <p class="validated-note">This payment proof is already validated.</p>
+            {% else %}
+                <form method="POST">
+                    {% csrf_token %}
+                    <label for="rejection_reason" class="label">Rejection Reason (required only when rejecting)</label>
+                    <textarea id="rejection_reason" name="rejection_reason" placeholder="State clear reason if this payment proof is invalid."></textarea>
+                    {% if errors.rejection_reason %}<div class="error">{{ errors.rejection_reason }}</div>{% endif %}
 
-            <div class="card">
-                <h2>Validation Action</h2>
-                {% if proof.status == 'Validated' %}
-                    <p>This payment proof is already validated.</p>
                     <div class="actions">
-                        <a href="{% url 'sales_representative_payment_proofs' %}" class="btn btn-secondary">Back to Queue</a>
+                        <button type="submit" name="action" value="validate" class="btn btn-primary">Validate Payment</button>
+                        <button type="submit" name="action" value="reject" class="btn btn-danger">Reject Payment</button>
                     </div>
-                {% else %}
-                    <form method="POST">
-                        {% csrf_token %}
-                        <label for="rejection_reason" class="label">Rejection Reason (required only when rejecting)</label>
-                        <textarea id="rejection_reason" name="rejection_reason" placeholder="State clear reason if this payment proof is invalid."></textarea>
-                        {% if errors.rejection_reason %}<div class="error">{{ errors.rejection_reason }}</div>{% endif %}
-
-                        <div class="actions">
-                            <a href="{% url 'sales_representative_payment_proofs' %}" class="btn btn-secondary">Back to Queue</a>
-                            <button type="submit" name="action" value="validate" class="btn btn-primary">Validate Payment</button>
-                            <button type="submit" name="action" value="reject" class="btn btn-danger">Reject Payment</button>
-                        </div>
-                    </form>
-                {% endif %}
-            </div>
+                </form>
+            {% endif %}
         </div>
     </div>
 </div>

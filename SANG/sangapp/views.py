@@ -416,7 +416,7 @@ def home(request):
     if request.session.get('technician_id'):
         return redirect('technician_home')
     if request.session.get('sales_representative_id'):
-        return redirect('sales_representative_home')
+        return redirect('sales_representative_payment_proofs')
     return render(request, 'home.html')
 
 
@@ -447,7 +447,7 @@ def login(request):
             request.session['sales_representative_id'] = sales_representative.id
             request.session['sales_representative_name'] = f"{sales_representative.first_name} {sales_representative.last_name}"
             request.session['sales_representative_display_id'] = str(sales_representative.id)
-            return redirect('sales_representative_home')
+            return redirect('sales_representative_payment_proofs')
 
         customer = Customer.objects.filter(email=email).only('id', 'password', 'first_name', 'last_name').first()
         if customer and customer.password == password:
