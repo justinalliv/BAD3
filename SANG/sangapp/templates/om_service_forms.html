@@ -9,13 +9,6 @@
         padding: 0 24px;
     }
 
-    .identified-top {
-        text-align: right;
-        color: #333;
-        margin: 10px 0 8px;
-        font-size: 0.9em;
-    }
-
     .sheet {
         background: #fff;
         border: 1px solid #ddd;
@@ -146,8 +139,12 @@
     }
 
     .btn-edit {
-        background: #eef1fb;
-        color: #1a2a5e;
+        background: #1a2a5e;
+        color: #fff;
+    }
+
+    .btn-edit:hover {
+        background: #0d1535;
     }
 
     .btn-delete {
@@ -253,8 +250,6 @@
 
 {% block content %}
 <div class="container">
-    <p class="identified-top">User Identified As: Operations Manager</p>
-
     <div class="sheet">
         <div class="page-head">
             <a href="{% url 'om_manage_service_forms' %}" class="back-link">← Back</a>
@@ -361,7 +356,7 @@
                                     data-edit-additional-information="{{ option.additional_information|default:''|escape }}"
                                     data-edit-dilution-rate="{{ option.dilution_rate|default:''|escape }}"
                                     data-edit-active="{{ option.is_active|yesno:'true,false' }}"
-                                >Edit</button>
+                                >Update</button>
                             </div>
                         </td>
                     </tr>
@@ -399,7 +394,7 @@
                                     data-edit-description="{{ option.option_description|escape }}"
                                     data-edit-rate="{{ option.option_rate|default:'' }}"
                                     data-edit-active="{{ option.is_active|yesno:'true,false' }}"
-                                >Edit</button>
+                                >Update</button>
                             </div>
                         </td>
                     </tr>
