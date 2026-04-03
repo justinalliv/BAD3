@@ -328,6 +328,9 @@ class Invoice(models.Model):
     class Meta:
         db_table = 'invoices'
         ordering = ['-created_at']
+        constraints = [
+            models.UniqueConstraint(fields=['service'], name='unique_invoice_per_service'),
+        ]
 
 
 class InvoiceItemOption(models.Model):

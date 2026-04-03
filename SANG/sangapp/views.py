@@ -524,12 +524,15 @@ def profile(request):
         customer=customer
     ).exclude(
         status__in=['Completed', 'Cancelled']
-    ).select_related('property', 'estimated_bill', 'service_report', 'payment_proof').order_by('-created_at')
+    ).select_related('property', 'estimated_bill', 'service_report', 'payment_proof').annotate(
+        invoice_count=Count('invoices', distinct=True)
+    ).order_by('-created_at')
 
     for service in services:
         proof = getattr(service, 'payment_proof', None)
+        service.has_invoice = (service.invoice_count or 0) > 0
         service.payment_proof_status = proof.status if proof else ''
-        service.can_submit_payment_proof = (not proof) or proof.status == PaymentProof.STATUS_REJECTED
+        service.can_submit_payment_proof = service.has_invoice and ((not proof) or proof.status == PaymentProof.STATUS_REJECTED)
     
     return render(request, 'profile.html', {
         'customer': customer,
@@ -1753,17 +1756,33 @@ def om_view_invoice(request, invoice_id):
         return redirect('login')
 
     invoice = Invoice.objects.select_related(
-        'service__customer', 'service__property', 'operations_manager'
-    ).prefetch_related('items').filter(id=invoice_id).first()
+        'service__customer', 'service__property', 'operations_manager', 'service__estimated_bill'
+    ).prefetch_related('items__service_item', 'service__estimated_bill__items').filter(id=invoice_id).first()
 
     if not invoice:
         return redirect('om_invoices')
 
     treatment_rows = []
+    estimated_bill = getattr(invoice.service, 'estimated_bill', None)
+    if estimated_bill:
+        for item in estimated_bill.items.all():
+            treatment_details = _get_treatment_billing_details(item.service_type)
+            treatment_rows.append({
+                'service_type': treatment_details['service_type'] or item.service_type,
+                'quantity': item.quantity,
+                'unit_price': item.unit_price,
+                'line_total': item.line_total,
+                'target_pest': treatment_details['target_pest'],
+                'application_method': treatment_details['application_method'],
+                'additional_information': treatment_details['additional_information'],
+                'dilution_rate': treatment_details['dilution_rate'],
+            })
+
+    service_item_rows = []
     for item in invoice.items.all():
         treatment_details = _get_treatment_billing_details(item.item_type)
-        treatment_rows.append({
-            'item_type': treatment_details['service_type'] or item.item_type,
+        service_item_rows.append({
+            'item_type': item.service_item.name if item.service_item else item.item_type,
             'quantity': item.quantity,
             'unit_price': item.unit_price,
             'line_total': item.line_total,
@@ -1773,10 +1792,15 @@ def om_view_invoice(request, invoice_id):
             'dilution_rate': treatment_details['dilution_rate'],
         })
 
+    treatment_total = sum((row['line_total'] for row in treatment_rows), Decimal('0.00'))
+    service_item_total = sum((row['line_total'] for row in service_item_rows), Decimal('0.00'))
+
     return render(request, 'om_invoice_view.html', {
         'invoice': invoice,
         'back_url': _resolve_back_url(request, 'om_invoices'),
         'treatment_rows': treatment_rows,
+        'service_item_rows': service_item_rows,
+        'display_total_amount': treatment_total + service_item_total,
         'service_type_display': invoice.service.treatment_summary,
     })
 
@@ -1792,8 +1816,8 @@ def customer_view_invoice(request, service_id):
         return redirect('login')
 
     invoice = Invoice.objects.select_related(
-        'service__customer', 'service__property', 'operations_manager'
-    ).prefetch_related('items').filter(
+        'service__customer', 'service__property', 'operations_manager', 'service__estimated_bill'
+    ).prefetch_related('items__service_item', 'service__estimated_bill__items').filter(
         service_id=service_id,
         service__customer=customer,
     ).first()
@@ -1802,10 +1826,26 @@ def customer_view_invoice(request, service_id):
         return redirect('pending_payment')
 
     treatment_rows = []
+    estimated_bill = getattr(invoice.service, 'estimated_bill', None)
+    if estimated_bill:
+        for item in estimated_bill.items.all():
+            treatment_details = _get_treatment_billing_details(item.service_type)
+            treatment_rows.append({
+                'service_type': treatment_details['service_type'] or item.service_type,
+                'quantity': item.quantity,
+                'unit_price': item.unit_price,
+                'line_total': item.line_total,
+                'target_pest': treatment_details['target_pest'],
+                'application_method': treatment_details['application_method'],
+                'additional_information': treatment_details['additional_information'],
+                'dilution_rate': treatment_details['dilution_rate'],
+            })
+
+    service_item_rows = []
     for item in invoice.items.all():
         treatment_details = _get_treatment_billing_details(item.item_type)
-        treatment_rows.append({
-            'item_type': treatment_details['service_type'] or item.item_type,
+        service_item_rows.append({
+            'item_type': item.service_item.name if item.service_item else item.item_type,
             'quantity': item.quantity,
             'unit_price': item.unit_price,
             'line_total': item.line_total,
@@ -1815,11 +1855,16 @@ def customer_view_invoice(request, service_id):
             'dilution_rate': treatment_details['dilution_rate'],
         })
 
+    treatment_total = sum((row['line_total'] for row in treatment_rows), Decimal('0.00'))
+    service_item_total = sum((row['line_total'] for row in service_item_rows), Decimal('0.00'))
+
     return render(request, 'om_invoice_view.html', {
         'invoice': invoice,
         'role': 'customer',
         'back_url': _resolve_back_url(request, 'pending_payment'),
         'treatment_rows': treatment_rows,
+        'service_item_rows': service_item_rows,
+        'display_total_amount': treatment_total + service_item_total,
         'service_type_display': invoice.service.treatment_summary,
         'allow_customer_payment': True,
     })
@@ -2098,6 +2143,7 @@ def _get_invoice_eligible_services_queryset():
     return Service.objects.filter(
         status__in=['Ongoing Treatment', 'Pending Payment'],
         estimated_bill__isnull=False,
+        invoices__isnull=True,
     ).select_related('customer', 'property', 'estimated_bill').prefetch_related(
         'estimated_bill__items',
         'invoices__items',
@@ -2161,6 +2207,9 @@ def om_create_invoice(request):
 
         if not selected_service:
             errors['general'] = 'Required fields must be filled in.'
+
+        if selected_service and selected_service.invoices.exists():
+            errors['general'] = 'An invoice already exists for this service.'
 
         if has_invalid:
             errors['general'] = 'Required fields must be filled in.'
@@ -4307,7 +4356,8 @@ def technician_create_service_report(request):
                         for row in treated_areas
                     ])
 
-                    selected_service.status = 'Pending Payment'
+                    # Keep Ongoing Treatment until invoice creation to preserve billing workflow congruence.
+                    selected_service.status = 'Ongoing Treatment'
                     selected_service.save(update_fields=['status'])
 
                 request.session.pop('tech_service_report_draft', None)

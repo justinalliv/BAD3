@@ -301,7 +301,7 @@
                                     <a href="{% url 'customer_view_estimated_bill' service.id %}" class="action-btn estimated">View Estimated Bill</a>
                                 {% endif %}
 
-                                {% if service.status == 'Pending Payment' or service.payment_proof %}
+                                {% if service.has_invoice %}
                                     <a href="{% url 'customer_view_invoice' service.id %}" class="action-btn estimated">View Invoice</a>
                                     {% if service.can_submit_payment_proof %}
                                         <a href="{% url 'submit_payment_proof' %}?service_id={{ service.id }}" class="action-btn update">Submit Proof</a>
