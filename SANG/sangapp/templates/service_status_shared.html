@@ -262,6 +262,14 @@
         color: #777;
     }
 
+    .no-action {
+        display: inline-block;
+        color: #6b7280;
+        font-size: 0.76em;
+        font-weight: 600;
+        text-align: center;
+    }
+
     @media (max-width: 1100px) {
         .top-actions {
             flex-wrap: wrap;
@@ -377,6 +385,12 @@
                                         <a href="{% url 'om_view_booking' service.id %}" class="action-btn booking">View Booking</a>
                                         {% if service.status == 'For Confirmation' or service.status == 'For Inspection' or service.status == 'For Treatment' or service.status == 'For Booking' %}
                                             <button type="button" class="action-btn delete" data-delete-url="{% url 'om_delete_booking' service.id %}" onclick="openDeleteModal(this)">Delete Service</button>
+                                        {% endif %}
+                                    {% elif status_role == 'sales' %}
+                                        {% if service.latest_invoice %}
+                                            <a href="{% url 'sales_representative_view_invoice' service.latest_invoice.id %}?back={% url 'sales_representative_service_status' %}" class="action-btn estimated">View Invoice</a>
+                                        {% else %}
+                                            <span class="no-action">No actions</span>
                                         {% endif %}
                                     {% else %}
                                         <a href="{% url 'technician_update_service_status' service.id %}" class="action-btn update">Update Status</a>

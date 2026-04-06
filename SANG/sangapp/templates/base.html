@@ -662,7 +662,7 @@
     {% block base_nav %}
     <!-- Navigation Bar -->
     <nav class="nav-spacious {% if request.session.om_id or request.session.technician_id or request.session.sales_representative_id %}nav-om{% endif %}">
-        <a href="{% if request.session.om_id %}{% url 'om_home' %}{% elif request.session.technician_id %}{% url 'technician_home' %}{% elif request.session.sales_representative_id %}{% url 'sales_representative_payment_proofs' %}{% else %}{% url 'home' %}{% endif %}" class="nav-logo">
+        <a href="{% if request.session.om_id %}{% url 'om_home' %}{% elif request.session.technician_id %}{% url 'technician_home' %}{% elif request.session.sales_representative_id %}{% url 'sales_representative_home' %}{% else %}{% url 'home' %}{% endif %}" class="nav-logo">
             <img src="/static/images/logo.png" alt="Supreme logo" class="nav-logo-image">
             <span class="nav-logo-text">Supreme</span>
         </a>
@@ -704,6 +704,9 @@
         </a>
         {% elif request.session.sales_representative_id %}
         <ul class="nav-links">
+            <li><a href="{% url 'sales_representative_home' %}" {% if current == 'sales_representative_home' %}class="active"{% endif %}>Home</a></li>
+            <li><a href="{% url 'sales_representative_service_history' %}" {% if current == 'sales_representative_service_history' %}class="active"{% endif %}>Service History</a></li>
+            <li><a href="{% url 'sales_representative_service_status' %}" {% if current == 'sales_representative_service_status' %}class="active"{% endif %}>Service Status</a></li>
             <li><a href="{% url 'sales_representative_payment_proofs' %}" {% if current == 'sales_representative_payment_proofs' or current == 'sales_representative_review_payment_proof' %}class="active"{% endif %}>Proof of Payment</a></li>
         </ul>
 

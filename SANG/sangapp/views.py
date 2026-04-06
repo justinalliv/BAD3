@@ -2735,22 +2735,16 @@ def sales_representative_service_history(request):
         return redirect('login')
 
     search = request.GET.get('q', '').strip()
-    services = Service.objects.select_related('customer', 'property').filter(
-        status__in=['Payment Confirmed', 'Completed', 'Cancelled']
-    ).order_by('-created_at')
+    status_filter = request.GET.get('status', '').strip()
+    services, history_statuses = _get_service_history_queryset(search, status_filter)
 
-    if search:
-        services = services.filter(
-            Q(id__icontains=search)
-            | Q(customer__first_name__icontains=search)
-            | Q(customer__last_name__icontains=search)
-            | Q(property__street__icontains=search)
-        )
-
-    return render(request, 'sales_representative_service_history.html', {
+    return render(request, 'service_history_shared.html', {
         'sales_representative': sales_representative,
+        'history_role': 'sales',
         'services': services,
         'search': search,
+        'status_filter': status_filter,
+        'status_choices': history_statuses,
     })
 
 
@@ -2765,24 +2759,37 @@ def sales_representative_service_status(request):
         request.session.flush()
         return redirect('login')
 
-    search = request.GET.get('q', '').strip()
-    services = Service.objects.select_related('customer', 'property').exclude(
+    created_order = request.GET.get('created_order', 'newest').strip().lower()
+    if created_order not in {'newest', 'oldest'}:
+        created_order = 'newest'
+    order_by = 'created_at' if created_order == 'oldest' else '-created_at'
+
+    status_order_cases = [
+        When(status=status_value, then=position)
+        for position, status_value in enumerate(OM_STATUS_WORKFLOW)
+    ]
+
+    services_qs = Service.objects.exclude(
         status__in=['Completed', 'Cancelled']
-    ).order_by('-created_at')
-
-    if search:
-        services = services.filter(
-            Q(id__icontains=search)
-            | Q(customer__first_name__icontains=search)
-            | Q(customer__last_name__icontains=search)
-            | Q(property__street__icontains=search)
-            | Q(status__icontains=search)
+    ).select_related('customer', 'property', 'service_report').prefetch_related(
+        'invoices'
+    ).annotate(
+        workflow_order=Case(
+            *status_order_cases,
+            default=len(OM_STATUS_WORKFLOW),
+            output_field=IntegerField(),
         )
+    ).order_by(order_by, 'workflow_order')
 
-    return render(request, 'sales_representative_service_status.html', {
+    services = list(services_qs)
+    for service in services:
+        service.latest_invoice = service.invoices.order_by('-created_at').first()
+
+    return render(request, 'service_status_shared.html', {
         'sales_representative': sales_representative,
+        'status_role': 'sales',
         'services': services,
-        'search': search,
+        'created_order': created_order,
     })
 
 
