@@ -1597,25 +1597,6 @@ def sales_representative_profile(request):
     return render(request, 'sales_representative_profile.html', {
         'sales_representative': sales_representative,
     })
-
-
-def om_placeholder(request, page_title):
-    """Render inactive OM pages."""
-    if 'om_id' not in request.session:
-        return redirect('login')
-
-    try:
-        om = OperationsManager.objects.get(id=request.session['om_id'])
-    except OperationsManager.DoesNotExist:
-        request.session.flush()
-        return redirect('login')
-
-    return render(request, 'om_placeholder.html', {
-        'om': om,
-        'page_title': page_title,
-    })
-
-
 def _get_service_history_queryset(search='', status_filter=''):
     history_statuses = ['Payment Confirmed', 'Completed', 'Cancelled']
     services = Service.objects.select_related(
