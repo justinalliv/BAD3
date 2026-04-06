@@ -28,6 +28,7 @@ urlpatterns = [
     path('om/home/', views.om_home, name='om_home'),
     path('om/profile/', views.om_profile, name='om_profile'),
     path('om/profile/change-password/', views.om_change_password, name='om_change_password'),
+    path('sales-representative/profile/', views.sales_representative_profile, name='sales_representative_profile'),
     path('om/service-history/', views.om_service_history, name='om_service_history'),
     path('om/billing/', views.om_billing, name='om_billing'),
     path('om/billing/estimated/', views.om_estimated_bills, name='om_estimated_bills'),

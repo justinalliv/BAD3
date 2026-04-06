@@ -433,7 +433,7 @@ def home(request):
     if request.session.get('technician_id'):
         return redirect('technician_home')
     if request.session.get('sales_representative_id'):
-        return redirect('sales_representative_payment_proofs')
+        return redirect('sales_representative_home')
     return render(request, 'home.html')
 
 
@@ -464,7 +464,7 @@ def login(request):
             request.session['sales_representative_id'] = sales_representative.id
             request.session['sales_representative_name'] = f"{sales_representative.first_name} {sales_representative.last_name}"
             request.session['sales_representative_display_id'] = str(sales_representative.id)
-            return redirect('sales_representative_payment_proofs')
+            return redirect('sales_representative_home')
 
         customer = Customer.objects.filter(email=email, is_active=True).only('id', 'password', 'first_name', 'last_name').first()
         if customer and customer.password == password:
@@ -1581,6 +1581,22 @@ def om_change_password(request):
         })
 
     return render(request, 'om_change_password.html', {'om': om})
+
+
+def sales_representative_profile(request):
+    if 'sales_representative_id' not in request.session:
+        return redirect('login')
+
+    sales_representative = SalesRepresentative.objects.filter(
+        id=request.session['sales_representative_id']
+    ).first()
+    if not sales_representative:
+        request.session.flush()
+        return redirect('login')
+
+    return render(request, 'sales_representative_profile.html', {
+        'sales_representative': sales_representative,
+    })
 
 
 def om_placeholder(request, page_title):

@@ -710,7 +710,7 @@
             <li><a href="{% url 'sales_representative_payment_proofs' %}" {% if current == 'sales_representative_payment_proofs' or current == 'sales_representative_review_payment_proof' %}class="active"{% endif %}>Proof of Payment</a></li>
         </ul>
 
-        <a href="{% url 'logout' %}" class="profile-btn" title="Logout">
+        <a href="{% url 'sales_representative_profile' %}" class="profile-btn {% if current == 'sales_representative_profile' %}active{% endif %}">
             <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
                 <circle cx="10" cy="6" r="4"/>
                 <path d="M 4 18 Q 4 12 10 12 Q 16 12 16 18 Z"/>
