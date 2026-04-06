@@ -1,0 +1,152 @@
+{% extends 'base.html' %}
+
+{% block title %}Manage Accounts - Supreme Biotech Solutions{% endblock %}
+
+{% block extra_css %}
+    .container {
+        max-width: 1120px;
+        margin: 24px auto 40px;
+        padding: 0 24px;
+    }
+
+    .title {
+        color: #1a2a5e;
+        text-align: center;
+        margin: 0 0 10px;
+        font-size: 2.1em;
+    }
+
+    .sub {
+        color: #555;
+        text-align: center;
+        margin-bottom: 20px;
+        font-size: 0.95em;
+    }
+
+    .sheet {
+        background: #fff;
+        border: 1px solid #ddd;
+        border-radius: 12px;
+        padding: 24px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+    }
+
+    .section-heading {
+        color: #1a2a5e;
+        font-size: 1.08em;
+        font-weight: 800;
+        margin: 18px 0 10px;
+    }
+
+    .actions {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(240px, 1fr));
+        gap: 14px;
+    }
+
+    .option-btn {
+        border: 1px solid #dfe3ee;
+        border-radius: 12px;
+        min-height: 150px;
+        padding: 18px;
+        font-size: 1rem;
+        text-decoration: none;
+        display: inline-flex;
+        flex-direction: column;
+        align-items: flex-start;
+        justify-content: center;
+        gap: 8px;
+        background: #f9fafc;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+        transition: border-color 0.2s ease, transform 0.15s ease, background 0.2s ease;
+        cursor: pointer;
+    }
+
+    .option-btn .icon {
+        width: 34px;
+        height: 34px;
+        color: #1a2a5e;
+    }
+
+    .option-btn .card-title {
+        color: #1a2a5e;
+        font-size: 1.2em;
+        line-height: 1.2;
+        font-weight: 800;
+        text-align: left;
+        margin: 0;
+    }
+
+    .option-btn .card-sub {
+        color: #2f2f2f;
+        font-size: 0.9em;
+        font-weight: 500;
+        text-align: left;
+        line-height: 1.35;
+    }
+
+    .option-btn:hover {
+        border-color: #bcc7e7;
+        background: #fff;
+        transform: translateY(-1px);
+    }
+
+    @media (max-width: 1000px) {
+        .actions {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    @media (max-width: 640px) {
+        .actions {
+            grid-template-columns: 1fr;
+        }
+
+        .title {
+            font-size: 1.7em;
+        }
+    }
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="sheet">
+        <h1 class="title">Manage Accounts</h1>
+        <p class="sub">Manage system accounts by role using a structured configuration layout.</p>
+
+        <div class="section-heading">Account Management</div>
+        <div class="actions">
+            <a href="{% url 'om_manage_technician_accounts' %}" class="option-btn">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+                <span class="card-title">Technician</span>
+                <span class="card-sub">Create and manage technician accounts</span>
+            </a>
+
+            <a href="{% url 'om_manage_sales_accounts' %}" class="option-btn">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="8.5" cy="7" r="4"></circle>
+                    <path d="M20 8v6"></path>
+                    <path d="M23 11h-6"></path>
+                </svg>
+                <span class="card-title">Sales Representative</span>
+                <span class="card-sub">Create and manage sales representative accounts</span>
+            </a>
+
+            <a href="{% url 'om_manage_customer_accounts' %}" class="option-btn">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M3 7h18"></path>
+                    <path d="M5 7v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7"></path>
+                    <path d="M9 12h6"></path>
+                    <path d="M9 16h4"></path>
+                </svg>
+                <span class="card-title">Customer</span>
+                <span class="card-sub">Review and manage customer accounts</span>
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

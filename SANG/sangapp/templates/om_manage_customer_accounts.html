@@ -1,0 +1,476 @@
+{% extends 'base.html' %}
+
+{% block title %}Customer Accounts - Supreme Biotech Solutions{% endblock %}
+
+{% block extra_css %}
+    .container {
+        max-width: 1220px;
+        margin: 24px auto 40px;
+        padding: 0 24px;
+    }
+
+    .sheet {
+        background: #fff;
+        border: 1px solid #ddd;
+        border-radius: 12px;
+        padding: 24px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+    }
+
+    .header-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 24px;
+    }
+
+    .back-btn {
+        background: #eef3f9;
+        color: #34405b;
+        border: 1px solid #d4deec;
+        padding: 10px 16px;
+        border-radius: 10px;
+        font-size: 0.9em;
+        font-weight: 700;
+        text-decoration: none;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        transition: background 0.2s, color 0.2s;
+    }
+
+    .back-btn:hover {
+        background: #e4edf8;
+        color: #273453;
+    }
+
+    .title {
+        color: #1a2a5e;
+        font-size: 1.6em;
+        margin: 0;
+        text-align: center;
+        flex: 1;
+    }
+
+    .spacer {
+        width: 100px;
+    }
+
+    .card {
+        border: 1px solid #dfe3ee;
+        border-radius: 10px;
+        padding: 16px;
+        background: #f9fafc;
+    }
+
+    .hint {
+        color: #666;
+        font-size: 0.86em;
+        margin-bottom: 12px;
+        margin-top: 0;
+    }
+
+    .toolbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        margin-bottom: 10px;
+    }
+
+    .table-title {
+        color: #1a2a5e;
+        font-size: 1.1em;
+        font-weight: 700;
+        margin: 0;
+    }
+
+    .search-field {
+        width: 100%;
+        max-width: 250px;
+    }
+
+    .table-wrap {
+        border: 1px solid #dfe3ee;
+        border-radius: 10px;
+        background: #fff;
+        overflow-x: auto;
+    }
+
+    .table-wrap.scrollable {
+        max-height: 900px;
+        overflow-y: auto;
+    }
+
+    .table-wrap.scrollable thead th {
+        position: sticky;
+        top: 0;
+        z-index: 2;
+    }
+
+    table {
+        width: 100%;
+        min-width: 800px;
+        table-layout: fixed;
+        border-collapse: collapse;
+    }
+
+    th,
+    td {
+        padding: 11px 12px;
+        border-bottom: 1px solid #e9ebf1;
+        text-align: left;
+        vertical-align: middle;
+        font-size: 0.86em;
+        line-height: 1.35;
+    }
+
+    th {
+        background: #1a2a5e;
+        color: #fff;
+        font-size: 0.88em;
+        font-weight: 700;
+        border-bottom: none;
+        word-break: normal;
+        overflow-wrap: normal;
+    }
+
+    tbody tr:last-child td {
+        border-bottom: none;
+    }
+
+    .status-pill {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 28px;
+        padding: 0 10px;
+        border-radius: 999px;
+        font-size: 0.8em;
+        font-weight: 700;
+        white-space: nowrap;
+    }
+
+    .status-pill.active {
+        background: #d1e7dd;
+        color: #0f5132;
+    }
+
+    .status-pill.inactive {
+        background: #e2e3e5;
+        color: #383d41;
+    }
+
+    .linked-info {
+        font-size: 0.9em;
+    }
+
+    .linked-label {
+        font-size: 0.84em;
+        color: #5d6378;
+        display: block;
+    }
+
+    .action-stack {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        justify-content: center;
+        align-items: stretch;
+        width: 100%;
+        max-width: 150px;
+        margin: 0 auto;
+    }
+
+    .action-stack > * {
+        width: 100%;
+    }
+
+    .action-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        min-height: 36px;
+        min-width: 0;
+        padding: 0 12px;
+        border-radius: 8px;
+        border: none;
+        color: #fff;
+        text-decoration: none;
+        font-size: 0.83em;
+        font-weight: 700;
+        cursor: pointer;
+        box-sizing: border-box;
+        white-space: nowrap;
+    }
+
+    .action-btn.update {
+        background: #1a2a5e;
+    }
+
+    .action-btn.update:hover {
+        background: #0d1535;
+    }
+
+    .action-btn.delete {
+        background: #2f9e57;
+    }
+
+    .action-btn.delete:hover {
+        background: #267f47;
+    }
+
+    .action-btn.delete-hard {
+        background: #c53c46;
+    }
+
+    .action-btn.delete-hard:hover {
+        background: #a6303a;
+    }
+
+    .action-btn.disabled {
+        background: #e6b7bc;
+        color: #7f343d;
+        cursor: not-allowed;
+    }
+
+    .empty-cell {
+        text-align: center;
+        color: #666;
+        font-size: 0.92em;
+        padding: 16px 12px;
+    }
+
+    @media (max-width: 980px) {
+        .toolbar {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .search-field {
+            max-width: 100%;
+        }
+
+        .action-stack {
+            max-width: 140px;
+        }
+    }
+
+    @media (max-width: 760px) {
+        .container {
+            padding: 0 12px;
+        }
+
+        .sheet {
+            padding: 16px;
+        }
+
+        .header-row {
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .title {
+            font-size: 1.4em;
+        }
+
+        .spacer {
+            display: none;
+        }
+    }
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="sheet">
+        <div class="header-row">
+            <a href="{% url 'om_manage_accounts' %}" class="back-btn">← Back</a>
+            <h1 class="title">Customer Accounts</h1>
+            <div class="spacer"></div>
+        </div>
+
+        <div class="card">
+            <p class="hint">Deactivate a customer first to preserve history, then delete the inactive account if needed.</p>
+
+            <div class="toolbar">
+                <div class="table-title">Customer Accounts</div>
+                <input type="text" id="customerSearchInput" class="search-box-unified search-field" placeholder="Search">
+            </div>
+
+            <div class="table-wrap {% if customers|length > 15 %}scrollable{% endif %}">
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width:10%;">Customer ID</th>
+                            <th style="width:14%;">Customer</th>
+                            <th style="width:18%;">Email</th>
+                            <th style="width:11%;">Phone</th>
+                            <th style="width:14%;">Linked Records</th>
+                            <th style="width:11%;">Created At</th>
+                            <th style="width:8%;">Status</th>
+                            <th style="width:14%; text-align:center;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if customers %}
+                            {% for customer in customers %}
+                            <tr data-search="{{ customer.id }} {{ customer.first_name }} {{ customer.last_name }} {{ customer.email }} {{ customer.phone_number }}">
+                                <td>{{ customer.id }}</td>
+                                <td>{{ customer.first_name }} {{ customer.last_name }}</td>
+                                <td>{{ customer.email }}</td>
+                                <td>{{ customer.phone_number }}</td>
+                                <td>
+                                    <div class="linked-info">{{ customer.property_count }} properties / {{ customer.service_count }} services</div>
+                                    {% if customer.property_count or customer.service_count %}
+                                    <span class="linked-label">In use</span>
+                                    {% else %}
+                                    <span class="linked-label">Unused</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ customer.created_at|date:'M d, Y' }}</td>
+                                <td>
+                                    {% if customer.is_active %}
+                                    <span class="status-pill active">Active</span>
+                                    {% else %}
+                                    <span class="status-pill inactive">Archived</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="action-stack">
+                                        {% if customer.is_active %}
+                                        <form method="POST" style="margin:0;">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="action" value="archive_customer">
+                                            <input type="hidden" name="customer_pk" value="{{ customer.id }}">
+                                            <button type="button" class="action-btn delete js-customer-deactivate" data-customer-pk="{{ customer.id }}">Deactivate</button>
+                                        </form>
+                                        {% else %}
+                                        <form method="POST" style="margin:0;">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="action" value="reactivate_customer">
+                                            <input type="hidden" name="customer_pk" value="{{ customer.id }}">
+                                            <button type="submit" class="action-btn update">Reactivate</button>
+                                        </form>
+                                        <button type="button" class="action-btn delete-hard js-customer-delete" data-customer-pk="{{ customer.id }}">Delete</button>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr><td colspan="8" class="empty-cell">No customer accounts found.</td></tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <form id="customerDeleteForm" method="POST" style="display:none;">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="hard_delete_customer">
+            <input type="hidden" name="customer_pk" id="customerDeletePk">
+        </form>
+
+        <form id="customerDeactivateForm" method="POST" style="display:none;">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="archive_customer">
+            <input type="hidden" name="customer_pk" id="customerDeactivatePk">
+        </form>
+
+        <div id="customerDeactivateModal" class="modal">
+            <div class="modal-content">
+                <h2>Deactivate customer account</h2>
+                <p>Are you sure you want to deactivate this customer account?</p>
+                <div class="modal-buttons">
+                    <button type="button" class="modal-btn modal-btn-cancel" id="cancelCustomerDeactivate">Cancel</button>
+                    <button type="button" class="modal-btn modal-btn-danger" id="confirmCustomerDeactivate">Deactivate</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="customerDeleteModal" class="modal">
+            <div class="modal-content">
+                <h2>Delete customer account</h2>
+                <p>Are you sure you want to permanently delete this customer account? This cannot be undone.</p>
+                <div class="modal-buttons">
+                    <button type="button" class="modal-btn modal-btn-cancel" id="cancelCustomerDelete">Cancel</button>
+                    <button type="button" class="modal-btn modal-btn-danger" id="confirmCustomerDelete">Delete</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const customerSearchInput = document.getElementById('customerSearchInput');
+    const customerRows = document.querySelectorAll('[data-search]');
+    const customerDeactivateModal = document.getElementById('customerDeactivateModal');
+    const cancelCustomerDeactivate = document.getElementById('cancelCustomerDeactivate');
+    const confirmCustomerDeactivate = document.getElementById('confirmCustomerDeactivate');
+    const customerDeactivateForm = document.getElementById('customerDeactivateForm');
+    const customerDeactivatePk = document.getElementById('customerDeactivatePk');
+    const customerDeleteModal = document.getElementById('customerDeleteModal');
+    const cancelCustomerDelete = document.getElementById('cancelCustomerDelete');
+    const confirmCustomerDelete = document.getElementById('confirmCustomerDelete');
+    const customerDeleteForm = document.getElementById('customerDeleteForm');
+    const customerDeletePk = document.getElementById('customerDeletePk');
+
+    if (customerSearchInput && customerRows.length) {
+        customerSearchInput.addEventListener('keyup', function() {
+            const query = this.value.toLowerCase().trim();
+            customerRows.forEach((row) => {
+                const target = (row.dataset.search || '').toLowerCase();
+                row.style.display = target.includes(query) ? '' : 'none';
+            });
+        });
+    }
+
+    document.querySelectorAll('.js-customer-delete').forEach((button) => {
+        button.addEventListener('click', function () {
+            if (customerDeletePk) {
+                customerDeletePk.value = this.dataset.customerPk || '';
+            }
+            if (customerDeleteModal) {
+                customerDeleteModal.classList.add('show');
+            }
+        });
+    });
+
+    document.querySelectorAll('.js-customer-deactivate').forEach((button) => {
+        button.addEventListener('click', function () {
+            if (customerDeactivatePk) {
+                customerDeactivatePk.value = this.dataset.customerPk || '';
+            }
+            if (customerDeactivateModal) {
+                customerDeactivateModal.classList.add('show');
+            }
+        });
+    });
+
+    if (cancelCustomerDeactivate && customerDeactivateModal) {
+        cancelCustomerDeactivate.addEventListener('click', function () {
+            customerDeactivateModal.classList.remove('show');
+        });
+    }
+
+    if (confirmCustomerDeactivate && customerDeactivateModal && customerDeactivateForm) {
+        confirmCustomerDeactivate.addEventListener('click', function () {
+            customerDeactivateForm.submit();
+        });
+    }
+
+    if (cancelCustomerDelete && customerDeleteModal) {
+        cancelCustomerDelete.addEventListener('click', function () {
+            customerDeleteModal.classList.remove('show');
+        });
+    }
+
+    if (confirmCustomerDelete && customerDeleteModal && customerDeleteForm) {
+        confirmCustomerDelete.addEventListener('click', function () {
+            customerDeleteForm.submit();
+        });
+    }
+</script>
+{% endblock %}

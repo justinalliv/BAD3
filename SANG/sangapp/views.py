@@ -3513,6 +3513,7 @@ def om_invoice_items(request):
 
 
 def om_manage_accounts(request):
+    """Category entry screen for account management."""
     if 'om_id' not in request.session:
         return redirect('login')
 
@@ -3522,20 +3523,19 @@ def om_manage_accounts(request):
         request.session.flush()
         return redirect('login')
 
-    def _manage_accounts_context(**extra):
-        context = {
-            'om': om,
-            'technicians': Technician.objects.all().order_by('technician_id'),
-            'sales_representatives': SalesRepresentative.objects.all().order_by('created_at'),
-            'customers': Customer.objects.annotate(
-                property_count=Count('properties', distinct=True),
-                service_count=Count('services', distinct=True),
-            ).order_by('-created_at'),
-            'form_data': {},
-            'errors': {},
-        }
-        context.update(extra)
-        return context
+    return render(request, 'om_manage_accounts_category.html', {'om': om})
+
+
+def om_manage_technician_accounts(request):
+    """Technician account management screen."""
+    if 'om_id' not in request.session:
+        return redirect('login')
+
+    try:
+        om = OperationsManager.objects.get(id=request.session['om_id'])
+    except OperationsManager.DoesNotExist:
+        request.session.flush()
+        return redirect('login')
 
     if request.method == 'POST':
         action = request.POST.get('action', '').strip()
@@ -3554,10 +3554,25 @@ def om_manage_accounts(request):
                 errors['password'] = 'Password is required.'
 
             if errors:
-                return render(request, 'om_manage_accounts.html', _manage_accounts_context(
-                    errors=errors,
-                    form_data=request.POST,
-                ))
+                return render(request, 'om_manage_staff_accounts.html', {
+                    'om': om,
+                    'accounts': Technician.objects.all().order_by('technician_id'),
+                    'errors': errors,
+                    'form_data': request.POST,
+                    'account_type': 'technician',
+                    'page_heading': 'Technician Accounts',
+                    'role_label': 'Technician',
+                    'role_slug': 'technician',
+                    'id_header': 'Technician ID',
+                    'list_title': 'Technician Accounts',
+                    'create_hint': 'Technician ID and email are auto-generated as tech[ID]@companyemail.com',
+                    'create_action': 'create_technician',
+                    'deactivate_action': 'delete_technician',
+                    'reactivate_action': 'reactivate_technician',
+                    'hard_delete_action': 'hard_delete_technician',
+                    'pk_field_name': 'technician_pk',
+                    'edit_url_name': 'om_edit_technician_account',
+                })
 
             existing_ids = []
             for tech in Technician.objects.only('technician_id'):
@@ -3576,82 +3591,99 @@ def om_manage_accounts(request):
                 email=email,
                 password=password,
             )
-            messages.success(request, f'Technician account created: ID {technician_id} ({email})')
-            return redirect('om_manage_accounts')
-
-        if action == 'change_technician_password':
-            technician_pk = request.POST.get('technician_pk', '').strip()
-            new_password = request.POST.get('new_password', '').strip()
-
-            if not technician_pk or not new_password:
-                messages.error(request, 'Technician and new password are required.')
-                return redirect('om_manage_accounts')
-
-            technician = Technician.objects.filter(id=technician_pk).first()
-            if not technician:
-                messages.error(request, 'Technician account not found.')
-                return redirect('om_manage_accounts')
-
-            technician.password = new_password
-            technician.save(update_fields=['password'])
-            messages.success(request, f'Password updated for {technician.email}.')
-            return redirect('om_manage_accounts')
+            return redirect('om_manage_technician_accounts')
 
         if action == 'delete_technician':
             technician_pk = request.POST.get('technician_pk', '').strip()
-
-            if not technician_pk:
-                messages.error(request, 'Technician account not found.')
-                return redirect('om_manage_accounts')
-
             technician = Technician.objects.filter(id=technician_pk).first()
-            if not technician:
-                messages.error(request, 'Technician account not found.')
-                return redirect('om_manage_accounts')
+            if technician:
+                technician.is_active = False
+                technician.save(update_fields=['is_active'])
+            return redirect('om_manage_technician_accounts')
 
-            if not technician.is_active:
-                messages.info(request, f'Technician account already archived: {technician.email}')
-                return redirect('om_manage_accounts')
-
-            technician.is_active = False
-            technician.save(update_fields=['is_active'])
-            messages.success(request, f'Technician account archived: {technician.email}')
-            return redirect('om_manage_accounts')
+        if action == 'reactivate_technician':
+            technician_pk = request.POST.get('technician_pk', '').strip()
+            technician = Technician.objects.filter(id=technician_pk).first()
+            if technician:
+                technician.is_active = True
+                technician.save(update_fields=['is_active'])
+            return redirect('om_manage_technician_accounts')
 
         if action == 'hard_delete_technician':
             technician_pk = request.POST.get('technician_pk', '').strip()
-
-            if not technician_pk:
-                messages.error(request, 'Technician account not found.')
-                return redirect('om_manage_accounts')
-
             technician = Technician.objects.filter(id=technician_pk).first()
-            if not technician:
-                messages.error(request, 'Technician account not found.')
-                return redirect('om_manage_accounts')
+            if technician:
+                technician.delete()
+            return redirect('om_manage_technician_accounts')
 
-            technician.delete()
-            messages.success(request, f'Technician account permanently deleted: {technician.email}')
-            return redirect('om_manage_accounts')
+    return render(request, 'om_manage_staff_accounts.html', {
+        'om': om,
+        'accounts': Technician.objects.all().order_by('technician_id'),
+        'errors': {},
+        'form_data': {},
+        'account_type': 'technician',
+        'page_heading': 'Technician Accounts',
+        'role_label': 'Technician',
+        'role_slug': 'technician',
+        'id_header': 'Technician ID',
+        'list_title': 'Technician Accounts',
+        'create_hint': 'Technician ID and email are auto-generated as tech[ID]@companyemail.com',
+        'create_action': 'create_technician',
+        'deactivate_action': 'delete_technician',
+        'reactivate_action': 'reactivate_technician',
+        'hard_delete_action': 'hard_delete_technician',
+        'pk_field_name': 'technician_pk',
+        'edit_url_name': 'om_edit_technician_account',
+    })
+
+
+def om_manage_sales_accounts(request):
+    """Sales representative account management screen."""
+    if 'om_id' not in request.session:
+        return redirect('login')
+
+    try:
+        om = OperationsManager.objects.get(id=request.session['om_id'])
+    except OperationsManager.DoesNotExist:
+        request.session.flush()
+        return redirect('login')
+
+    if request.method == 'POST':
+        action = request.POST.get('action', '').strip()
 
         if action == 'create_sales_representative':
-            first_name = request.POST.get('sr_first_name', '').strip()
-            last_name = request.POST.get('sr_last_name', '').strip()
-            password = request.POST.get('sr_password', '').strip()
+            first_name = request.POST.get('first_name', '').strip()
+            last_name = request.POST.get('last_name', '').strip()
+            password = request.POST.get('password', '').strip()
 
             errors = {}
             if not first_name:
-                errors['sr_first_name'] = 'First name is required.'
+                errors['first_name'] = 'First name is required.'
             if not last_name:
-                errors['sr_last_name'] = 'Last name is required.'
+                errors['last_name'] = 'Last name is required.'
             if not password:
-                errors['sr_password'] = 'Password is required.'
+                errors['password'] = 'Password is required.'
 
             if errors:
-                return render(request, 'om_manage_accounts.html', _manage_accounts_context(
-                    errors=errors,
-                    form_data=request.POST,
-                ))
+                return render(request, 'om_manage_staff_accounts.html', {
+                    'om': om,
+                    'accounts': SalesRepresentative.objects.all().order_by('created_at'),
+                    'errors': errors,
+                    'form_data': request.POST,
+                    'account_type': 'sales',
+                    'page_heading': 'Sales Representative Accounts',
+                    'role_label': 'Sales Representative',
+                    'role_slug': 'sales representative',
+                    'id_header': 'Sales ID',
+                    'list_title': 'Sales Representative Accounts',
+                    'create_hint': 'Sales Representative ID and email are auto-generated as sales[ID]@companyemail.com',
+                    'create_action': 'create_sales_representative',
+                    'deactivate_action': 'delete_sales_representative',
+                    'reactivate_action': 'reactivate_sales_representative',
+                    'hard_delete_action': 'hard_delete_sales_representative',
+                    'pk_field_name': 'sales_representative_pk',
+                    'edit_url_name': 'om_edit_sales_representative_account',
+                })
 
             pending_email = f"pending-sales-{timezone.now().strftime('%Y%m%d%H%M%S%f')}@companyemail.com"
             sales_representative = SalesRepresentative.objects.create(
@@ -3663,108 +3695,99 @@ def om_manage_accounts(request):
             generated_email = f'sales{sales_representative.id}@companyemail.com'
             sales_representative.email = generated_email
             sales_representative.save(update_fields=['email'])
-            messages.success(request, f'Sales representative account created: ID {sales_representative.id} ({generated_email})')
-            return redirect('om_manage_accounts')
+            return redirect('om_manage_sales_accounts')
 
         if action == 'delete_sales_representative':
             sales_representative_pk = request.POST.get('sales_representative_pk', '').strip()
-            if not sales_representative_pk:
-                return redirect('om_manage_accounts')
+            sr = SalesRepresentative.objects.filter(id=sales_representative_pk).first()
+            if sr:
+                sr.is_active = False
+                sr.save(update_fields=['is_active'])
+            return redirect('om_manage_sales_accounts')
 
-            sales_representative = SalesRepresentative.objects.filter(id=sales_representative_pk).first()
-            if not sales_representative:
-                return redirect('om_manage_accounts')
-
-            if not sales_representative.is_active:
-                messages.info(request, f'Sales representative account already archived: {sales_representative.email}')
-                return redirect('om_manage_accounts')
-
-            sales_representative.is_active = False
-            sales_representative.save(update_fields=['is_active'])
-            messages.success(request, f'Sales representative account archived: {sales_representative.email}')
-            return redirect('om_manage_accounts')
+        if action == 'reactivate_sales_representative':
+            sales_representative_pk = request.POST.get('sales_representative_pk', '').strip()
+            sr = SalesRepresentative.objects.filter(id=sales_representative_pk).first()
+            if sr:
+                sr.is_active = True
+                sr.save(update_fields=['is_active'])
+            return redirect('om_manage_sales_accounts')
 
         if action == 'hard_delete_sales_representative':
             sales_representative_pk = request.POST.get('sales_representative_pk', '').strip()
-            if not sales_representative_pk:
-                messages.error(request, 'Sales representative account not found.')
-                return redirect('om_manage_accounts')
+            sr = SalesRepresentative.objects.filter(id=sales_representative_pk).first()
+            if sr:
+                sr.delete()
+            return redirect('om_manage_sales_accounts')
 
-            sales_representative = SalesRepresentative.objects.filter(id=sales_representative_pk).first()
-            if not sales_representative:
-                messages.error(request, 'Sales representative account not found.')
-                return redirect('om_manage_accounts')
+    return render(request, 'om_manage_staff_accounts.html', {
+        'om': om,
+        'accounts': SalesRepresentative.objects.all().order_by('created_at'),
+        'errors': {},
+        'form_data': {},
+        'account_type': 'sales',
+        'page_heading': 'Sales Representative Accounts',
+        'role_label': 'Sales Representative',
+        'role_slug': 'sales representative',
+        'id_header': 'Sales ID',
+        'list_title': 'Sales Representative Accounts',
+        'create_hint': 'Sales Representative ID and email are auto-generated as sales[ID]@companyemail.com',
+        'create_action': 'create_sales_representative',
+        'deactivate_action': 'delete_sales_representative',
+        'reactivate_action': 'reactivate_sales_representative',
+        'hard_delete_action': 'hard_delete_sales_representative',
+        'pk_field_name': 'sales_representative_pk',
+        'edit_url_name': 'om_edit_sales_representative_account',
+    })
 
-            sales_representative.delete()
-            messages.success(request, f'Sales representative account permanently deleted: {sales_representative.email}')
-            return redirect('om_manage_accounts')
 
-        if action == 'delete_customer':
+def om_manage_customer_accounts(request):
+    """Customer account management screen."""
+    if 'om_id' not in request.session:
+        return redirect('login')
+
+    try:
+        om = OperationsManager.objects.get(id=request.session['om_id'])
+    except OperationsManager.DoesNotExist:
+        request.session.flush()
+        return redirect('login')
+
+    if request.method == 'POST':
+        action = request.POST.get('action', '').strip()
+
+        if action == 'archive_customer':
             customer_pk = request.POST.get('customer_pk', '').strip()
-            if not customer_pk:
-                messages.error(request, 'Customer account not found.')
-                return redirect('om_manage_accounts')
-
             customer = Customer.objects.filter(id=customer_pk).first()
-            if not customer:
-                messages.error(request, 'Customer account not found.')
-                return redirect('om_manage_accounts')
-
-            has_links = customer.properties.exists() or customer.services.exists() or customer.payment_proofs.exists()
-            if not customer.is_active:
-                messages.info(request, f'Customer account already archived: {customer.email}')
-                return redirect('om_manage_accounts')
-
-            customer.is_active = False
-            customer.save(update_fields=['is_active'])
-            if has_links:
-                messages.success(request, f'Customer account archived: {customer.email}. Linked records were kept for history.')
-            else:
-                messages.success(request, f'Customer account archived: {customer.email}')
-            return redirect('om_manage_accounts')
+            if customer and customer.is_active:
+                customer.is_active = False
+                customer.save(update_fields=['is_active'])
+            return redirect('om_manage_customer_accounts')
 
         if action == 'reactivate_customer':
             customer_pk = request.POST.get('customer_pk', '').strip()
-            if not customer_pk:
-                messages.error(request, 'Customer account not found.')
-                return redirect('om_manage_accounts')
-
             customer = Customer.objects.filter(id=customer_pk).first()
-            if not customer:
-                messages.error(request, 'Customer account not found.')
-                return redirect('om_manage_accounts')
-
-            if customer.is_active:
-                messages.info(request, f'Customer account is already active: {customer.email}')
-                return redirect('om_manage_accounts')
-
-            customer.is_active = True
-            customer.save(update_fields=['is_active'])
-            messages.success(request, f'Customer account reactivated: {customer.email}')
-            return redirect('om_manage_accounts')
+            if customer and not customer.is_active:
+                customer.is_active = True
+                customer.save(update_fields=['is_active'])
+            return redirect('om_manage_customer_accounts')
 
         if action == 'hard_delete_customer':
             customer_pk = request.POST.get('customer_pk', '').strip()
-            if not customer_pk:
-                messages.error(request, 'Customer account not found.')
-                return redirect('om_manage_accounts')
-
             customer = Customer.objects.filter(id=customer_pk).first()
-            if not customer:
-                messages.error(request, 'Customer account not found.')
-                return redirect('om_manage_accounts')
+            if customer and not customer.is_active:
+                customer.delete()
+            return redirect('om_manage_customer_accounts')
 
-            has_links = customer.properties.exists() or customer.services.exists() or customer.payment_proofs.exists()
-            if has_links:
-                messages.error(request, 'Hard delete is blocked for customer accounts with linked properties, services, or payment records. Archive instead.')
-                return redirect('om_manage_accounts')
+    customers = Customer.objects.annotate(
+        property_count=Count('properties', distinct=True),
+        service_count=Count('services', distinct=True),
+    ).order_by('-created_at')
 
-            deleted_email = customer.email
-            customer.delete()
-            messages.success(request, f'Customer account permanently deleted: {deleted_email}')
-            return redirect('om_manage_accounts')
-
-    return render(request, 'om_manage_accounts.html', _manage_accounts_context())
+    return render(request, 'om_manage_customer_accounts.html', {
+        'om': om,
+        'customers': customers,
+        'errors': {},
+    })
 
 
 def om_edit_sales_representative_account(request, sales_representative_pk):
@@ -3779,11 +3802,11 @@ def om_edit_sales_representative_account(request, sales_representative_pk):
 
     sales_representative = SalesRepresentative.objects.filter(id=sales_representative_pk).first()
     if not sales_representative:
-        return redirect('om_manage_accounts')
+        return redirect('om_manage_sales_accounts')
 
     if request.method == 'POST':
         if request.POST.get('action') == 'cancel':
-            return redirect('om_manage_accounts')
+            return redirect('om_manage_sales_accounts')
 
         first_name = request.POST.get('first_name', '').strip()
         last_name = request.POST.get('last_name', '').strip()
@@ -3812,7 +3835,7 @@ def om_edit_sales_representative_account(request, sales_representative_pk):
             update_fields.append('password')
 
         sales_representative.save(update_fields=update_fields)
-        return redirect('om_manage_accounts')
+        return redirect('om_manage_sales_accounts')
 
     return render(request, 'om_edit_sales_representative_account.html', {
         'om': om,
@@ -3836,12 +3859,11 @@ def om_edit_technician_account(request, technician_pk):
 
     technician = Technician.objects.filter(id=technician_pk).first()
     if not technician:
-        messages.error(request, 'Technician account not found.')
-        return redirect('om_manage_accounts')
+        return redirect('om_manage_technician_accounts')
 
     if request.method == 'POST':
         if request.POST.get('action') == 'cancel':
-            return redirect('om_manage_accounts')
+            return redirect('om_manage_technician_accounts')
 
         first_name = request.POST.get('first_name', '').strip()
         last_name = request.POST.get('last_name', '').strip()
@@ -3870,8 +3892,7 @@ def om_edit_technician_account(request, technician_pk):
             update_fields.append('password')
 
         technician.save(update_fields=update_fields)
-        messages.success(request, f'Technician account updated: {technician.email}')
-        return redirect('om_manage_accounts')
+        return redirect('om_manage_technician_accounts')
 
     return render(request, 'om_edit_technician_account.html', {
         'om': om,

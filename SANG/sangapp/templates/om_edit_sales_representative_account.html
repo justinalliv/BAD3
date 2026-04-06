@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% block title %}Edit Sales Representative - Supreme Biotech Solutions{% endblock %}
+{% block title %}Edit Account - Supreme Biotech Solutions{% endblock %}
 
 {% block extra_css %}
     .container {
@@ -18,8 +18,10 @@
     }
 
     .page-head {
-        position: relative;
-        min-height: 44px;
+        display: grid;
+        grid-template-columns: auto 1fr auto;
+        align-items: center;
+        column-gap: 16px;
         margin-bottom: 18px;
     }
 
@@ -37,10 +39,8 @@
         font-weight: 600;
         font-size: 0.95em;
         transition: all 0.2s;
-        position: absolute;
-        left: 0;
-        top: 50%;
-        transform: translateY(-50%);
+        flex-shrink: 0;
+        white-space: nowrap;
     }
 
     .back-link:hover {
@@ -52,7 +52,13 @@
         color: #1a2a5e;
         text-align: center;
         margin: 0;
-        font-size: 2.1em;
+        font-size: 2.05em;
+        white-space: nowrap;
+        line-height: 1.05;
+    }
+
+    .head-spacer {
+        width: 128px;
     }
 
     .form-shell {
@@ -81,7 +87,20 @@
         border: 1px solid #d2d7e6;
         border-radius: 10px;
         font-size: 0.94em;
+        color: #4a4a4a;
         background: #fff;
+        transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .form-group input[readonly] {
+        background: #ececec;
+        color: #666;
+        border-color: #d0d0d0;
+    }
+
+    .form-group input[readonly]:focus {
+        border-color: #d0d0d0;
+        box-shadow: none;
     }
 
     .form-group input:focus {
@@ -140,17 +159,22 @@
 
     @media (max-width: 640px) {
         .page-head {
-            display: flex;
-            flex-direction: column;
-            align-items: stretch;
+            grid-template-columns: 1fr;
             gap: 10px;
-            min-height: 0;
         }
 
         .back-link {
-            position: static;
-            transform: none;
             width: fit-content;
+        }
+
+        .head-spacer {
+            display: none;
+        }
+
+        .title {
+            white-space: normal;
+            text-align: left;
+            font-size: 1.6em;
         }
 
         .actions {
@@ -168,8 +192,9 @@
 <div class="container">
     <div class="sheet">
         <div class="page-head">
-            <a href="{% url 'om_manage_accounts' %}" class="back-link">← Back</a>
-            <h1 class="title">Edit Sales Representative Account</h1>
+            <a href="{% url 'om_manage_sales_accounts' %}" class="back-link">← Back</a>
+            <h1 class="title">Edit Account</h1>
+            <div class="head-spacer" aria-hidden="true"></div>
         </div>
 
         <div class="form-shell">
@@ -184,6 +209,11 @@
                 <div class="form-group">
                     <label for="email">Email</label>
                     <input id="email" type="text" value="{{ sales_representative.email }}" readonly>
+                </div>
+
+                <div class="form-group">
+                    <label for="current_password">Current Password</label>
+                    <input id="current_password" type="text" value="{{ sales_representative.password }}" readonly>
                 </div>
 
                 <div class="form-group">
@@ -206,7 +236,6 @@
 
                 <div class="actions">
                     <button type="submit" class="btn btn-primary">Save</button>
-                    <button type="submit" class="btn btn-secondary" name="action" value="cancel">Cancel</button>
                 </div>
             </form>
         </div>
