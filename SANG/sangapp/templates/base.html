@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{% block title %}Supreme Biotech Solutions{% endblock %}</title>
     <style>
         * {
@@ -646,6 +647,109 @@
             outline: none !important;
             border-color: #1a2a5e !important;
             box-shadow: 0 0 0 3px rgba(26, 42, 94, 0.14) !important;
+        }
+
+        @media (max-width: 1100px) {
+            nav {
+                padding: 10px 18px;
+                flex-wrap: wrap;
+                gap: 10px;
+            }
+
+            .nav-links {
+                width: 100%;
+                margin-left: 0;
+                margin-right: 0;
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 8px;
+            }
+
+            .nav-spacious,
+            .nav-om {
+                padding: 12px 18px;
+            }
+
+            .nav-spacious .nav-logo,
+            .nav-om .nav-logo {
+                margin-right: auto;
+            }
+
+            .profile-btn {
+                margin-left: auto;
+            }
+        }
+
+        @media (max-width: 760px) {
+            nav {
+                padding: 10px 12px;
+                align-items: flex-start;
+            }
+
+            .nav-logo {
+                gap: 8px;
+                font-size: 1.05em;
+            }
+
+            .nav-logo-image {
+                width: 32px;
+                height: 32px;
+            }
+
+            .nav-links {
+                justify-content: flex-start;
+                gap: 6px;
+            }
+
+            .nav-links a,
+            .nav-auth-btn,
+            .profile-btn {
+                font-size: 0.8em;
+            }
+
+            .nav-links a {
+                padding: 7px 9px;
+            }
+
+            .nav-auth-btn {
+                padding: 7px 14px;
+            }
+
+            .profile-btn {
+                padding: 8px 14px;
+                min-height: 38px;
+            }
+
+            .container,
+            .form-container {
+                margin-top: 24px;
+                padding: 0 12px;
+            }
+
+            .section,
+            .form-card {
+                padding: 16px;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+                gap: 14px;
+            }
+
+            .button-group {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .btn,
+            .modal-btn {
+                width: 100%;
+            }
+
+            .modal-content {
+                padding: 24px 18px;
+                border-radius: 16px;
+            }
         }
 
         /* Hidden */
