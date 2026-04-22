@@ -186,4 +186,29 @@ STATIC_ROOT=os.path.join(BASE_DIR, 'static')
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
+def _env_bool(name, default=False):
+    value = os.getenv(name)
+    if value is None:
+         return default
+    return value.strip().lower() in {'1', 'true', 'yes', 'on'}
+
+
+EMAIL_BACKEND = os.getenv(
+    'EMAIL_BACKEND',
+    'django.core.mail.backends.console.EmailBackend',
+)
+DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'Supreme Biotech <noreply@supreme.local>')
+
+EMAIL_HOST = os.getenv('EMAIL_HOST', 'smtp.gmail.com')
+EMAIL_PORT = int(os.getenv('EMAIL_PORT', '587'))
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', '')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
+EMAIL_USE_TLS = _env_bool('EMAIL_USE_TLS', True)
+EMAIL_USE_SSL = _env_bool('EMAIL_USE_SSL', False)
+
+WORKFLOW_NOTIFICATION_OM_EMAIL = os.getenv('WORKFLOW_NOTIFICATION_OM_EMAIL', 'supreme.biotech.om@gmail.com')
+WORKFLOW_NOTIFICATION_CUSTOMER_NAME = os.getenv('WORKFLOW_NOTIFICATION_CUSTOMER_NAME', 'Justin Villavicencio')
+WORKFLOW_NOTIFICATION_CUSTOMER_EMAIL = os.getenv('WORKFLOW_NOTIFICATION_CUSTOMER_EMAIL', 'justinvilya@gmail.com')
+
+
 

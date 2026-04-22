@@ -86,6 +86,14 @@
         text-align: center;
     }
 
+    #serviceTable td:nth-child(7) {
+        padding-right: 14px;
+    }
+
+    #serviceTable td:nth-child(8) {
+        padding-left: 14px;
+    }
+
     .top-actions {
         display: flex;
         justify-content: flex-end;
@@ -185,7 +193,7 @@
         gap: 5px;
         align-items: stretch;
         width: 100%;
-        max-width: 132px;
+        max-width: 126px;
         margin: 0 auto;
     }
 
@@ -206,6 +214,7 @@
         border: none;
         cursor: pointer;
         transition: background-color 0.2s;
+        box-sizing: border-box;
     }
 
     .action-btn.update {
@@ -303,6 +312,14 @@
         .title {
             font-size: 1.7em;
         }
+
+        #serviceTable td:nth-child(7) {
+            padding-right: 10px;
+        }
+
+        #serviceTable td:nth-child(8) {
+            padding-left: 10px;
+        }
     }
 {% endblock %}
 
@@ -367,7 +384,13 @@
                             </td>
                             <td>{{ service.created_at|date:'M d, Y h:i A' }}</td>
                             <td>
-                                <span class="status-badge status-{{ service.status|lower|cut:' ' }}">{{ service.status }}</span>
+                                <span class="status-badge status-{{ service.status|lower|cut:' ' }}">
+                                    {% if service.status == 'For Confirmation' %}
+                                        For<br>Confirmation
+                                    {% else %}
+                                        {{ service.status }}
+                                    {% endif %}
+                                </span>
                             </td>
                             <td>
                                 <div class="action-stack">

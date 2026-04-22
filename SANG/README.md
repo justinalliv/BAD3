@@ -43,6 +43,36 @@ python manage.py migrate
 python manage.py runserver
 ```
 
+## 2.1) Email Notification Configuration
+
+Workflow notifications are now environment-based.
+
+Default development behavior prints emails to console:
+
+```bash
+export EMAIL_BACKEND=django.core.mail.backends.console.EmailBackend
+```
+
+To test with SMTP (for example Gmail SMTP), set:
+
+```bash
+export EMAIL_BACKEND=django.core.mail.backends.smtp.EmailBackend
+export EMAIL_HOST=smtp.gmail.com
+export EMAIL_PORT=587
+export EMAIL_USE_TLS=true
+export EMAIL_HOST_USER=your_email@gmail.com
+export EMAIL_HOST_PASSWORD=your_app_password
+export DEFAULT_FROM_EMAIL="Supreme Biotech <your_email@gmail.com>"
+```
+
+Phase recipient configuration (Customer + OM):
+
+```bash
+export WORKFLOW_NOTIFICATION_OM_EMAIL=supreme.biotech.om@gmail.com
+export WORKFLOW_NOTIFICATION_CUSTOMER_NAME="Justin Villavicencio"
+export WORKFLOW_NOTIFICATION_CUSTOMER_EMAIL=justinvilya@gmail.com
+```
+
 ## 3) Feature Test Cases (Input/Output)
 
 Use this section as an Input/Output guide for manual testing.
@@ -124,4 +154,4 @@ These pages/features currently exist but are not fully implemented with complete
 - Use separate accounts for Customer, OM, and Technician.
 - For billing and service-report tests, ensure prerequisite statuses are set correctly.
 - For PDF tests, verify both download trigger and file content fields.
-- For email tests, app is configured with `send_mail(..., fail_silently=True)`, so UI success does not always guarantee SMTP delivery in local setups.
+- Workflow notification emails now use centralized logging (`workflow_notification_logs`) and do not block workflow actions if delivery fails.

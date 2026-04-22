@@ -1,8 +1,6 @@
 from django.shortcuts import render, redirect
 from django.db import transaction
 from django.db.models import Case, When, IntegerField, Count, Max, Q
-from django.core.mail import send_mail
-from django.conf import settings
 from django.urls import reverse
 from django.utils import timezone
 from decimal import Decimal, InvalidOperation
@@ -33,6 +31,15 @@ from .models import (
     ServiceFormOption,
 )
 from .forms import CustomerRegistrationForm
+from .workflow_notifications import (
+    WORKFLOW_EVENT_ESTIMATED_BILL_CONFIRMED,
+    WORKFLOW_EVENT_ESTIMATED_BILL_CREATED,
+    WORKFLOW_EVENT_INVOICE_CREATED_PENDING_PAYMENT,
+    WORKFLOW_EVENT_PAYMENT_PROOF_REJECTED,
+    WORKFLOW_EVENT_SERVICE_REPORT_SUBMITTED,
+    notify_customer_next_step,
+    notify_om_next_step,
+)
 
 
 def _noop_message(*args, **kwargs):
@@ -1477,6 +1484,14 @@ def customer_confirm_estimated_bill(request, estimated_bill_id):
     if service.status == 'Estimated Bill Created':
         service.status = 'For Treatment Booking'
         service.save(update_fields=['status'])
+        notify_om_next_step(
+            event_type=WORKFLOW_EVENT_ESTIMATED_BILL_CONFIRMED,
+            service=service,
+            next_action='Continue with internal workflow processing after customer confirmation.',
+            event_key=f'estimated_bill_confirmed:{estimated_bill.id}',
+            related_record_id=f'Estimated Bill #{estimated_bill.id}',
+            metadata={'estimated_bill_id': estimated_bill.id},
+        )
 
     return redirect('service_status')
 
@@ -2383,20 +2398,13 @@ def om_create_invoice(request):
             selected_service.status = 'Pending Payment'
             selected_service.save(update_fields=['status'])
 
-        email_subject = 'Your Invoice from Supreme Biotech Solutions'
-        email_body = (
-            f"Hello {selected_service.customer.first_name},\n\n"
-            f"Your invoice (ID: INV{invoice.id:04d}) has been created for Service {selected_service.id:07d}.\n"
-            "Please log in to your account to view the details and settle your balance.\n\n"
-            "Thank you."
-        )
-
-        send_mail(
-            subject=email_subject,
-            message=email_body,
-            from_email=getattr(settings, 'DEFAULT_FROM_EMAIL', 'noreply@supreme.local'),
-            recipient_list=[selected_service.customer.email],
-            fail_silently=True,
+        notify_customer_next_step(
+            event_type=WORKFLOW_EVENT_INVOICE_CREATED_PENDING_PAYMENT,
+            service=selected_service,
+            next_action='Review your invoice and submit your payment proof.',
+            event_key=f'invoice_created_pending_payment:{invoice.id}',
+            related_record_id=f'Invoice #{invoice.id}',
+            metadata={'invoice_id': invoice.id},
         )
 
         return redirect('om_invoices')
@@ -2496,20 +2504,13 @@ def om_create_estimated_bill(request):
             selected_service.status = 'Estimated Bill Created'
             selected_service.save(update_fields=['status'])
 
-        email_subject = 'Your Estimated Bill from Supreme Biotech Solutions'
-        email_body = (
-            f"Hello {selected_service.customer.first_name},\n\n"
-            f"Your estimated bill (ID: {estimated_bill.id:07d}) has been created for Service {selected_service.id:07d}.\n"
-            "Please log in to your account to view the details.\n\n"
-            "Thank you."
-        )
-
-        send_mail(
-            subject=email_subject,
-            message=email_body,
-            from_email=getattr(settings, 'DEFAULT_FROM_EMAIL', 'noreply@supreme.local'),
-            recipient_list=[selected_service.customer.email],
-            fail_silently=True,
+        notify_customer_next_step(
+            event_type=WORKFLOW_EVENT_ESTIMATED_BILL_CREATED,
+            service=selected_service,
+            next_action='Review and confirm the estimated bill to continue your workflow.',
+            event_key=f'estimated_bill_created:{estimated_bill.id}',
+            related_record_id=f'Estimated Bill #{estimated_bill.id}',
+            metadata={'estimated_bill_id': estimated_bill.id},
         )
 
         return redirect('om_estimated_bills')
@@ -2931,6 +2932,15 @@ def sales_representative_review_payment_proof(request, payment_proof_id):
                     service = proof.service
                     service.status = 'Pending Payment'
                     service.save(update_fields=['status'])
+
+                notify_customer_next_step(
+                    event_type=WORKFLOW_EVENT_PAYMENT_PROOF_REJECTED,
+                    service=proof.service,
+                    next_action='Review the rejection reason and resubmit your payment proof.',
+                    event_key=f'payment_proof_rejected:{proof.id}',
+                    related_record_id=f'Payment Proof #{proof.id}',
+                    metadata={'payment_proof_id': proof.id, 'reason': rejection_reason},
+                )
 
                 return redirect('sales_representative_payment_proofs')
 
@@ -4683,6 +4693,15 @@ def technician_create_service_report(request):
                     # Keep Ongoing Treatment until invoice creation to preserve billing workflow congruence.
                     selected_service.status = 'Ongoing Treatment'
                     selected_service.save(update_fields=['status'])
+
+                notify_om_next_step(
+                    event_type=WORKFLOW_EVENT_SERVICE_REPORT_SUBMITTED,
+                    service=selected_service,
+                    next_action='Review the submitted service report and proceed with the next internal step.',
+                    event_key=f'service_report_submitted:{report.id}',
+                    related_record_id=f'Service Report #{report.id}',
+                    metadata={'service_report_id': report.id},
+                )
 
                 request.session.pop('tech_service_report_draft', None)
                 return redirect(_service_report_redirect_name(request))
