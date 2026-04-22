@@ -22,6 +22,7 @@ from .models import (
 from .workflow_notifications import (
 	WORKFLOW_EVENT_ESTIMATED_BILL_CONFIRMED,
 	WORKFLOW_EVENT_ESTIMATED_BILL_CREATED,
+	WORKFLOW_EVENT_INSPECTION_BOOKED_FOR_CONFIRMATION,
 	WORKFLOW_EVENT_INVOICE_CREATED_PENDING_PAYMENT,
 	WORKFLOW_EVENT_SERVICE_REPORT_SUBMITTED,
 	notify_customer_next_step,
@@ -337,3 +338,33 @@ class WorkflowNotificationTests(TestCase):
 		self.assertEqual(response.status_code, 302)
 		self.assertEqual(len(mail.outbox), 1)
 		self.assertEqual(mail.outbox[0].to, ["justinvilya@gmail.com"])
+
+	def test_customer_booking_for_confirmation_notifies_om(self):
+		self._set_session(customer_id=self.customer.id, customer_name="Real Customer")
+
+		response = self.client.post(
+			reverse("book_inspection"),
+			{
+				"property_id": str(self.property.id),
+				"preferred_service": "Termite Control",
+				"pest_problem": "Termites",
+				"date": "2026-04-23",
+				"time_slot": "8:00 AM - 9:00 AM",
+			},
+		)
+
+		self.assertEqual(response.status_code, 302)
+		service = Service.objects.order_by("-id").first()
+		self.assertIsNotNone(service)
+		self.assertEqual(service.status, "For Confirmation")
+
+		self.assertEqual(len(mail.outbox), 1)
+		self.assertEqual(mail.outbox[0].to, ["supreme.biotech.om@gmail.com"])
+		self.assertIn("Inspection Booking", mail.outbox[0].subject)
+
+		log = WorkflowNotificationLog.objects.filter(
+			event_type=WORKFLOW_EVENT_INSPECTION_BOOKED_FOR_CONFIRMATION,
+			service=service,
+		).first()
+		self.assertIsNotNone(log)
+		self.assertEqual(log.status, WorkflowNotificationLog.STATUS_SENT)

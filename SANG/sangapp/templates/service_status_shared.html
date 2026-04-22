@@ -87,11 +87,12 @@
     }
 
     #serviceTable td:nth-child(7) {
-        padding-right: 14px;
+        padding-right: 8px;
+        overflow: hidden;
     }
 
     #serviceTable td:nth-child(8) {
-        padding-left: 14px;
+        padding-left: 8px;
     }
 
     .top-actions {
@@ -141,12 +142,15 @@
         border-radius: 999px;
         font-size: 0.76em;
         font-weight: 700;
-        white-space: nowrap;
+        white-space: normal;
+        line-height: 1.15;
+        text-align: center;
     }
 
     .status-forconfirmation {
         background: #fff0c4;
         color: #6b5000;
+        min-width: 0;
     }
 
     .status-forinspection,
@@ -194,6 +198,18 @@
         align-items: stretch;
         width: 100%;
         max-width: 126px;
+        margin: 0 auto;
+    }
+
+    .status-badge {
+        box-sizing: border-box;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        max-width: 100%;
+        min-height: 42px;
+        padding: 6px 10px;
         margin: 0 auto;
     }
 
@@ -314,11 +330,19 @@
         }
 
         #serviceTable td:nth-child(7) {
-            padding-right: 10px;
+            padding-right: 8px;
         }
 
         #serviceTable td:nth-child(8) {
-            padding-left: 10px;
+            padding-left: 8px;
+        }
+
+        .action-stack {
+            margin-left: auto;
+        }
+
+        .status-badge {
+            margin-right: auto;
         }
     }
 {% endblock %}
@@ -385,11 +409,7 @@
                             <td>{{ service.created_at|date:'M d, Y h:i A' }}</td>
                             <td>
                                 <span class="status-badge status-{{ service.status|lower|cut:' ' }}">
-                                    {% if service.status == 'For Confirmation' %}
-                                        For<br>Confirmation
-                                    {% else %}
-                                        {{ service.status }}
-                                    {% endif %}
+                                    {{ service.status }}
                                 </span>
                             </td>
                             <td>

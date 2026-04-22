@@ -100,11 +100,12 @@
     }
 
     #servicesTable td:nth-child(7) {
-        padding-right: 14px;
+        padding-right: 8px;
+        overflow: hidden;
     }
 
     #servicesTable td:nth-child(8) {
-        padding-left: 14px;
+        padding-left: 8px;
     }
 
     .action-wrap {
@@ -116,6 +117,25 @@
         max-width: 126px;
         margin: 0 auto;
         text-align: left;
+    }
+
+    .status-badge {
+        box-sizing: border-box;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        max-width: 100%;
+        min-height: 42px;
+        padding: 6px 10px;
+        white-space: normal;
+        line-height: 1.15;
+        text-align: center;
+        margin: 0 auto;
+    }
+
+    .status-forconfirmation {
+        min-width: 0;
     }
 
     .action-btn {
@@ -258,11 +278,19 @@
         }
 
         #servicesTable td:nth-child(7) {
-            padding-right: 10px;
+            padding-right: 8px;
         }
 
         #servicesTable td:nth-child(8) {
-            padding-left: 10px;
+            padding-left: 8px;
+        }
+
+        .action-wrap {
+            margin-left: auto;
+        }
+
+        .status-badge {
+            margin-right: auto;
         }
     }
 {% endblock %}
@@ -318,11 +346,7 @@
                         </td>
                         <td>
                             <span class="status-badge status-{{ service.status|lower|cut:' ' }}">
-                                {% if service.status == 'For Confirmation' %}
-                                    For<br>Confirmation
-                                {% else %}
-                                    {{ service.status }}
-                                {% endif %}
+                                {{ service.status }}
                             </span>
                         </td>
                         <td>

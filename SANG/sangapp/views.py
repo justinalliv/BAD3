@@ -34,6 +34,7 @@ from .forms import CustomerRegistrationForm
 from .workflow_notifications import (
     WORKFLOW_EVENT_ESTIMATED_BILL_CONFIRMED,
     WORKFLOW_EVENT_ESTIMATED_BILL_CREATED,
+    WORKFLOW_EVENT_INSPECTION_BOOKED_FOR_CONFIRMATION,
     WORKFLOW_EVENT_INVOICE_CREATED_PENDING_PAYMENT,
     WORKFLOW_EVENT_PAYMENT_PROOF_REJECTED,
     WORKFLOW_EVENT_SERVICE_REPORT_SUBMITTED,
@@ -1308,6 +1309,15 @@ def book_inspection(request):
                 date=date,
                 time_slot=time_slot,
                 status='For Confirmation'
+            )
+
+            notify_om_next_step(
+                event_type=WORKFLOW_EVENT_INSPECTION_BOOKED_FOR_CONFIRMATION,
+                service=service,
+                next_action='Review and confirm this newly booked inspection request.',
+                event_key=f'inspection_booked_for_confirmation:{service.id}',
+                related_record_id=f'Service #{service.id}',
+                metadata={'service_id': service.id, 'trigger': 'customer_book_inspection'},
             )
             return redirect('service_status')
         except Exception as e:

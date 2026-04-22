@@ -19,6 +19,7 @@ WORKFLOW_EVENT_ESTIMATED_BILL_CONFIRMED = "estimated_bill_confirmed"
 WORKFLOW_EVENT_SERVICE_REPORT_SUBMITTED = "service_report_submitted"
 WORKFLOW_EVENT_INVOICE_CREATED_PENDING_PAYMENT = "invoice_created_pending_payment"
 WORKFLOW_EVENT_PAYMENT_PROOF_REJECTED = "payment_proof_rejected"
+WORKFLOW_EVENT_INSPECTION_BOOKED_FOR_CONFIRMATION = "inspection_booked_for_confirmation"
 
 
 def _customer_notification_email():
@@ -97,10 +98,12 @@ def _build_customer_email_content(event_type, service, *, next_action, related_r
 
 def _build_om_email_content(event_type, service, *, next_action, related_record_id=""):
     subject_map = {
+        WORKFLOW_EVENT_INSPECTION_BOOKED_FOR_CONFIRMATION: "Action Required: New Inspection Booking Awaiting Confirmation",
         WORKFLOW_EVENT_ESTIMATED_BILL_CONFIRMED: "Action Required: Estimated Bill Confirmed",
         WORKFLOW_EVENT_SERVICE_REPORT_SUBMITTED: "Action Required: Service Report Submitted",
     }
     intro_map = {
+        WORKFLOW_EVENT_INSPECTION_BOOKED_FOR_CONFIRMATION: "A customer submitted a new inspection booking and the workflow is now in For Confirmation.",
         WORKFLOW_EVENT_ESTIMATED_BILL_CONFIRMED: "A customer confirmed the estimated bill and the workflow moved to Operations Manager.",
         WORKFLOW_EVENT_SERVICE_REPORT_SUBMITTED: "A service report has been submitted and the workflow moved to Operations Manager.",
     }
