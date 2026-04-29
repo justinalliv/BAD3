@@ -26,7 +26,7 @@ pip install -r requirements.txt
 
 ## 2) Database Configuration
 
-This project uses MySQL in `SANG/settings.py` (`django.db.backends.mysql`).
+This project uses MySQL in `SANG/settings.py` (`django.db.backends.mysql`) by default.
 
 - Database: `sangapp_db`
 - Host: `127.0.0.1`
@@ -34,7 +34,9 @@ This project uses MySQL in `SANG/settings.py` (`django.db.backends.mysql`).
 - User: `root`
 - Password: empty by default
 
-If your local credentials are different, update `DATABASES` in `SANG/settings.py`.
+If your local credentials are different, set `MYSQL_DATABASE`, `MYSQL_USER`, `MYSQL_PASSWORD`, `MYSQL_HOST`, and `MYSQL_PORT` in your environment.
+
+If you need to switch back to SQLite for temporary local testing, set `USE_MYSQL=0` before starting Django.
 
 Run migrations and start server:
 

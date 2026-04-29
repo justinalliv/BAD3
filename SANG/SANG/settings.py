@@ -105,7 +105,7 @@ WSGI_APPLICATION = 'SANG.wsgi.application'
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
 
-USE_MYSQL = os.getenv('USE_MYSQL', '0') == '1'
+USE_MYSQL = os.getenv('USE_MYSQL', '1') == '1'
 
 if USE_MYSQL:
    DATABASES = {

@@ -44,8 +44,8 @@ This document is written as a system reference for analysis, implementation plan
 - Programming language: Python
 - Web framework: Django 6.x
 - Database layer: Django ORM
-- Local database default: SQLite (`db.sqlite3`)
-- Optional deployment database: MySQL via `PyMySQL` when `USE_MYSQL=1`
+- Local and deployment database default: MySQL via `PyMySQL` when `USE_MYSQL=1`
+- SQLite remains available only when `USE_MYSQL=0`
 - PDF generation: `reportlab`
 - File upload handling: Django `FileField`
 - Static and template rendering: Django templates with app-level template discovery
