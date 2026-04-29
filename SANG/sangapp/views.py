@@ -4008,11 +4008,14 @@ def technician_view_estimated_bill(request, estimated_bill_id):
 
     estimated_bill = EstimatedBill.objects.select_related(
         'service__customer', 'service__property', 'operations_manager'
-    ).prefetch_related('items').exclude(
+    ).prefetch_related('items').filter(
+        id=estimated_bill_id
+    ).exclude(
         service__status='Completed'
-    ).order_by('-created_at')
+    ).first()
 
     if not estimated_bill:
+        messages.error(request, 'Estimated bill not found.')
         return redirect('technician_service_status')
 
     treatment_rows = []
