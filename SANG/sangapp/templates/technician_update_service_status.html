@@ -159,6 +159,15 @@
             min-width: 0;
         }
     }
+
+    /* Modal */
+    .modal { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.36); align-items:center; justify-content:center; }
+    .modal.show { display:flex; }
+    .modal-content { background:#fff; border-radius:10px; padding:20px; max-width:480px; width:92%; box-shadow:0 6px 18px rgba(0,0,0,0.12); }
+    .modal-buttons { display:flex; gap:10px; justify-content:space-between; margin-top:16px; flex-wrap:nowrap; }
+    .modal-btn { min-height:38px; border-radius:8px; padding:0 12px; font-weight:700; cursor:pointer; }
+    .modal-btn-confirm { background:#1a2a5e; color:#fff; }
+    .modal-btn-cancel { background:#eef1fb; color:#1a2a5e; }
 {% endblock %}
 
 {% block content %}
