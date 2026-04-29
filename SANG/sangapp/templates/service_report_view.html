@@ -217,14 +217,6 @@
 
 {% block content %}
 <div class="container">
-    {% if role == 'om' %}
-        <p class="identified-top">User Identified As: Operations Manager</p>
-    {% elif role == 'technician' %}
-        <p class="identified-top">User Identified As: Technician</p>
-    {% elif role == 'customer' %}
-        <p class="identified-top">User Identified As: Customer</p>
-    {% endif %}
-
     <div class="sheet">
         <div class="page-head">
             <a href="{{ back_url|default:'#' }}" class="back-link">← Back</a>
