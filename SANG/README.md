@@ -36,8 +36,6 @@ This project uses MySQL in `SANG/settings.py` (`django.db.backends.mysql`) by de
 
 If your local credentials are different, set `MYSQL_DATABASE`, `MYSQL_USER`, `MYSQL_PASSWORD`, `MYSQL_HOST`, and `MYSQL_PORT` in your environment.
 
-If you need to switch back to SQLite for temporary local testing, set `USE_MYSQL=0` before starting Django.
-
 Run migrations and start server:
 
 ```bash

@@ -44,8 +44,7 @@ This document is written as a system reference for analysis, implementation plan
 - Programming language: Python
 - Web framework: Django 6.x
 - Database layer: Django ORM
-- Local and deployment database default: MySQL via `PyMySQL` when `USE_MYSQL=1`
-- SQLite remains available only when `USE_MYSQL=0`
+- Local and deployment database: MySQL via `PyMySQL`
 - PDF generation: `reportlab`
 - File upload handling: Django `FileField`
 - Static and template rendering: Django templates with app-level template discovery
@@ -477,8 +476,7 @@ The system uses relational tables with the following important design rules:
 
 ### 11.3 Important Configuration Behavior
 
-- The app can run against SQLite by default.
-- Setting `USE_MYSQL=1` switches the database engine to MySQL through `PyMySQL`.
+- The app runs against MySQL through `PyMySQL`.
 - Session handling is used for role identity and access control.
 - CSRF protection is enabled in Django middleware.
 - Time zone is set to `Asia/Manila`.
