@@ -26,6 +26,27 @@
         background: #f9fafc;
     }
 
+    .page-head {
+        position: relative;
+        min-height: 50px;
+        margin-bottom: 12px;
+    }
+
+    .back-link {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 40px;
+        padding: 0 14px;
+        border-radius: 10px;
+        text-decoration: none;
+        font-weight: 700;
+        position: absolute;
+        left: 0;
+        top: 50%;
+        transform: translateY(-50%);
+    }
+
     .form-header {
         text-align: center;
         margin-bottom: 12px;
@@ -134,17 +155,35 @@
 
     @media (max-width: 760px) {
         .container {
-            margin: 16px auto 28px;
+            width: 100%;
+            max-width: none;
+            margin: 12px auto 24px;
             padding: 0 16px;
         }
 
         .sheet {
-            padding: 16px;
+            width: 100%;
+            padding: 14px;
             border-radius: 10px;
         }
 
         .form-shell {
+            max-width: none;
             padding: 12px;
+        }
+
+        .page-head {
+            min-height: 0;
+            display: grid;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .back-link {
+            position: static;
+            transform: none;
+            width: fit-content;
+            min-height: 44px;
         }
 
         .form-header h1 {
@@ -212,6 +251,9 @@
 {% block content %}
 <div class="container">
     <div class="sheet">
+        <div class="page-head">
+            <a href="{% url 'technician_service_status' %}" class="back-link">← Back</a>
+        </div>
         <div class="form-shell">
             <div class="form-header">
                 <h1>Update service status</h1>
@@ -251,14 +293,14 @@
 
                 <div class="button-row">
                     <button type="submit" class="btn btn-cancel" name="action" value="cancel">Cancel</button>
-                    <button type="button" class="btn btn-confirm" id="openConfirmModal" {% if not status_choices %}disabled{% endif %}>Save Changes</button>
+                    <button type="button" class="btn btn-confirm" id="openConfirmModal" {% if not status_choices %}disabled{% endif %}>Update</button>
                 </div>
             </form>
 
             <div id="confirmModal" class="modal">
                 <div class="modal-content">
-                    <h2>Confirm changes</h2>
-                    <p>Are you sure you want to save changes?</p>
+                    <h2>Confirm Update</h2>
+                    <p>Are you sure you want to update this service status?</p>
                     <div class="modal-buttons">
                         <button type="button" class="modal-btn modal-btn-cancel" id="continueEditing">Continue Editing</button>
                         <button type="button" class="modal-btn modal-btn-confirm" id="confirmSubmit">Confirm</button>

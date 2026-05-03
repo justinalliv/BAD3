@@ -18,6 +18,15 @@
         box-shadow: 0 2px 6px rgba(26, 42, 94, 0.06);
     }
 
+    .form-shell {
+        max-width: 680px;
+        margin: 0 auto;
+        border: 1px solid #dfe3ee;
+        border-radius: 10px;
+        padding: 16px;
+        background: #f9fafc;
+    }
+
     .page-head {
         position: relative;
         min-height: 56px;
@@ -95,7 +104,59 @@
     .modal-btn-confirm { background:#1a2a5e; color:#fff; }
     .modal-btn-cancel { background:#eef1fb; color:#1a2a5e; }
 
-    @media (max-width:700px) { .form-row { grid-template-columns:1fr; } .back-link { position:static; transform:none; } }
+    .action-row {
+        display: flex;
+        gap: 12px;
+        justify-content: center;
+        margin-top: 14px;
+    }
+
+    @media (max-width:700px) {
+        .container {
+            width: 100%;
+            max-width: none;
+            margin: 12px auto 24px;
+            padding: 0 16px;
+        }
+
+        .sheet {
+            width: 100%;
+            padding: 14px;
+        }
+
+        .form-shell {
+            max-width: none;
+            padding: 12px;
+        }
+
+        .form-row {
+            grid-template-columns: 1fr;
+            gap: 12px;
+        }
+
+        .page-head {
+            display: grid;
+            gap: 12px;
+            min-height: 0;
+        }
+
+        .back-link {
+            position: static;
+            transform: none;
+            width: fit-content;
+            min-height: 44px;
+        }
+
+        .action-row {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .action-row .btn {
+            width: 100%;
+            min-height: 44px;
+        }
+    }
 {% endblock %}
 
 {% block content %}
@@ -106,6 +167,7 @@
             <h1 class="title">Update service status</h1>
         </div>
 
+        <div class="form-shell">
         <form method="POST" id="updateStatusForm">
         {% csrf_token %}
 
@@ -172,16 +234,17 @@
             </div>
         </div>
 
-        <div style="display:flex;gap:12px;justify-content:center;margin-top:14px;">
+        <div class="action-row">
             <button type="submit" class="btn btn-secondary" name="action" value="cancel">Cancel</button>
-            <button type="button" class="btn btn-primary" id="openConfirmModal" {% if not status_choices %}disabled{% endif %}>Save Changes</button>
+            <button type="button" class="btn btn-primary" id="openConfirmModal" {% if not status_choices %}disabled{% endif %}>Update</button>
         </div>
         </form>
+        </div>
 
         <div id="confirmModal" class="modal">
             <div class="modal-content">
-                <h2 style="margin:0 0 8px;color:#1a2a5e;">Confirm changes</h2>
-                <p style="margin:0;color:#444;">Are you sure you want to save changes?</p>
+                <h2>Confirm Update</h2>
+                <p>Are you sure you want to update this service status?</p>
                 <div class="modal-buttons">
                     <button type="button" class="modal-btn modal-btn-cancel" id="continueEditing">Continue Editing</button>
                     <button type="button" class="modal-btn modal-btn-confirm" id="confirmSubmit">Confirm</button>

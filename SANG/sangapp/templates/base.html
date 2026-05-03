@@ -5,6 +5,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{% block title %}Supreme Biotech Solutions{% endblock %}</title>
     <style>
+        :root {
+            --font-family-ui: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            --font-size-page-title: clamp(1.5rem, 2.1vw, 1.875rem);
+            --font-size-section-title: clamp(1.125rem, 1.5vw, 1.375rem);
+            --font-size-label: 0.925rem;
+            --font-size-input: 0.925rem;
+            --font-size-table-header: 0.875rem;
+            --font-size-table-body: 0.875rem;
+            --font-size-action: 0.875rem;
+            --font-size-status: 0.78rem;
+            --font-size-helper: 0.8125rem;
+            --line-height-title: 1.25;
+            --line-height-body: 1.5;
+            --line-height-compact: 1.25;
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -16,7 +32,7 @@
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: var(--font-family-ui);
             background-color: #f5f5f5;
             color: #333;
             line-height: 1.5;
@@ -885,6 +901,11 @@
                 color: #1a2a5e;
             }
 
+            .mobile-drawer-account:hover {
+                background: #14214f;
+                color: #fff;
+            }
+
             .mobile-drawer-link.active {
                 background: #e8f0fe;
                 color: #1a2a5e;
@@ -892,20 +913,44 @@
             }
 
             .mobile-drawer-account-wrap {
-                margin-top: auto;
-                padding-top: 14px;
+                margin: 0 0 14px;
+                padding-bottom: 14px;
+                border-bottom: 1px solid #edf0f6;
+            }
+
+            .mobile-drawer-account-wrap.is-public-wrap {
+                margin: auto 0 0;
+                padding: 14px 0 0;
                 border-top: 1px solid #edf0f6;
+                border-bottom: 0;
             }
 
             .mobile-drawer-account {
                 gap: 8px;
                 background: #1a2a5e;
                 color: #fff;
-                justify-content: center;
+                justify-content: flex-start;
+                flex-direction: column;
+                align-items: flex-start;
             }
 
             .mobile-drawer-account.active {
                 box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.3);
+            }
+
+            .mobile-drawer-account-title {
+                display: block;
+                font-size: 0.95rem;
+                font-weight: 800;
+                line-height: 1.2;
+            }
+
+            .mobile-drawer-account-role {
+                display: block;
+                font-size: 0.78rem;
+                font-weight: 600;
+                line-height: 1.2;
+                opacity: 0.86;
             }
 
             .mobile-drawer-account.is-public {
@@ -968,6 +1013,148 @@
         /* Responsive */
 
         {% block extra_css %}{% endblock %}
+
+        body,
+        button,
+        input,
+        select,
+        textarea {
+            font-family: var(--font-family-ui) !important;
+        }
+
+        h1,
+        .title,
+        .page-title,
+        .form-card h1,
+        .header-section h1 {
+            font-size: var(--font-size-page-title);
+            font-weight: 800;
+            line-height: var(--line-height-title);
+            letter-spacing: -0.015em;
+        }
+
+        h2,
+        .section-title,
+        .card-title {
+            font-size: var(--font-size-section-title);
+            font-weight: 700;
+            line-height: var(--line-height-title);
+        }
+
+        label,
+        .form-group label,
+        .form-row label {
+            font-size: var(--font-size-label) !important;
+            font-weight: 600 !important;
+            line-height: var(--line-height-compact) !important;
+        }
+
+        input,
+        select,
+        textarea,
+        .field,
+        .search-box,
+        .search-box-unified {
+            font-size: var(--font-size-input) !important;
+            line-height: var(--line-height-body) !important;
+        }
+
+        input::placeholder,
+        textarea::placeholder {
+            font-size: var(--font-size-input);
+        }
+
+        th {
+            font-size: var(--font-size-table-header) !important;
+            font-weight: 700 !important;
+            line-height: var(--line-height-compact) !important;
+        }
+
+        td {
+            font-size: var(--font-size-table-body) !important;
+            line-height: var(--line-height-body) !important;
+        }
+
+        .nav-links a,
+        .profile-btn,
+        .mobile-drawer-link,
+        .mobile-drawer-account,
+        .mobile-drawer-brand {
+            font-family: var(--font-family-ui) !important;
+            line-height: var(--line-height-compact) !important;
+        }
+
+        .service-config-update-modal .modal-content {
+            max-width: 620px !important;
+            text-align: left !important;
+        }
+
+        .service-config-update-modal .modal-content h2 {
+            text-align: center !important;
+            margin-bottom: 18px !important;
+        }
+
+        .service-config-update-modal form {
+            max-width: 520px;
+            margin: 0 auto;
+            padding: 14px;
+            border: 1px solid #dfe3ee;
+            border-radius: 12px;
+            background: #f9fafc;
+        }
+
+        .service-config-update-modal .config-field {
+            margin-bottom: 14px;
+        }
+
+        .service-config-update-modal .config-field label {
+            display: block;
+            margin-bottom: 6px;
+            color: #4a4a4a;
+        }
+
+        .service-config-update-modal .field {
+            width: 100%;
+            min-height: 44px;
+            border: 1px solid #d2d7e6;
+            border-radius: 10px;
+            padding: 9px 12px;
+            background: #fff;
+            color: #2f3545;
+        }
+
+        .service-config-update-modal .field:focus {
+            outline: none;
+            border-color: #1a2a5e;
+            box-shadow: 0 0 0 3px rgba(26, 42, 94, 0.12);
+        }
+
+        .service-config-update-modal .edit-controls-row {
+            align-items: center;
+        }
+
+        @media (max-width: 760px) {
+            :root {
+                --font-size-page-title: clamp(1.25rem, 6vw, 1.5rem);
+                --font-size-section-title: clamp(1rem, 4.8vw, 1.125rem);
+                --font-size-input: 0.9375rem;
+                --font-size-table-body: 0.875rem;
+                --font-size-action: 0.9rem;
+            }
+
+            .service-config-update-modal .modal-content {
+                width: calc(100vw - 32px) !important;
+            }
+
+            .service-config-update-modal form {
+                padding: 12px;
+            }
+
+            .service-config-update-modal .edit-controls-row {
+                flex-direction: column;
+                align-items: stretch;
+            }
+        }
 
         .status-badge,
         .status-chip,
@@ -1374,6 +1561,32 @@
                 <button type="button" class="mobile-drawer-close" id="mobileNavClose" aria-label="Close navigation menu">&times;</button>
             </div>
             <div class="mobile-drawer-content">
+                {% if request.session.om_id or request.session.technician_id or request.session.sales_representative_id or request.session.customer_id %}
+                <div class="mobile-drawer-account-wrap">
+                    {% if request.session.om_id %}
+                    <a href="{% url 'om_profile' %}" class="mobile-drawer-account {% if current == 'om_profile' or current == 'om_change_password' %}active{% endif %}">
+                        <span class="mobile-drawer-account-title">Profile</span>
+                        <span class="mobile-drawer-account-role">OM</span>
+                    </a>
+                    {% elif request.session.technician_id %}
+                    <a href="{% url 'technician_profile' %}" class="mobile-drawer-account {% if current == 'technician_profile' %}active{% endif %}">
+                        <span class="mobile-drawer-account-title">Profile</span>
+                        <span class="mobile-drawer-account-role">Technician {{ request.session.technician_display_id|default:request.session.technician_id }}</span>
+                    </a>
+                    {% elif request.session.sales_representative_id %}
+                    <a href="{% url 'sales_representative_profile' %}" class="mobile-drawer-account {% if current == 'sales_representative_profile' %}active{% endif %}">
+                        <span class="mobile-drawer-account-title">Profile</span>
+                        <span class="mobile-drawer-account-role">Sales {{ request.session.sales_representative_display_id|default:request.session.sales_representative_id }}</span>
+                    </a>
+                    {% elif request.session.customer_id %}
+                    <a href="{% url 'profile' %}" class="mobile-drawer-account {% if current == 'profile' or current == 'edit_profile' or current == 'change_password' %}active{% endif %}">
+                        <span class="mobile-drawer-account-title">Profile</span>
+                        <span class="mobile-drawer-account-role">Customer</span>
+                    </a>
+                    {% endif %}
+                </div>
+                {% endif %}
+
                 <div class="mobile-drawer-links">
                     {% if request.session.om_id %}
                     <a href="{% url 'om_home' %}" class="mobile-drawer-link {% if current == 'om_home' %}active{% endif %}">Home</a>
@@ -1404,19 +1617,11 @@
                     {% endif %}
                 </div>
 
-                <div class="mobile-drawer-account-wrap">
-                    {% if request.session.om_id %}
-                    <a href="{% url 'om_profile' %}" class="mobile-drawer-account {% if current == 'om_profile' or current == 'om_change_password' %}active{% endif %}">OM</a>
-                    {% elif request.session.technician_id %}
-                    <a href="{% url 'technician_profile' %}" class="mobile-drawer-account {% if current == 'technician_profile' %}active{% endif %}">Technician {{ request.session.technician_display_id|default:request.session.technician_id }}</a>
-                    {% elif request.session.sales_representative_id %}
-                    <a href="{% url 'sales_representative_profile' %}" class="mobile-drawer-account {% if current == 'sales_representative_profile' %}active{% endif %}">Sales {{ request.session.sales_representative_display_id|default:request.session.sales_representative_id }}</a>
-                    {% elif request.session.customer_id %}
-                    <a href="{% url 'profile' %}" class="mobile-drawer-account {% if current == 'profile' or current == 'edit_profile' or current == 'change_password' %}active{% endif %}">Customer</a>
-                    {% else %}
+                {% if not request.session.om_id and not request.session.technician_id and not request.session.sales_representative_id and not request.session.customer_id %}
+                <div class="mobile-drawer-account-wrap is-public-wrap">
                     <span class="mobile-drawer-account is-public">Public</span>
-                    {% endif %}
                 </div>
+                {% endif %}
             </div>
         </aside>
         {% endwith %}

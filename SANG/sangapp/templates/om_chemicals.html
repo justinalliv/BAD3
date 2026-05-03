@@ -293,17 +293,19 @@
         </div>
     </div>
 
-    <div id="editModal" class="modal">
+    <div id="editModal" class="modal service-config-update-modal">
         <div class="modal-content">
-            <h2>Edit Chemical</h2>
+            <h2>Update Chemical</h2>
             <form method="POST">
                 {% csrf_token %}
                 <input type="hidden" name="action" id="editAction" value="update">
                 <input type="hidden" name="chemical_id" id="editChemicalId">
-                <div style="margin-bottom:10px;">
+                <div class="config-field">
+                    <label for="editName">Chemical Name</label>
                     <input type="text" class="field" id="editName" name="name" placeholder="Chemical name" required>
                 </div>
-                <div style="margin-bottom:10px;">
+                <div class="config-field">
+                    <label for="editUnit">Standard Unit Measure</label>
                     <input type="text" class="field" id="editUnit" name="standard_unit_measure" placeholder="Standard unit measure" required>
                 </div>
                 <div class="edit-controls-row">
@@ -315,7 +317,7 @@
                 </div>
                 <div class="modal-buttons">
                     <button type="button" class="modal-btn modal-btn-cancel" id="closeEditModal">Cancel</button>
-                    <button type="submit" class="modal-btn modal-btn-confirm">Save</button>
+                    <button type="submit" class="modal-btn modal-btn-confirm">Update</button>
                 </div>
             </form>
         </div>

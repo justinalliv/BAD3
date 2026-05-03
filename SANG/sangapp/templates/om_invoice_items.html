@@ -306,17 +306,19 @@
         </div>
     </div>
 
-    <div id="editModal" class="modal">
+    <div id="editModal" class="modal service-config-update-modal">
         <div class="modal-content">
-            <h2>Edit Service Item</h2>
+            <h2>Update Service Item</h2>
             <form method="POST" id="editForm">
                 {% csrf_token %}
                 <input type="hidden" name="action" id="editAction" value="update">
                 <input type="hidden" name="item_id" id="editItemId">
-                <div style="margin-bottom:10px;">
+                <div class="config-field">
+                    <label for="editName">Service Item Name</label>
                     <input type="text" class="field" id="editName" name="name" placeholder="Service item name" required>
                 </div>
-                <div style="margin-bottom:10px;">
+                <div class="config-field">
+                    <label for="editPrice">Default Price</label>
                     <input type="number" class="field" id="editPrice" name="default_unit_price" min="0.01" step="0.01" placeholder="Default price (optional)">
                 </div>
                 <div class="edit-controls-row">
@@ -328,7 +330,7 @@
                 </div>
                 <div class="modal-buttons">
                     <button type="button" class="modal-btn modal-btn-cancel" id="closeEditModal">Cancel</button>
-                    <button type="submit" class="modal-btn modal-btn-confirm">Save</button>
+                    <button type="submit" class="modal-btn modal-btn-confirm">Update</button>
                 </div>
             </form>
         </div>
