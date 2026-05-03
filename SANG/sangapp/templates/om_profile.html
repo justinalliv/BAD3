@@ -9,6 +9,14 @@
         padding: 0 24px;
     }
 
+    .profile-sheet {
+        background: #fff;
+        border: 1px solid #ddd;
+        border-radius: 12px;
+        padding: 24px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+    }
+
     .header-section {
         display: flex;
         justify-content: space-between;
@@ -51,15 +59,62 @@
     .btn-secondary:hover {
         background: #d0d0d0;
     }
+
+    @media (max-width: 760px) {
+        .container {
+            margin: 16px auto 28px;
+            padding: 0 16px;
+        }
+
+        .profile-sheet {
+            padding: 16px;
+            border-radius: 10px;
+        }
+
+        .header-section {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 14px;
+            margin-bottom: 0;
+        }
+
+        .header-section h1 {
+            font-size: 1.55em;
+            line-height: 1.25;
+            text-align: center;
+        }
+
+        .action-buttons {
+            width: 100%;
+            flex-direction: column;
+        }
+
+        .btn {
+            width: 100%;
+            min-height: 44px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 18px;
+        }
+    }
+
+    @media (max-width: 420px) {
+        .container {
+            padding: 0 12px;
+        }
+    }
 {% endblock %}
 
 {% block content %}
 <div class="container">
-    <div class="header-section">
-        <h1>Hi, {{ om.first_name }} {{ om.last_name }}!</h1>
-        <div class="action-buttons">
-            <a href="{% url 'om_change_password' %}" class="btn btn-primary">Change Password</a>
-            <a href="{% url 'logout' %}" class="btn btn-secondary">Logout</a>
+    <div class="profile-sheet">
+        <div class="header-section">
+            <h1>Hi, {{ om.first_name }} {{ om.last_name }}!</h1>
+            <div class="action-buttons">
+                <a href="{% url 'om_change_password' %}" class="btn btn-primary">Change Password</a>
+                <a href="{% url 'logout' %}" class="btn btn-secondary">Logout</a>
+            </div>
         </div>
     </div>
 </div>

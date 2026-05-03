@@ -1053,6 +1053,7 @@
         .action-link,
         .create-btn,
         .edit-profile-btn,
+        .btn,
         .btn-primary,
         .btn-confirm,
         .btn-submit,
@@ -1060,8 +1061,37 @@
         .login-btn,
         .register-btn,
         .modal-btn-confirm {
+            min-height: 40px;
+            border-radius: 10px;
+            font-size: 0.875rem !important;
+            font-weight: 700 !important;
+            line-height: 1.2 !important;
+            text-decoration: none;
+            align-items: center;
+            justify-content: center;
+            box-sizing: border-box;
             background: #1a2a5e !important;
             color: #fff !important;
+        }
+
+        .action-btn,
+        .action-link,
+        .create-btn {
+            display: inline-flex !important;
+            min-height: 36px !important;
+            padding: 0 12px !important;
+            white-space: nowrap !important;
+        }
+
+        .btn,
+        .edit-profile-btn,
+        .login-btn,
+        .register-btn,
+        .modal-btn {
+            display: inline-flex;
+            min-height: 44px;
+            padding: 0 18px;
+            white-space: nowrap;
         }
 
         .action-btn.update,
@@ -1115,8 +1145,65 @@
         .back-btn,
         .modal-btn-cancel,
         .action-secondary {
+            border: 1px solid #d4deec !important;
             background: #eef1fb !important;
             color: #1a2a5e !important;
+        }
+
+        .modal {
+            background: rgba(8, 16, 43, 0.56) !important;
+            padding: 16px !important;
+            z-index: 1000 !important;
+        }
+
+        .modal-content {
+            width: min(520px, 94vw) !important;
+            max-width: 520px !important;
+            max-height: calc(100vh - 32px) !important;
+            overflow-y: auto !important;
+            border: 1px solid #e4e8f2 !important;
+            border-radius: 16px !important;
+            padding: 24px !important;
+            text-align: center !important;
+            box-shadow: 0 18px 44px rgba(10, 28, 64, 0.2) !important;
+        }
+
+        .modal-content h2 {
+            color: #1a2a5e !important;
+            font-size: 1.125rem !important;
+            line-height: 1.25 !important;
+            font-weight: 800 !important;
+            margin: 0 0 10px !important;
+        }
+
+        .modal-content p {
+            color: #5f636b !important;
+            font-size: 0.94rem !important;
+            line-height: 1.5 !important;
+            font-weight: 500 !important;
+            margin: 0 0 18px !important;
+        }
+
+        .modal-buttons {
+            display: flex !important;
+            justify-content: center !important;
+            align-items: center !important;
+            gap: 10px !important;
+            margin-top: 16px !important;
+        }
+
+        .modal-btn {
+            min-width: 150px !important;
+            min-height: 44px !important;
+            border-radius: 10px !important;
+            font-size: 0.9rem !important;
+        }
+
+        .error-message,
+        .form-error,
+        .error {
+            font-size: 0.875rem;
+            line-height: 1.35;
         }
 
         .action-btn:hover,
@@ -1166,6 +1253,28 @@
             .action-wrap,
             .action-cell {
                 margin-top: 8px !important;
+            }
+
+            .action-btn,
+            .action-link,
+            .create-btn {
+                min-height: 44px !important;
+                font-size: 0.9rem !important;
+            }
+
+            .modal-content {
+                width: calc(100vw - 32px) !important;
+                padding: 20px 16px !important;
+            }
+
+            .modal-buttons {
+                flex-direction: column !important;
+                align-items: stretch !important;
+            }
+
+            .modal-btn {
+                width: 100% !important;
+                min-width: 0 !important;
             }
         }
     </style>
@@ -1392,6 +1501,94 @@
                 const focusableItems = getFocusableItems();
                 if (!focusableItems.length) {
                     event.preventDefault();
+                    return;
+                }
+
+                const firstItem = focusableItems[0];
+                const lastItem = focusableItems[focusableItems.length - 1];
+
+                if (event.shiftKey && document.activeElement === firstItem) {
+                    event.preventDefault();
+                    lastItem.focus();
+                } else if (!event.shiftKey && document.activeElement === lastItem) {
+                    event.preventDefault();
+                    firstItem.focus();
+                }
+            });
+        })();
+
+        (function () {
+            const focusableSelector = 'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+            let activeModal = null;
+            let lastModalTrigger = null;
+
+            function getFocusableItems(modal) {
+                return Array.from(modal.querySelectorAll(focusableSelector))
+                    .filter((element) => element.offsetParent !== null);
+            }
+
+            function isModalOpen(modal) {
+                return modal.classList.contains('show') || modal.classList.contains('active');
+            }
+
+            function focusModal(modal) {
+                if (activeModal !== modal) {
+                    lastModalTrigger = document.activeElement;
+                }
+
+                activeModal = modal;
+                modal.setAttribute('role', 'dialog');
+                modal.setAttribute('aria-modal', 'true');
+
+                if (!modal.hasAttribute('tabindex')) {
+                    modal.setAttribute('tabindex', '-1');
+                }
+
+                window.setTimeout(() => {
+                    const focusableItems = getFocusableItems(modal);
+                    if (focusableItems.length) {
+                        focusableItems[0].focus();
+                    } else {
+                        modal.focus();
+                    }
+                }, 0);
+            }
+
+            function restoreModalFocus() {
+                if (lastModalTrigger && typeof lastModalTrigger.focus === 'function') {
+                    lastModalTrigger.focus();
+                }
+
+                activeModal = null;
+                lastModalTrigger = null;
+            }
+
+            const modals = Array.from(document.querySelectorAll('.modal'));
+            modals.forEach((modal) => {
+                if (isModalOpen(modal)) {
+                    focusModal(modal);
+                }
+
+                const observer = new MutationObserver(() => {
+                    if (isModalOpen(modal)) {
+                        focusModal(modal);
+                    } else if (activeModal === modal) {
+                        restoreModalFocus();
+                    }
+                });
+
+                observer.observe(modal, { attributes: true, attributeFilter: ['class'] });
+            });
+
+            document.addEventListener('keydown', function (event) {
+                if (!activeModal || !isModalOpen(activeModal) || event.key !== 'Tab') {
+                    return;
+                }
+
+                const focusableItems = getFocusableItems(activeModal);
+                if (!focusableItems.length) {
+                    event.preventDefault();
+                    activeModal.focus();
                     return;
                 }
 
