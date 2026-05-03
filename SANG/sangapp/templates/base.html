@@ -968,6 +968,206 @@
         /* Responsive */
 
         {% block extra_css %}{% endblock %}
+
+        .status-badge,
+        .status-chip,
+        .status-pill {
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            max-width: 100% !important;
+            box-sizing: border-box !important;
+            border-radius: 999px !important;
+            padding: 5px 12px !important;
+            font-size: 0.78rem !important;
+            font-weight: 700 !important;
+            line-height: 1.2 !important;
+            white-space: normal !important;
+            overflow-wrap: anywhere !important;
+            text-align: center !important;
+        }
+
+        .status-forconfirmation,
+        .status-for-confirmation,
+        .status-rejected,
+        .status-cancelled {
+            background: #fde1e1 !important;
+            color: #8a2a2a !important;
+        }
+
+        .status-forinspection,
+        .status-for-inspection,
+        .status-forvalidation,
+        .status-for-validation,
+        .status-pending,
+        .status-pendingpayment,
+        .status-pending-payment {
+            background: #fff0c4 !important;
+            color: #6b5000 !important;
+        }
+
+        .status-ongoinginspection,
+        .status-ongoing-inspection,
+        .status-fortreatment,
+        .status-for-treatment,
+        .status-ongoingtreatment,
+        .status-ongoing-treatment {
+            background: #dceff7 !important;
+            color: #1f5d71 !important;
+        }
+
+        .status-estimatedbillcreated,
+        .status-estimated-bill-created,
+        .status-forbooking,
+        .status-for-booking,
+        .status-fortreatmentbooking,
+        .status-for-treatment-booking,
+        .status-inactive {
+            background: #e0e5f2 !important;
+            color: #4f587a !important;
+        }
+
+        .status-paymentconfirmed,
+        .status-payment-confirmed,
+        .status-validated,
+        .status-active,
+        .status-completed {
+            background: #d9f2e4 !important;
+            color: #1e5f39 !important;
+        }
+
+        .action-stack,
+        .action-wrap,
+        .action-cell {
+            gap: 8px !important;
+        }
+
+        .action-stack,
+        .action-wrap {
+            max-width: 172px !important;
+            margin-left: auto !important;
+            margin-right: auto !important;
+        }
+
+        .action-btn,
+        .action-link,
+        .create-btn,
+        .edit-profile-btn,
+        .btn-primary,
+        .btn-confirm,
+        .btn-submit,
+        .confirm-btn,
+        .login-btn,
+        .register-btn,
+        .modal-btn-confirm {
+            background: #1a2a5e !important;
+            color: #fff !important;
+        }
+
+        .action-btn.update,
+        .action-btn.edit,
+        .action-update,
+        .action-confirm,
+        .action-create {
+            background: #1a2a5e !important;
+            color: #fff !important;
+        }
+
+        .action-btn.booking,
+        .action-booking {
+            background: #2f9e57 !important;
+            color: #fff !important;
+        }
+
+        .action-btn.estimated,
+        .action-btn.invoice,
+        .action-btn.payment,
+        .btn.estimated,
+        .action-estimated,
+        .action-invoice,
+        .action-payment {
+            background: #5f6789 !important;
+            color: #fff !important;
+        }
+
+        .action-btn.report,
+        .action-report {
+            background: #2b7a78 !important;
+            color: #fff !important;
+        }
+
+        .action-btn.delete,
+        .action-btn.delete-hard,
+        .delete-btn,
+        .btn-delete,
+        .action-delete,
+        .modal-btn-danger {
+            background: #d9534f !important;
+            color: #fff !important;
+        }
+
+        .btn-secondary,
+        .btn-cancel,
+        .btn-back,
+        .cancel-btn,
+        .logout-btn,
+        .back-link,
+        .back-btn,
+        .modal-btn-cancel,
+        .action-secondary {
+            background: #eef1fb !important;
+            color: #1a2a5e !important;
+        }
+
+        .action-btn:hover,
+        .action-link:hover,
+        .create-btn:hover,
+        .edit-profile-btn:hover,
+        .btn-primary:hover,
+        .btn-confirm:hover,
+        .btn-submit:hover,
+        .confirm-btn:hover,
+        .login-btn:hover,
+        .register-btn:hover,
+        .modal-btn-confirm:hover {
+            filter: brightness(0.9);
+        }
+
+        .btn-secondary:hover,
+        .btn-cancel:hover,
+        .btn-back:hover,
+        .cancel-btn:hover,
+        .logout-btn:hover,
+        .back-link:hover,
+        .back-btn:hover,
+        .modal-btn-cancel:hover {
+            background: #dde3f6 !important;
+        }
+
+        th:has(+ th:last-child),
+        td:has(+ td:last-child) {
+            padding-right: 18px !important;
+        }
+
+        th:last-child,
+        td:last-child {
+            padding-left: 14px !important;
+        }
+
+        @media (max-width: 760px) {
+            .status-badge,
+            .status-chip,
+            .status-pill {
+                width: fit-content !important;
+                min-width: 0 !important;
+            }
+
+            .action-stack,
+            .action-wrap,
+            .action-cell {
+                margin-top: 8px !important;
+            }
+        }
     </style>
 </head>
 <body>
