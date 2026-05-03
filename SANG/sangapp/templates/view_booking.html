@@ -90,26 +90,92 @@
         background: #dde3f6;
     }
 
+    .btn-back:active {
+        background: #cdd5f0;
+    }
+
     @media (max-width: 760px) {
         .container {
             padding: 0 12px;
+            margin: 16px auto 32px;
         }
 
         .sheet {
             padding: 16px;
+            border-radius: 10px;
         }
 
         .view-card {
             padding: 12px;
+            border-radius: 10px;
+        }
+
+        .view-header {
+            margin-bottom: 16px;
         }
 
         .view-header h1 {
-            font-size: 1.7em;
+            font-size: 1.6em;
+        }
+
+        .field-grid {
+            gap: 12px;
+        }
+
+        .field label {
+            font-size: 0.9em;
+            margin-bottom: 6px;
+        }
+
+        .field-value {
+            min-height: 40px;
+            font-size: 0.9em;
+            padding: 8px 12px;
+            border-radius: 10px;
+        }
+
+        .button-row {
+            margin-top: 18px;
         }
 
         .btn-back {
             width: 100%;
             min-width: 0;
+            min-height: 44px;
+            font-size: 0.9em;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .container {
+            padding: 0 8px;
+            margin: 12px auto 24px;
+        }
+
+        .sheet {
+            padding: 12px;
+        }
+
+        .view-card {
+            padding: 10px;
+        }
+
+        .view-header h1 {
+            font-size: 1.3em;
+        }
+
+        .field label {
+            font-size: 0.85em;
+        }
+
+        .field-value {
+            font-size: 0.85em;
+            padding: 6px 10px;
+        }
+
+        .btn-back {
+            font-size: 0.85em;
+            min-height: 40px;
         }
     }
 {% endblock %}

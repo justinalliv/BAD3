@@ -61,6 +61,12 @@
         box-shadow: 0 6px 16px rgba(17, 31, 76, 0.08);
     }
 
+    .tech-card:active {
+        border-color: #a8b5d9;
+        background: #f5f8fc;
+        transform: translateY(0);
+    }
+
     .tech-card h2 {
         color: #1a2a5e;
         font-size: 1.2em;
@@ -95,18 +101,90 @@
     @media (max-width: 760px) {
         .container {
             padding: 0 12px;
+            margin: 16px auto 32px;
         }
 
         .sheet {
             padding: 16px;
+            border-radius: 10px;
         }
 
         .title {
-            font-size: 1.7em;
+            font-size: 1.6em;
+            margin-bottom: 8px;
+        }
+
+        .sub {
+            font-size: 0.9em;
+            margin-bottom: 16px;
         }
 
         .card-grid {
             grid-template-columns: 1fr;
+            gap: 12px;
+        }
+
+        .tech-card {
+            min-height: 120px;
+            padding: 16px;
+            border-radius: 10px;
+        }
+
+        .tech-card h2 {
+            font-size: 1.1em;
+        }
+
+        .tech-card p {
+            font-size: 0.85em;
+        }
+
+        .icon {
+            width: 28px;
+            height: 28px;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .container {
+            padding: 0 8px;
+            margin: 12px auto 24px;
+        }
+
+        .sheet {
+            padding: 12px;
+        }
+
+        .title {
+            font-size: 1.4em;
+            margin-bottom: 6px;
+        }
+
+        .sub {
+            font-size: 0.85em;
+            margin-bottom: 12px;
+        }
+
+        .card-grid {
+            gap: 10px;
+        }
+
+        .tech-card {
+            min-height: 100px;
+            padding: 14px;
+            gap: 6px;
+        }
+
+        .tech-card h2 {
+            font-size: 1em;
+        }
+
+        .tech-card p {
+            font-size: 0.8em;
+        }
+
+        .icon {
+            width: 24px;
+            height: 24px;
         }
     }
 {% endblock %}

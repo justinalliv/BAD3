@@ -290,18 +290,126 @@
     @media (max-width: 760px) {
         .container {
             padding: 0 12px;
+            margin: 16px auto 32px;
         }
 
         .sheet {
             padding: 16px;
+            border-radius: 10px;
         }
 
         .list-shell {
             padding: 12px;
+            border-radius: 10px;
         }
 
         .title {
-            font-size: 1.7em;
+            font-size: 1.6em;
+            margin-bottom: 12px;
+        }
+
+        .top-actions {
+            flex-direction: column;
+            justify-content: flex-start;
+            gap: 10px;
+            margin-bottom: 14px;
+        }
+
+        .search-box,
+        .filter-box {
+            width: 100%;
+        }
+
+        .table-wrap {
+            border-radius: 10px;
+            max-height: 400px;
+            overflow-x: auto;
+        }
+
+        #serviceTable {
+            min-width: auto;
+            font-size: 0.75em;
+        }
+
+        #serviceTable th,
+        #serviceTable td {
+            padding: 6px;
+            font-size: 0.75em;
+        }
+
+        .action-stack {
+            max-width: 100%;
+            min-width: 100px;
+        }
+
+        .action-btn {
+            min-height: 28px;
+            font-size: 0.65em;
+            padding: 0 6px;
+        }
+
+        .status-badge {
+            min-width: auto;
+            font-size: 0.7em;
+            padding: 4px 8px;
+            border-radius: 6px;
+        }
+
+        .empty {
+            padding: 20px 0;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .container {
+            padding: 0 8px;
+            margin: 12px auto 24px;
+        }
+
+        .sheet {
+            padding: 12px;
+        }
+
+        .list-shell {
+            padding: 10px;
+        }
+
+        .title {
+            font-size: 1.3em;
+        }
+
+        .top-actions {
+            gap: 8px;
+        }
+
+        .search-box,
+        .filter-box {
+            font-size: 0.85em;
+            min-height: 36px;
+        }
+
+        #serviceTable {
+            font-size: 0.7em;
+        }
+
+        #serviceTable th,
+        #serviceTable td {
+            padding: 5px;
+        }
+
+        .action-stack {
+            min-width: 80px;
+        }
+
+        .action-btn {
+            min-height: 24px;
+            font-size: 0.6em;
+            padding: 0 4px;
+        }
+
+        .status-badge {
+            font-size: 0.65em;
+            padding: 3px 6px;
         }
     }
 {% endblock %}

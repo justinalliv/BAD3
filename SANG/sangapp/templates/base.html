@@ -680,10 +680,96 @@
             }
         }
 
+        /* Hamburger Menu */
+        .nav-toggle {
+            display: none;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 8px;
+            color: #1a2a5e;
+            font-size: 1.5em;
+            z-index: 101;
+            min-width: 44px;
+            min-height: 44px;
+            align-items: center;
+            justify-content: center;
+            margin-left: auto;
+        }
+
+        .nav-toggle:active {
+            background-color: rgba(26, 42, 94, 0.1);
+        }
+
+        .mobile-nav {
+            display: none;
+        }
+
+        .mobile-nav.active {
+            display: flex;
+            position: fixed;
+            top: 56px;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: white;
+            z-index: 99;
+            flex-direction: column;
+            padding: 0;
+        }
+
+        .mobile-nav-menu {
+            list-style: none;
+            padding: 8px 0;
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .mobile-nav-menu li {
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .mobile-nav-menu li a {
+            display: block;
+            padding: 16px 20px;
+            color: #333;
+            text-decoration: none;
+            font-size: 1em;
+            transition: background-color 0.2s;
+        }
+
+        .mobile-nav-menu li a:active {
+            background-color: #f0f0f0;
+        }
+
+        .mobile-nav-menu li a.active {
+            background-color: #e8f0fe;
+            color: #1a2a5e;
+            font-weight: 600;
+            border-left: 4px solid #1a2a5e;
+            padding-left: 16px;
+        }
+
+        .mobile-nav-footer {
+            border-top: 1px solid #e0e0e0;
+            padding: 12px;
+            background-color: #f9f9f9;
+        }
+
+        .mobile-nav-footer .profile-btn {
+            width: 100%;
+            justify-content: center;
+            margin: 0;
+        }
+
         @media (max-width: 760px) {
             nav {
                 padding: 10px 12px;
-                align-items: flex-start;
+                align-items: center;
+            }
+
+            .nav-toggle {
+                display: flex;
             }
 
             .nav-logo {
@@ -697,27 +783,19 @@
             }
 
             .nav-links {
-                justify-content: flex-start;
-                gap: 6px;
-            }
-
-            .nav-links a,
-            .nav-auth-btn,
-            .profile-btn {
-                font-size: 0.8em;
-            }
-
-            .nav-links a {
-                padding: 7px 9px;
-            }
-
-            .nav-auth-btn {
-                padding: 7px 14px;
+                display: none;
             }
 
             .profile-btn {
-                padding: 8px 14px;
-                min-height: 38px;
+                display: none;
+            }
+
+            .mobile-nav {
+                display: none;
+            }
+
+            .mobile-nav.active {
+                display: flex;
             }
 
             .container,
@@ -744,11 +822,53 @@
             .btn,
             .modal-btn {
                 width: 100%;
+                min-height: 44px;
             }
 
             .modal-content {
                 padding: 24px 18px;
                 border-radius: 16px;
+            }
+
+            table {
+                font-size: 0.85em;
+            }
+
+            th, td {
+                padding: 10px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            nav {
+                padding: 8px;
+            }
+
+            .nav-logo {
+                font-size: 0.95em;
+            }
+
+            .nav-logo-image {
+                width: 28px;
+                height: 28px;
+            }
+
+            .container,
+            .form-container {
+                padding: 0 8px;
+            }
+
+            .form-card h1 {
+                font-size: 1.4em;
+                margin-bottom: 20px;
+            }
+
+            h1 {
+                font-size: 1.5em;
+            }
+
+            h2 {
+                font-size: 1.2em;
             }
         }
 
@@ -771,6 +891,14 @@
             <span class="nav-logo-text">Supreme</span>
         </a>
 
+        <button class="nav-toggle" id="navToggle" aria-label="Toggle navigation menu" aria-expanded="false">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="3" y1="6" x2="21" y2="6"></line>
+                <line x1="3" y1="12" x2="21" y2="12"></line>
+                <line x1="3" y1="18" x2="21" y2="18"></line>
+            </svg>
+        </button>
+
         {% with current=request.resolver_match.url_name %}
         {% if request.session.om_id %}
         <ul class="nav-links">
@@ -783,6 +911,29 @@
             <li><a href="{% url 'om_manage_service_forms' %}" {% if current == 'om_manage_service_forms' or current == 'om_service_forms' or current == 'om_chemicals' or current == 'om_service_items' or current == 'om_invoice_items' %}class="active"{% endif %}>Service Configurations</a></li>
             <li><a href="{% url 'om_manage_accounts' %}" {% if current == 'om_manage_accounts' or current == 'om_edit_technician_account' %}class="active"{% endif %}>Manage Accounts</a></li>
         </ul>
+
+        <!-- Mobile Menu -->
+        <div class="mobile-nav" id="mobileNav">
+            <ul class="mobile-nav-menu">
+                <li><a href="{% url 'om_home' %}" {% if current == 'om_home' %}class="active"{% endif %}>Home</a></li>
+                <li><a href="{% url 'om_service_history' %}" {% if current == 'om_service_history' %}class="active"{% endif %}>Service History</a></li>
+                <li><a href="{% url 'om_service_status' %}" {% if current == 'om_service_status' or current == 'om_book_treatment' %}class="active"{% endif %}>Service Status</a></li>
+                <li><a href="{% url 'om_billing' %}" {% if current == 'om_billing' or current == 'om_estimated_bills' or current == 'om_create_estimated_bill' or current == 'om_view_estimated_bill' or current == 'om_edit_estimated_bill' or current == 'om_invoices' or current == 'om_create_invoice' or current == 'om_view_invoice' or current == 'om_edit_invoice' %}class="active"{% endif %}>Billing</a></li>
+                <li><a href="{% url 'om_service_reports' %}" {% if current == 'om_service_reports' or current == 'om_view_service_report' %}class="active"{% endif %}>Service Reports</a></li>
+                <li><a href="{% url 'om_remittance_records' %}" {% if current == 'om_remittance_records' %}class="active"{% endif %}>Remittance Records</a></li>
+                <li><a href="{% url 'om_manage_service_forms' %}" {% if current == 'om_manage_service_forms' or current == 'om_service_forms' or current == 'om_chemicals' or current == 'om_service_items' or current == 'om_invoice_items' %}class="active"{% endif %}>Service Configurations</a></li>
+                <li><a href="{% url 'om_manage_accounts' %}" {% if current == 'om_manage_accounts' or current == 'om_edit_technician_account' %}class="active"{% endif %}>Manage Accounts</a></li>
+            </ul>
+            <div class="mobile-nav-footer">
+                <a href="{% url 'om_profile' %}" class="profile-btn {% if current == 'om_profile' or current == 'om_change_password' %}active{% endif %}">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                        <circle cx="10" cy="6" r="4"/>
+                        <path d="M 4 18 Q 4 12 10 12 Q 16 12 16 18 Z"/>
+                    </svg>
+                    OM Profile
+                </a>
+            </div>
+        </div>
 
         <a href="{% url 'om_profile' %}" class="profile-btn {% if current == 'om_profile' or current == 'om_change_password' %}active{% endif %}">
             <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
@@ -799,12 +950,31 @@
             <li><a href="{% url 'technician_service_reports' %}" {% if current == 'technician_service_reports' or current == 'technician_create_service_report' or current == 'technician_view_service_report' %}class="active"{% endif %}>Service Reports</a></li>
         </ul>
 
+        <!-- Mobile Menu -->
+        <div class="mobile-nav" id="mobileNav">
+            <ul class="mobile-nav-menu">
+                <li><a href="{% url 'technician_home' %}" {% if current == 'technician_home' %}class="active"{% endif %}>Home</a></li>
+                <li><a href="{% url 'technician_service_history' %}" {% if current == 'technician_service_history' %}class="active"{% endif %}>Service History</a></li>
+                <li><a href="{% url 'technician_service_status' %}" {% if current == 'technician_service_status' or current == 'technician_update_service_status' or current == 'technician_edit_booking' %}class="active"{% endif %}>Service Status</a></li>
+                <li><a href="{% url 'technician_service_reports' %}" {% if current == 'technician_service_reports' or current == 'technician_create_service_report' or current == 'technician_view_service_report' %}class="active"{% endif %}>Service Reports</a></li>
+            </ul>
+            <div class="mobile-nav-footer">
+                <a href="{% url 'technician_profile' %}" class="profile-btn {% if current == 'technician_profile' %}active{% endif %}">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                        <circle cx="10" cy="6" r="4"/>
+                        <path d="M 4 18 Q 4 12 10 12 Q 16 12 16 18 Z"/>
+                    </svg>
+                    Profile
+                </a>
+            </div>
+        </div>
+
         <a href="{% url 'technician_profile' %}" class="profile-btn {% if current == 'technician_profile' %}active{% endif %}">
             <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
                 <circle cx="10" cy="6" r="4"/>
                 <path d="M 4 18 Q 4 12 10 12 Q 16 12 16 18 Z"/>
             </svg>
-            Technician {{ request.session.technician_display_id|default:request.session.technician_id }}
+            Tech {{ request.session.technician_display_id|default:request.session.technician_id }}
         </a>
         {% elif request.session.sales_representative_id %}
         <ul class="nav-links">
@@ -813,6 +983,25 @@
             <li><a href="{% url 'sales_representative_service_status' %}" {% if current == 'sales_representative_service_status' %}class="active"{% endif %}>Service Status</a></li>
             <li><a href="{% url 'sales_representative_payment_proofs' %}" {% if current == 'sales_representative_payment_proofs' or current == 'sales_representative_review_payment_proof' %}class="active"{% endif %}>Proof of Payment</a></li>
         </ul>
+
+        <!-- Mobile Menu -->
+        <div class="mobile-nav" id="mobileNav">
+            <ul class="mobile-nav-menu">
+                <li><a href="{% url 'sales_representative_home' %}" {% if current == 'sales_representative_home' %}class="active"{% endif %}>Home</a></li>
+                <li><a href="{% url 'sales_representative_service_history' %}" {% if current == 'sales_representative_service_history' %}class="active"{% endif %}>Service History</a></li>
+                <li><a href="{% url 'sales_representative_service_status' %}" {% if current == 'sales_representative_service_status' %}class="active"{% endif %}>Service Status</a></li>
+                <li><a href="{% url 'sales_representative_payment_proofs' %}" {% if current == 'sales_representative_payment_proofs' or current == 'sales_representative_review_payment_proof' %}class="active"{% endif %}>Proof of Payment</a></li>
+            </ul>
+            <div class="mobile-nav-footer">
+                <a href="{% url 'sales_representative_profile' %}" class="profile-btn {% if current == 'sales_representative_profile' %}active{% endif %}">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                        <circle cx="10" cy="6" r="4"/>
+                        <path d="M 4 18 Q 4 12 10 12 Q 16 12 16 18 Z"/>
+                    </svg>
+                    Profile
+                </a>
+            </div>
+        </div>
 
         <a href="{% url 'sales_representative_profile' %}" class="profile-btn {% if current == 'sales_representative_profile' %}active{% endif %}">
             <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
@@ -829,6 +1018,24 @@
             <li><a href="{% url 'service_status' %}" {% if current == 'service_status' or current == 'pending_payment' or current == 'payment_instructions' or current == 'submit_payment_proof' %}class="active"{% endif %}>Service Status</a></li>
         </ul>
 
+        <!-- Mobile Menu -->
+        <div class="mobile-nav" id="mobileNav">
+            <ul class="mobile-nav-menu">
+                <li><a href="{% url 'book_inspection' %}" {% if current == 'book_inspection' %}class="active"{% endif %}>Book Inspection</a></li>
+                <li><a href="{% url 'property_list' %}" {% if current == 'property_list' or current == 'register_property' or current == 'edit_property' %}class="active"{% endif %}>Manage Properties</a></li>
+                <li><a href="{% url 'service_status' %}" {% if current == 'service_status' or current == 'pending_payment' or current == 'payment_instructions' or current == 'submit_payment_proof' %}class="active"{% endif %}>Service Status</a></li>
+            </ul>
+            <div class="mobile-nav-footer">
+                <a href="{% url 'profile' %}" class="profile-btn {% if current == 'profile' or current == 'edit_profile' or current == 'change_password' %}active{% endif %}">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                        <circle cx="10" cy="6" r="4"/>
+                        <path d="M 4 18 Q 4 12 10 12 Q 16 12 16 18 Z"/>
+                    </svg>
+                    Profile
+                </a>
+            </div>
+        </div>
+
         <a href="{% url 'profile' %}" class="profile-btn {% if current == 'profile' or current == 'edit_profile' or current == 'change_password' %}active{% endif %}">
             <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
                 <circle cx="10" cy="6" r="4"/>
@@ -842,6 +1049,14 @@
             <li><a href="{% url 'login' %}" class="nav-auth-btn login {% if current == 'login' %}active{% endif %}">Login</a></li>
             <li><a href="{% url 'signup' %}" class="nav-auth-btn signup {% if current == 'signup' %}active{% endif %}">Sign Up</a></li>
         </ul>
+
+        <!-- Mobile Menu -->
+        <div class="mobile-nav" id="mobileNav">
+            <ul class="mobile-nav-menu">
+                <li><a href="{% url 'login' %}" class="nav-auth-btn login {% if current == 'login' %}class="active"{% endif %}">Login</a></li>
+                <li><a href="{% url 'signup' %}" class="nav-auth-btn signup {% if current == 'signup' %}class="active"{% endif %}">Sign Up</a></li>
+            </ul>
+        </div>
         {% endif %}
         {% endwith %}
     </nav>
@@ -851,6 +1066,38 @@
     <main>
         {% block content %}{% endblock %}
     </main>
+
+    <script>
+        // Mobile Navigation Toggle
+        document.addEventListener('DOMContentLoaded', function() {
+            const navToggle = document.getElementById('navToggle');
+            const mobileNav = document.getElementById('mobileNav');
+
+            if (navToggle && mobileNav) {
+                navToggle.addEventListener('click', function() {
+                    mobileNav.classList.toggle('active');
+                    navToggle.setAttribute('aria-expanded', mobileNav.classList.contains('active'));
+                });
+
+                // Close menu when a link is clicked
+                const mobileNavLinks = mobileNav.querySelectorAll('a');
+                mobileNavLinks.forEach(link => {
+                    link.addEventListener('click', function() {
+                        mobileNav.classList.remove('active');
+                        navToggle.setAttribute('aria-expanded', 'false');
+                    });
+                });
+
+                // Close menu when clicking outside
+                document.addEventListener('click', function(event) {
+                    if (!event.target.closest('nav')) {
+                        mobileNav.classList.remove('active');
+                        navToggle.setAttribute('aria-expanded', 'false');
+                    }
+                });
+            }
+        });
+    </script>
 
     {% block extra_js %}{% endblock %}
 </body>

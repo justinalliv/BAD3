@@ -128,26 +128,109 @@
         background: #d0d0d0;
     }
 
+    .btn-cancel:active {
+        background: #c0c0c0;
+    }
+
     .btn-confirm:hover {
         background: #0d1535;
+    }
+
+    .btn-confirm:active {
+        background: #050c1e;
     }
 
     @media (max-width: 760px) {
         .container {
             padding: 0 12px;
+            margin: 16px auto 32px;
         }
 
         .sheet {
             padding: 16px;
+            border-radius: 10px;
         }
 
         .form-shell {
             padding: 12px;
+            border-radius: 10px;
+        }
+
+        .form-header {
+            margin-bottom: 16px;
         }
 
         .form-header h1 {
-            font-size: 1.7em;
+            font-size: 1.6em;
         }
+
+        .form-group {
+            margin-bottom: 14px;
+        }
+
+        .form-group label {
+            font-size: 0.9em;
+            margin-bottom: 6px;
+        }
+
+        .form-group input,
+        .form-group select {
+            min-height: 40px;
+            font-size: 0.9em;
+            border-radius: 10px;
+        }
+
+        .error-message {
+            font-size: 0.8em;
+            margin-top: 4px;
+        }
+
+        .button-row {
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 16px;
+        }
+
+        .btn {
+            width: 100%;
+            min-width: 0;
+            min-height: 44px;
+            font-size: 0.9em;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .container {
+            padding: 0 8px;
+            margin: 12px auto 24px;
+        }
+
+        .sheet {
+            padding: 12px;
+        }
+
+        .form-shell {
+            padding: 10px;
+        }
+
+        .form-header h1 {
+            font-size: 1.3em;
+        }
+
+        .form-group label {
+            font-size: 0.85em;
+        }
+
+        .form-group input,
+        .form-group select {
+            min-height: 36px;
+            font-size: 0.85em;
+        }
+
+        .button-row {
+            gap: 8px;
+        }
+    }
 
         .button-row {
             flex-direction: column;

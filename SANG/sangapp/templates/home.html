@@ -6,81 +6,194 @@
 {% block extra_css %}
     main {
         flex: 1;
-    }
-
-    /* Hero Section */
-    .hero {
-        background-color: #1a2a5e;
-        background-image:
-            linear-gradient(rgba(13, 21, 53, 0.58), rgba(13, 21, 53, 0.58)),
-            url("{% static 'images/home-bg.png' %}");
-        background-position: center;
-        background-repeat: no-repeat;
-        background-size: cover;
-        min-height: calc(100vh - 70px);
         display: flex;
         align-items: center;
         justify-content: center;
-        padding: 60px 20px;
+        padding: 24px 16px 40px;
+        background: #f5f5f5;
+    }
+
+    .container {
+        width: 100%;
+        max-width: 1120px;
+        margin: 0;
+        padding: 0;
+    }
+
+    .sheet {
+        background: #fff;
+        border: 1px solid #ddd;
+        border-radius: 12px;
+        padding: 24px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+    }
+
+    .page-head {
+        margin-bottom: 8px;
+    }
+
+    .title {
+        color: #1a2a5e;
         text-align: center;
+        margin: 0 0 14px;
+        font-size: 2.1em;
     }
 
-    .hero-content {
-        max-width: 800px;
-        color: white;
+    .sub {
+        color: #555;
+        text-align: center;
+        margin: 0 0 18px;
+        font-size: 0.95em;
     }
 
-    .hero h1 {
-        font-size: 3.5em;
+    .create-card {
+        border: 1px solid #dfe3ee;
+        border-radius: 10px;
+        padding: 18px;
+        background: #f9fafc;
+    }
+
+    .create-title {
+        color: #1a2a5e;
+        font-size: 1.1em;
         font-weight: 700;
-        margin-bottom: 20px;
-        line-height: 1.2;
+        margin-bottom: 10px;
     }
 
-    .hero p {
-        font-size: 1.5em;
-        margin-bottom: 40px;
-        opacity: 0.95;
+    .home-copy {
+        color: #333;
+        font-size: 0.95em;
+        line-height: 1.55;
+        margin: 0 0 16px;
+    }
+
+    .home-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 14px;
+        max-width: 620px;
+        margin: 0 auto;
     }
 
     .schedule-btn {
-        display: inline-block;
-        min-width: 215px;
-        min-height: 52px;
-        padding: 0 24px;
-        background-color: transparent;
-        color: white;
-        border: 2px solid white;
-        border-radius: 14px;
-        font-size: 1.05em;
-        font-weight: 600;
+        min-width: 200px;
+        min-height: 40px;
+        padding: 0 16px;
+        background: #1a2a5e;
+        color: #fff;
+        border: none;
+        border-radius: 10px;
+        font-size: 0.9em;
+        font-weight: 700;
         text-decoration: none;
         cursor: pointer;
-        transition: all 0.3s ease;
+        transition: background-color 0.2s ease, transform 0.15s ease;
         display: inline-flex;
         align-items: center;
         justify-content: center;
     }
 
     .schedule-btn:hover {
-        background-color: white;
-        color: #1a2a5e;
-        transform: scale(1.05);
+        background: #0d1535;
+        transform: translateY(-1px);
     }
 
     .schedule-btn:focus-visible {
         outline: none;
-        box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.35);
+        box-shadow: 0 0 0 3px rgba(26, 42, 94, 0.12);
+    }
+
+    @media (max-width: 760px) {
+        main {
+            padding: 16px;
+        }
+
+        .sheet {
+            padding: 16px;
+        }
+
+        .title {
+            font-size: 1.6em;
+            margin-bottom: 12px;
+        }
+
+        .sub {
+            font-size: 0.9em;
+            margin-bottom: 14px;
+        }
+
+        .create-card {
+            padding: 16px;
+        }
+
+        .create-title {
+            font-size: 1em;
+        }
+
+        .home-copy {
+            font-size: 0.9em;
+            margin-bottom: 14px;
+        }
+
+        .schedule-btn {
+            width: 100%;
+            max-width: 100%;
+            min-height: 44px;
+            font-size: 0.95em;
+        }
+    }
+
+    @media (max-width: 480px) {
+        main {
+            padding: 12px 8px 16px;
+        }
+
+        .sheet {
+            padding: 12px;
+        }
+
+        .title {
+            font-size: 1.3em;
+        }
+
+        .sub {
+            font-size: 0.85em;
+        }
+
+        .create-card {
+            padding: 14px;
+        }
+
+        .create-title {
+            font-size: 0.95em;
+        }
+
+        .home-copy {
+            font-size: 0.85em;
+        }
+
+        .schedule-btn {
+            min-height: 46px;
+            font-size: 0.95em;
+        }
     }
 {% endblock %}
 
 {% block content %}
-    <!-- Hero Section -->
-    <section class="hero">
-        <div class="hero-content">
-            <h1>Experience the Supreme Difference.</h1>
-            <p>Providing solutions to all your pest problems.</p>
-            <a href="{% url 'book_inspection' %}" class="schedule-btn">Book Inspection</a>
+    <section class="container">
+        <div class="sheet">
+            <div class="page-head">
+                <h1 class="title">Customer Home</h1>
+            </div>
+            <p class="sub">Provide a clear, mobile-friendly start to your service journey.</p>
+
+            <div class="home-grid">
+                <div class="create-card">
+                    <div class="create-title">Book an Inspection</div>
+                    <p class="home-copy">Start a new service request from your phone or laptop with the same clean form experience used across the system.</p>
+                    <a href="{% url 'book_inspection' %}" class="schedule-btn">Book Inspection</a>
+                </div>
+            </div>
         </div>
     </section>
 {% endblock %}

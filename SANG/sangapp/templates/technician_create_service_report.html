@@ -396,13 +396,218 @@
         margin: 0 0 10px;
     }
 
+    @media (max-width: 1024px) {
+        .section-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 10px;
+        }
+
+        .search-box {
+            width: 100%;
+            max-width: 400px;
+        }
+
+        table {
+            font-size: 0.85em;
+        }
+
+        th, td {
+            padding: 8px;
+        }
+    }
+
     @media (max-width: 760px) {
         .container {
             padding: 0 12px;
+            margin: 16px auto 32px;
+        }
+
+        .title {
+            font-size: 1.6em;
+            margin-bottom: 12px;
         }
 
         .sheet {
             padding: 16px;
+            border-radius: 10px;
+        }
+
+        .form-shell {
+            padding: 12px;
+            margin-bottom: 16px;
+            border-radius: 10px;
+        }
+
+        .section-header {
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .subtitle {
+            font-size: 0.95em;
+        }
+
+        .search-box {
+            width: 100%;
+            min-height: 40px;
+            padding: 0 32px 0 12px;
+            font-size: 0.9em;
+        }
+
+        .table-wrap {
+            max-height: 300px;
+            border-radius: 10px;
+            overflow-x: auto;
+        }
+
+        table {
+            font-size: 0.8em;
+        }
+
+        th, td {
+            padding: 8px;
+            font-size: 0.8em;
+        }
+
+        .section-box {
+            padding: 12px;
+            border-radius: 10px;
+        }
+
+        .row-input,
+        .row-select,
+        .row-number {
+            min-height: 40px;
+            font-size: 0.9em;
+            padding: 0 10px;
+            border-radius: 8px;
+        }
+
+        .trait-check {
+            width: 18px;
+            height: 18px;
+            border-width: 2px;
+        }
+
+        .trait-check:checked::after {
+            width: 4px;
+            height: 9px;
+            border-width: 0 1.5px 1.5px 0;
+            left: 6px;
+            top: 2px;
+        }
+
+        .small-btn {
+            min-height: 36px;
+            padding: 0 10px;
+            font-size: 0.75em;
+            border-radius: 6px;
+        }
+
+        .btn-add {
+            width: 100%;
+            margin-top: 8px;
+        }
+
+        .btn-edit {
+            width: 100%;
+        }
+
+        .btn-delete {
+            font-size: 0.7em;
+        }
+
+        .actions {
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 18px;
+        }
+
+        .main-btn {
+            width: 100%;
+            min-width: 0;
+            min-height: 44px;
+            font-size: 0.9em;
+            border-radius: 10px;
+        }
+
+        .empty-box {
+            padding: 20px;
+        }
+
+        .modal textarea {
+            font-size: 0.9em;
+            min-height: 100px;
+            border-radius: 10px;
+        }
+
+        .success-wrap {
+            margin: 60px auto 0;
+            padding: 20px 18px;
+            border-radius: 12px;
+        }
+
+        .success-wrap h2 {
+            font-size: 1.4em;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .container {
+            padding: 0 8px;
+            margin: 12px auto 24px;
+        }
+
+        .title {
+            font-size: 1.3em;
+        }
+
+        .sheet {
+            padding: 12px;
+        }
+
+        .form-shell {
+            padding: 10px;
+            margin-bottom: 12px;
+        }
+
+        .subtitle {
+            font-size: 0.9em;
+        }
+
+        .search-box {
+            font-size: 0.85em;
+            min-height: 36px;
+        }
+
+        .table-wrap {
+            max-height: 250px;
+        }
+
+        table {
+            font-size: 0.75em;
+        }
+
+        th, td {
+            padding: 6px;
+        }
+
+        .row-input,
+        .row-select,
+        .row-number {
+            min-height: 36px;
+            font-size: 0.85em;
+        }
+
+        .actions {
+            gap: 8px;
+        }
+
+        .main-btn {
+            min-height: 40px;
+            font-size: 0.85em;
         }
     }
 {% endblock %}
