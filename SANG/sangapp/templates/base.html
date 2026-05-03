@@ -216,6 +216,16 @@
             color: white;
         }
 
+        .mobile-menu-toggle,
+        .mobile-nav-overlay,
+        .mobile-nav-drawer {
+            display: none;
+        }
+
+        body.mobile-nav-open {
+            overflow: hidden;
+        }
+
         /* Common Utilities */
         .container {
             max-width: 1200px;
@@ -683,8 +693,9 @@
         @media (max-width: 760px) {
             nav {
                 padding: 10px 12px;
-                align-items: flex-start;
+                align-items: center;
                 gap: 8px;
+                flex-wrap: nowrap;
             }
 
             .nav-logo {
@@ -699,42 +710,208 @@
             }
 
             .nav-links {
-                order: 3;
-                display: grid;
-                grid-template-columns: repeat(2, minmax(0, 1fr));
-                width: 100%;
-                justify-content: flex-start;
+                display: none;
+            }
+
+            nav > .profile-btn {
+                display: none;
+            }
+
+            .mobile-menu-toggle {
+                appearance: none;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                width: 42px;
+                height: 42px;
+                margin-left: auto;
+                border: 1px solid #d7ddec;
+                border-radius: 10px;
+                background: #f9fafc;
+                color: #1a2a5e;
+                cursor: pointer;
+            }
+
+            .mobile-menu-toggle:focus-visible {
+                outline: none;
+                box-shadow: 0 0 0 3px rgba(26, 42, 94, 0.16);
+            }
+
+            .mobile-menu-icon,
+            .mobile-menu-icon::before,
+            .mobile-menu-icon::after {
+                display: block;
+                width: 20px;
+                height: 2px;
+                border-radius: 999px;
+                background: currentColor;
+                content: "";
+            }
+
+            .mobile-menu-icon {
+                position: relative;
+            }
+
+            .mobile-menu-icon::before,
+            .mobile-menu-icon::after {
+                position: absolute;
+                left: 0;
+            }
+
+            .mobile-menu-icon::before {
+                top: -6px;
+            }
+
+            .mobile-menu-icon::after {
+                top: 6px;
+            }
+
+            .mobile-nav-overlay {
+                position: fixed;
+                inset: 0;
+                z-index: 998;
+                display: block;
+                background: rgba(8, 16, 43, 0.44);
+                opacity: 0;
+                pointer-events: none;
+                transition: opacity 0.18s ease;
+            }
+
+            .mobile-nav-drawer {
+                position: fixed;
+                top: 0;
+                right: 0;
+                z-index: 999;
+                display: flex;
+                flex-direction: column;
+                width: min(86vw, 340px);
+                height: 100vh;
+                padding: 16px;
+                background: #fff;
+                border-left: 1px solid #dfe3ee;
+                box-shadow: -18px 0 42px rgba(10, 28, 64, 0.18);
+                transform: translateX(100%);
+                visibility: hidden;
+                pointer-events: none;
+                transition: transform 0.2s ease, visibility 0.2s ease;
+            }
+
+            .mobile-nav-overlay.is-open {
+                opacity: 1;
+                pointer-events: auto;
+            }
+
+            .mobile-nav-drawer.is-open {
+                transform: translateX(0);
+                visibility: visible;
+                pointer-events: auto;
+            }
+
+            .mobile-drawer-header {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 12px;
+                padding-bottom: 14px;
+                border-bottom: 1px solid #edf0f6;
+            }
+
+            .mobile-drawer-brand {
+                display: inline-flex;
+                align-items: center;
+                gap: 8px;
+                color: #1a2a5e;
+                font-weight: 800;
+                text-decoration: none;
+            }
+
+            .mobile-drawer-brand img {
+                width: 34px;
+                height: 34px;
+                object-fit: contain;
+            }
+
+            .mobile-drawer-close {
+                width: 40px;
+                min-width: 40px;
+                height: 40px;
+                border: 1px solid #d7ddec;
+                border-radius: 10px;
+                background: #eef1fb;
+                color: #1a2a5e;
+                font-size: 1.35rem;
+                line-height: 1;
+                cursor: pointer;
+            }
+
+            .mobile-drawer-close:focus-visible,
+            .mobile-drawer-link:focus-visible,
+            .mobile-drawer-account:focus-visible {
+                outline: none;
+                box-shadow: 0 0 0 3px rgba(26, 42, 94, 0.16);
+            }
+
+            .mobile-drawer-content {
+                display: flex;
+                flex: 1;
+                flex-direction: column;
+                min-height: 0;
+                overflow-y: auto;
+                padding-top: 14px;
+            }
+
+            .mobile-drawer-links {
+                display: flex;
+                flex-direction: column;
                 gap: 6px;
             }
 
-            .nav-links a,
-            .nav-auth-btn,
-            .profile-btn {
-                font-size: 0.8em;
-            }
-
-            .nav-links a {
+            .mobile-drawer-link,
+            .mobile-drawer-account {
                 display: flex;
                 align-items: center;
+                min-height: 44px;
+                padding: 10px 12px;
+                border-radius: 10px;
+                color: #2f3545;
+                text-decoration: none;
+                font-size: 0.95rem;
+                font-weight: 650;
+                line-height: 1.25;
+            }
+
+            .mobile-drawer-link:hover {
+                background: #f0f2f8;
+                color: #1a2a5e;
+            }
+
+            .mobile-drawer-link.active {
+                background: #e8f0fe;
+                color: #1a2a5e;
+                border: 1px solid #cad5f0;
+            }
+
+            .mobile-drawer-account-wrap {
+                margin-top: auto;
+                padding-top: 14px;
+                border-top: 1px solid #edf0f6;
+            }
+
+            .mobile-drawer-account {
+                gap: 8px;
+                background: #1a2a5e;
+                color: #fff;
                 justify-content: center;
-                min-height: 38px;
-                padding: 7px 9px;
-                text-align: center;
-                white-space: normal;
-                line-height: 1.2;
             }
 
-            .nav-auth-btn {
-                padding: 7px 14px;
+            .mobile-drawer-account.active {
+                box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.3);
             }
 
-            .profile-btn {
-                padding: 8px 14px;
-                min-height: 38px;
-                max-width: calc(100vw - 132px);
-                overflow: hidden;
-                text-overflow: ellipsis;
-                white-space: nowrap;
+            .mobile-drawer-account.is-public {
+                background: #eef1fb;
+                color: #1a2a5e;
+                justify-content: flex-start;
             }
 
             .container,
@@ -779,12 +956,7 @@
             }
 
             .nav-links {
-                grid-template-columns: 1fr;
-            }
-
-            .profile-btn {
-                max-width: calc(100vw - 72px);
-                padding: 8px 10px;
+                display: none;
             }
         }
 
@@ -806,6 +978,9 @@
             <img src="/static/images/logo.png" alt="Supreme logo" class="nav-logo-image">
             <span class="nav-logo-text">Supreme</span>
         </a>
+        <button type="button" class="mobile-menu-toggle" id="mobileMenuToggle" aria-label="Open navigation menu" aria-controls="mobileNavDrawer" aria-expanded="false">
+            <span class="mobile-menu-icon" aria-hidden="true"></span>
+        </button>
 
         {% with current=request.resolver_match.url_name %}
         {% if request.session.om_id %}
@@ -879,6 +1054,62 @@
             <li><a href="{% url 'signup' %}" class="nav-auth-btn signup {% if current == 'signup' %}active{% endif %}">Sign Up</a></li>
         </ul>
         {% endif %}
+
+        <div class="mobile-nav-overlay" id="mobileNavOverlay" hidden></div>
+        <aside class="mobile-nav-drawer" id="mobileNavDrawer" aria-label="Mobile navigation" aria-hidden="true">
+            <div class="mobile-drawer-header">
+                <a href="{% if request.session.om_id %}{% url 'om_home' %}{% elif request.session.technician_id %}{% url 'technician_home' %}{% elif request.session.sales_representative_id %}{% url 'sales_representative_home' %}{% else %}{% url 'home' %}{% endif %}" class="mobile-drawer-brand">
+                    <img src="/static/images/logo.png" alt="Supreme logo">
+                    <span>Supreme</span>
+                </a>
+                <button type="button" class="mobile-drawer-close" id="mobileNavClose" aria-label="Close navigation menu">&times;</button>
+            </div>
+            <div class="mobile-drawer-content">
+                <div class="mobile-drawer-links">
+                    {% if request.session.om_id %}
+                    <a href="{% url 'om_home' %}" class="mobile-drawer-link {% if current == 'om_home' %}active{% endif %}">Home</a>
+                    <a href="{% url 'om_service_history' %}" class="mobile-drawer-link {% if current == 'om_service_history' %}active{% endif %}">Service History</a>
+                    <a href="{% url 'om_service_status' %}" class="mobile-drawer-link {% if current == 'om_service_status' or current == 'om_book_treatment' %}active{% endif %}">Service Status</a>
+                    <a href="{% url 'om_billing' %}" class="mobile-drawer-link {% if current == 'om_billing' or current == 'om_estimated_bills' or current == 'om_create_estimated_bill' or current == 'om_view_estimated_bill' or current == 'om_edit_estimated_bill' or current == 'om_invoices' or current == 'om_create_invoice' or current == 'om_view_invoice' or current == 'om_edit_invoice' %}active{% endif %}">Billing</a>
+                    <a href="{% url 'om_service_reports' %}" class="mobile-drawer-link {% if current == 'om_service_reports' or current == 'om_view_service_report' %}active{% endif %}">Service Reports</a>
+                    <a href="{% url 'om_remittance_records' %}" class="mobile-drawer-link {% if current == 'om_remittance_records' %}active{% endif %}">Remittance Records</a>
+                    <a href="{% url 'om_manage_service_forms' %}" class="mobile-drawer-link {% if current == 'om_manage_service_forms' or current == 'om_service_forms' or current == 'om_chemicals' or current == 'om_service_items' or current == 'om_invoice_items' %}active{% endif %}">Service Configurations</a>
+                    <a href="{% url 'om_manage_accounts' %}" class="mobile-drawer-link {% if current == 'om_manage_accounts' or current == 'om_edit_technician_account' %}active{% endif %}">Manage Accounts</a>
+                    {% elif request.session.technician_id %}
+                    <a href="{% url 'technician_home' %}" class="mobile-drawer-link {% if current == 'technician_home' %}active{% endif %}">Home</a>
+                    <a href="{% url 'technician_service_history' %}" class="mobile-drawer-link {% if current == 'technician_service_history' %}active{% endif %}">Service History</a>
+                    <a href="{% url 'technician_service_status' %}" class="mobile-drawer-link {% if current == 'technician_service_status' or current == 'technician_update_service_status' or current == 'technician_edit_booking' %}active{% endif %}">Service Status</a>
+                    <a href="{% url 'technician_service_reports' %}" class="mobile-drawer-link {% if current == 'technician_service_reports' or current == 'technician_create_service_report' or current == 'technician_view_service_report' %}active{% endif %}">Service Reports</a>
+                    {% elif request.session.sales_representative_id %}
+                    <a href="{% url 'sales_representative_home' %}" class="mobile-drawer-link {% if current == 'sales_representative_home' %}active{% endif %}">Home</a>
+                    <a href="{% url 'sales_representative_service_history' %}" class="mobile-drawer-link {% if current == 'sales_representative_service_history' %}active{% endif %}">Service History</a>
+                    <a href="{% url 'sales_representative_service_status' %}" class="mobile-drawer-link {% if current == 'sales_representative_service_status' %}active{% endif %}">Service Status</a>
+                    <a href="{% url 'sales_representative_payment_proofs' %}" class="mobile-drawer-link {% if current == 'sales_representative_payment_proofs' or current == 'sales_representative_review_payment_proof' %}active{% endif %}">Proof of Payment</a>
+                    {% elif request.session.customer_id %}
+                    <a href="{% url 'book_inspection' %}" class="mobile-drawer-link {% if current == 'book_inspection' %}active{% endif %}">Book Inspection</a>
+                    <a href="{% url 'property_list' %}" class="mobile-drawer-link {% if current == 'property_list' or current == 'register_property' or current == 'edit_property' %}active{% endif %}">Manage Properties</a>
+                    <a href="{% url 'service_status' %}" class="mobile-drawer-link {% if current == 'service_status' or current == 'pending_payment' or current == 'payment_instructions' or current == 'submit_payment_proof' %}active{% endif %}">Service Status</a>
+                    {% else %}
+                    <a href="{% url 'login' %}" class="mobile-drawer-link {% if current == 'login' %}active{% endif %}">Login</a>
+                    <a href="{% url 'signup' %}" class="mobile-drawer-link {% if current == 'signup' %}active{% endif %}">Sign Up</a>
+                    {% endif %}
+                </div>
+
+                <div class="mobile-drawer-account-wrap">
+                    {% if request.session.om_id %}
+                    <a href="{% url 'om_profile' %}" class="mobile-drawer-account {% if current == 'om_profile' or current == 'om_change_password' %}active{% endif %}">OM</a>
+                    {% elif request.session.technician_id %}
+                    <a href="{% url 'technician_profile' %}" class="mobile-drawer-account {% if current == 'technician_profile' %}active{% endif %}">Technician {{ request.session.technician_display_id|default:request.session.technician_id }}</a>
+                    {% elif request.session.sales_representative_id %}
+                    <a href="{% url 'sales_representative_profile' %}" class="mobile-drawer-account {% if current == 'sales_representative_profile' %}active{% endif %}">Sales {{ request.session.sales_representative_display_id|default:request.session.sales_representative_id }}</a>
+                    {% elif request.session.customer_id %}
+                    <a href="{% url 'profile' %}" class="mobile-drawer-account {% if current == 'profile' or current == 'edit_profile' or current == 'change_password' %}active{% endif %}">Customer</a>
+                    {% else %}
+                    <span class="mobile-drawer-account is-public">Public</span>
+                    {% endif %}
+                </div>
+            </div>
+        </aside>
         {% endwith %}
     </nav>
     {% endblock %}
@@ -887,6 +1118,96 @@
     <main>
         {% block content %}{% endblock %}
     </main>
+
+    <script>
+        (function () {
+            const toggle = document.getElementById('mobileMenuToggle');
+            const drawer = document.getElementById('mobileNavDrawer');
+            const overlay = document.getElementById('mobileNavOverlay');
+            const closeButton = document.getElementById('mobileNavClose');
+
+            if (!toggle || !drawer || !overlay || !closeButton) {
+                return;
+            }
+
+            const focusableSelector = 'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])';
+            let lastFocusedElement = null;
+
+            function getFocusableItems() {
+                return Array.from(drawer.querySelectorAll(focusableSelector))
+                    .filter((element) => element.offsetParent !== null);
+            }
+
+            function openDrawer() {
+                lastFocusedElement = document.activeElement;
+                overlay.hidden = false;
+                drawer.classList.add('is-open');
+                overlay.classList.add('is-open');
+                drawer.setAttribute('aria-hidden', 'false');
+                toggle.setAttribute('aria-expanded', 'true');
+                document.body.classList.add('mobile-nav-open');
+
+                const focusableItems = getFocusableItems();
+                if (focusableItems.length) {
+                    focusableItems[0].focus();
+                }
+            }
+
+            function closeDrawer() {
+                drawer.classList.remove('is-open');
+                overlay.classList.remove('is-open');
+                drawer.setAttribute('aria-hidden', 'true');
+                toggle.setAttribute('aria-expanded', 'false');
+                document.body.classList.remove('mobile-nav-open');
+                overlay.hidden = true;
+
+                if (lastFocusedElement && typeof lastFocusedElement.focus === 'function') {
+                    lastFocusedElement.focus();
+                }
+            }
+
+            toggle.addEventListener('click', openDrawer);
+            closeButton.addEventListener('click', closeDrawer);
+            overlay.addEventListener('click', closeDrawer);
+
+            drawer.querySelectorAll('a').forEach((link) => {
+                link.addEventListener('click', closeDrawer);
+            });
+
+            document.addEventListener('keydown', function (event) {
+                const isOpen = drawer.classList.contains('is-open');
+                if (!isOpen) {
+                    return;
+                }
+
+                if (event.key === 'Escape') {
+                    closeDrawer();
+                    return;
+                }
+
+                if (event.key !== 'Tab') {
+                    return;
+                }
+
+                const focusableItems = getFocusableItems();
+                if (!focusableItems.length) {
+                    event.preventDefault();
+                    return;
+                }
+
+                const firstItem = focusableItems[0];
+                const lastItem = focusableItems[focusableItems.length - 1];
+
+                if (event.shiftKey && document.activeElement === firstItem) {
+                    event.preventDefault();
+                    lastItem.focus();
+                } else if (!event.shiftKey && document.activeElement === lastItem) {
+                    event.preventDefault();
+                    firstItem.focus();
+                }
+            });
+        })();
+    </script>
 
     {% block extra_js %}{% endblock %}
 </body>
