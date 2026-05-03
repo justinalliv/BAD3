@@ -684,11 +684,13 @@
             nav {
                 padding: 10px 12px;
                 align-items: flex-start;
+                gap: 8px;
             }
 
             .nav-logo {
                 gap: 8px;
                 font-size: 1.05em;
+                min-height: 38px;
             }
 
             .nav-logo-image {
@@ -697,6 +699,10 @@
             }
 
             .nav-links {
+                order: 3;
+                display: grid;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                width: 100%;
                 justify-content: flex-start;
                 gap: 6px;
             }
@@ -708,7 +714,14 @@
             }
 
             .nav-links a {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                min-height: 38px;
                 padding: 7px 9px;
+                text-align: center;
+                white-space: normal;
+                line-height: 1.2;
             }
 
             .nav-auth-btn {
@@ -718,6 +731,10 @@
             .profile-btn {
                 padding: 8px 14px;
                 min-height: 38px;
+                max-width: calc(100vw - 132px);
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
             }
 
             .container,
@@ -749,6 +766,25 @@
             .modal-content {
                 padding: 24px 18px;
                 border-radius: 16px;
+            }
+        }
+
+        @media (max-width: 420px) {
+            nav {
+                padding: 8px 10px;
+            }
+
+            .nav-logo-text {
+                display: none;
+            }
+
+            .nav-links {
+                grid-template-columns: 1fr;
+            }
+
+            .profile-btn {
+                max-width: calc(100vw - 72px);
+                padding: 8px 10px;
             }
         }
 

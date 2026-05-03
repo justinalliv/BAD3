@@ -257,6 +257,93 @@
         outline: none;
         box-shadow: 0 0 0 3px rgba(26, 42, 94, 0.2);
     }
+
+    @media (max-width: 900px) {
+        main {
+            align-items: flex-start;
+            padding: 24px 16px;
+        }
+
+        .container,
+        .success-container {
+            flex-direction: column;
+            gap: 18px;
+            max-width: 520px;
+            min-height: auto;
+        }
+
+        .logo-section,
+        .success-container .logo-section {
+            width: 100%;
+            flex: 0 0 auto;
+        }
+
+        .logo {
+            width: min(260px, 70vw);
+        }
+
+        .form-section,
+        .success-container .form-section {
+            max-width: none;
+            padding: 24px 20px;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.22);
+        }
+
+        .form-section h2 {
+            font-size: 1.45em;
+            margin-bottom: 18px;
+        }
+
+        .form-row {
+            grid-template-columns: 1fr;
+            gap: 12px;
+        }
+
+        .form-group,
+        .form-row {
+            margin-bottom: 12px;
+        }
+
+        .form-group label {
+            font-size: 0.94em;
+        }
+
+        input[type="text"],
+        input[type="email"],
+        input[type="password"] {
+            min-height: 46px;
+            border-radius: 12px;
+            font-size: 1em;
+        }
+
+        .register-btn,
+        .success-container .login-btn {
+            min-height: 48px;
+            border-radius: 12px;
+        }
+
+        .success-text {
+            font-size: 1.45em;
+            margin-bottom: 24px;
+        }
+    }
+
+    @media (max-width: 420px) {
+        main {
+            padding: 18px 12px;
+        }
+
+        .logo {
+            width: min(210px, 68vw);
+        }
+
+        .form-section,
+        .success-container .form-section {
+            padding: 20px 16px;
+            border-radius: 14px;
+        }
+    }
 {% endblock %}
 
 {% block base_nav %}{% endblock %}

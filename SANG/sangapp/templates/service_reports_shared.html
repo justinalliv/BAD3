@@ -218,11 +218,13 @@
 
     @media (max-width: 760px) {
         .container {
-            padding: 0 12px;
+            margin: 16px auto 28px;
+            padding: 0 16px;
         }
 
         .sheet {
             padding: 16px;
+            border-radius: 10px;
         }
 
         .list-shell {
@@ -230,7 +232,67 @@
         }
 
         .title {
-            font-size: 1.7em;
+            font-size: 1.55em;
+        }
+
+        .header-row {
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .create-btn {
+            width: 100%;
+            min-height: 44px;
+        }
+
+        .toolbar,
+        .toolbar form,
+        .search-box {
+            width: 100%;
+        }
+
+        .toolbar form {
+            justify-content: stretch !important;
+        }
+
+        .search-box {
+            min-height: 44px !important;
+        }
+
+        .table-wrap {
+            max-height: none;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        #reportTable {
+            min-width: 920px;
+        }
+
+        #reportTable th,
+        #reportTable td {
+            font-size: 0.78em;
+            padding: 9px 8px;
+        }
+
+        .action-stack {
+            max-width: 154px;
+            gap: 6px;
+        }
+
+        .action-btn {
+            min-height: 36px;
+            font-size: 0.76em;
+        }
+    }
+
+    @media (max-width: 420px) {
+        .container {
+            padding: 0 12px;
+        }
+
+        .sheet {
+            padding: 14px;
         }
     }
 {% endblock %}

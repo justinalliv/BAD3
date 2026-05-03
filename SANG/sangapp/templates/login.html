@@ -182,6 +182,78 @@
     .signup-link a:hover {
         text-decoration: underline;
     }
+
+    @media (max-width: 900px) {
+        main {
+            min-height: 100vh;
+            height: auto;
+            padding: 24px 16px;
+        }
+
+        .container {
+            flex-direction: column;
+            gap: 18px;
+            max-width: 520px;
+        }
+
+        .logo-section {
+            width: 100%;
+            flex: 0 0 auto;
+        }
+
+        .logo {
+            width: min(280px, 72vw);
+        }
+
+        .form-section {
+            max-width: none;
+            padding: 28px 22px;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.22);
+        }
+
+        .form-section h2 {
+            font-size: 1.55em;
+            margin-bottom: 22px;
+        }
+
+        .form-group {
+            margin-bottom: 14px;
+        }
+
+        .form-group label {
+            font-size: 0.96em;
+            margin-bottom: 7px;
+        }
+
+        input[type="email"],
+        input[type="password"] {
+            min-height: 48px;
+            border-radius: 12px;
+            font-size: 1em;
+        }
+
+        .login-btn {
+            min-height: 48px;
+            border-radius: 12px;
+        }
+    }
+
+    @media (max-width: 420px) {
+        main {
+            padding: 18px 12px;
+            align-items: flex-start;
+        }
+
+        .logo {
+            width: min(220px, 70vw);
+        }
+
+        .form-section {
+            padding: 22px 16px;
+            border-radius: 14px;
+        }
+    }
 {% endblock %}
 
 {% block base_nav %}{% endblock %}

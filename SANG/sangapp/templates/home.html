@@ -72,6 +72,48 @@
         outline: none;
         box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.35);
     }
+
+    @media (max-width: 760px) {
+        .hero {
+            min-height: calc(100vh - 178px);
+            align-items: flex-start;
+            padding: 56px 16px 32px;
+        }
+
+        .hero-content {
+            width: 100%;
+            max-width: 520px;
+        }
+
+        .hero h1 {
+            font-size: 2.05em;
+            line-height: 1.18;
+            margin-bottom: 14px;
+        }
+
+        .hero p {
+            font-size: 1.04em;
+            line-height: 1.45;
+            margin-bottom: 26px;
+        }
+
+        .schedule-btn {
+            width: 100%;
+            min-height: 48px;
+            border-radius: 12px;
+            font-size: 0.98em;
+        }
+    }
+
+    @media (max-width: 420px) {
+        .hero {
+            padding: 44px 12px 28px;
+        }
+
+        .hero h1 {
+            font-size: 1.8em;
+        }
+    }
 {% endblock %}
 
 {% block content %}

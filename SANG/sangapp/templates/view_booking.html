@@ -3,18 +3,59 @@
 {% block title %}View Booking - Supreme Biotech Solutions{% endblock %}
 
 {% block extra_css %}
-    .container {
+    .booking-container {
         max-width: 700px;
         margin: 24px auto 40px;
         padding: 0 24px;
     }
 
-    .sheet {
+    .booking-sheet {
         background: #fff;
         border: 1px solid #ddd;
         border-radius: 12px;
-        padding: 18px;
+        padding: 24px;
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+    }
+
+    .page-head {
+        position: relative;
+        min-height: 44px;
+        margin-bottom: 14px;
+    }
+
+    .title {
+        color: #1a2a5e;
+        text-align: center;
+        margin: 0;
+        font-size: 2.05em;
+        line-height: 1.2;
+        font-weight: 700;
+    }
+
+    .back-link {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 40px;
+        padding: 0 16px;
+        border-radius: 10px;
+        border: none;
+        background: #eef1fb;
+        color: #1a2a5e;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.95em;
+        transition: all 0.2s;
+        position: absolute;
+        left: 0;
+        top: 50%;
+        transform: translateY(-50%);
+        white-space: nowrap;
+    }
+
+    .back-link:hover {
+        background: #dde3f6;
+        box-shadow: 0 2px 4px rgba(26, 42, 94, 0.1);
     }
 
     .view-card {
@@ -24,18 +65,6 @@
         border-radius: 10px;
         padding: 16px;
         background: #f9fafc;
-    }
-
-    .view-header {
-        text-align: center;
-        margin-bottom: 12px;
-    }
-
-    .view-header h1 {
-        color: #1a2a5e;
-        font-size: 2.05em;
-        line-height: 1.2;
-        margin: 0;
     }
 
     .field-grid {
@@ -54,74 +83,88 @@
     .field-value {
         min-height: 44px;
         padding: 9px 12px;
-        border: 1px solid #d6dbea;
-        border-radius: 12px;
-        background: #f5f6fa;
-        color: #5b6275;
-        font-size: 0.92em;
+        border: 1px solid #d2d7e6;
+        border-radius: 10px;
+        background: #fff;
+        color: #333;
+        font-size: 0.94em;
         line-height: 1.35;
-    }
-
-    .button-row {
-        margin-top: 16px;
-        display: flex;
-        justify-content: center;
-    }
-
-    .btn-back {
-        min-width: 196px;
-        min-height: 44px;
-        border: 1px solid #c5cce5;
-        border-radius: 12px;
-        font-size: 0.92em;
-        font-weight: 700;
-        cursor: pointer;
-        background: #eef1fb;
-        color: #1a2a5e;
-        text-decoration: none;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        white-space: nowrap;
-        transition: background-color 0.2s;
-    }
-
-    .btn-back:hover {
-        background: #dde3f6;
+        overflow-wrap: anywhere;
     }
 
     @media (max-width: 760px) {
-        .container {
-            padding: 0 12px;
+        .booking-container {
+            margin: 16px auto 28px;
+            padding: 0 16px;
         }
 
-        .sheet {
+        .booking-sheet {
             padding: 16px;
+        }
+
+        .page-head {
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+            gap: 12px;
+            min-height: 0;
+            margin-bottom: 12px;
+        }
+
+        .back-link {
+            position: static;
+            transform: none;
+            width: fit-content;
+            min-height: 44px;
+        }
+
+        .title {
+            font-size: 1.55em;
         }
 
         .view-card {
             padding: 12px;
         }
 
-        .view-header h1 {
-            font-size: 1.7em;
+        .field-grid {
+            gap: 12px;
         }
 
-        .btn-back {
+        .field-value {
+            font-size: 0.94em;
+            line-height: 1.4;
+        }
+    }
+
+    @media (max-width: 420px) {
+        .booking-container {
+            padding: 0 12px;
+        }
+
+        .booking-sheet {
+            padding: 14px;
+            border-radius: 10px;
+        }
+
+        .back-link {
             width: 100%;
-            min-width: 0;
+        }
+
+        .title {
+            font-size: 1.4em;
         }
     }
 {% endblock %}
 
 {% block content %}
-<div class="container">
-    <div class="sheet">
-        <div class="view-card">
-            <div class="view-header">
-                <h1>View Booking</h1>
-            </div>
+<div class="container booking-container">
+    <div class="sheet booking-sheet">
+        <div class="page-head">
+            <a href="{{ back_url|default:'#' }}" class="back-link">Back</a>
+            <h1 class="title">View Booking</h1>
+        </div>
 
+        <div class="view-card">
             <div class="field-grid">
                 <div class="field">
                     <label>Customer Name</label>
@@ -152,10 +195,6 @@
                     <label>Preferred Time</label>
                     <div class="field-value">{{ service.time_slot|default:'-' }}</div>
                 </div>
-            </div>
-
-            <div class="button-row">
-                <a href="{{ back_url|default:'#' }}" class="btn-back">Back</a>
             </div>
         </div>
     </div>

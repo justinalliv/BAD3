@@ -94,19 +94,63 @@
 
     @media (max-width: 760px) {
         .container {
-            padding: 0 12px;
+            margin: 16px auto 28px;
+            padding: 0 16px;
         }
 
         .sheet {
             padding: 16px;
+            border-radius: 10px;
         }
 
         .title {
-            font-size: 1.7em;
+            font-size: 1.55em;
+            margin-bottom: 8px;
+        }
+
+        .sub {
+            font-size: 0.9em;
+            margin-bottom: 14px;
         }
 
         .card-grid {
             grid-template-columns: 1fr;
+            gap: 12px;
+        }
+
+        .tech-card {
+            min-height: 118px;
+            padding: 16px;
+            align-items: flex-start;
+            text-align: left;
+        }
+
+        .tech-card h2,
+        .tech-card p {
+            text-align: left;
+        }
+
+        .tech-card h2 {
+            font-size: 1.08em;
+        }
+
+        .tech-card p {
+            font-size: 0.88em;
+        }
+
+        .icon {
+            width: 30px;
+            height: 30px;
+        }
+    }
+
+    @media (max-width: 420px) {
+        .container {
+            padding: 0 12px;
+        }
+
+        .sheet {
+            padding: 14px;
         }
     }
 {% endblock %}

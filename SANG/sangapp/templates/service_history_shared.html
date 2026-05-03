@@ -223,11 +223,13 @@
 
     @media (max-width: 760px) {
         .container {
-            padding: 0 12px;
+            margin: 16px auto 28px;
+            padding: 0 16px;
         }
 
         .sheet {
             padding: 16px;
+            border-radius: 10px;
         }
 
         .list-shell {
@@ -235,7 +237,62 @@
         }
 
         .title {
-            font-size: 1.7em;
+            font-size: 1.55em;
+        }
+
+        .header-row {
+            margin-bottom: 12px;
+        }
+
+        .toolbar,
+        .toolbar-search {
+            width: 100%;
+            max-width: none;
+        }
+
+        .toolbar-search {
+            min-height: 44px !important;
+        }
+
+        .table-wrap {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        table {
+            min-width: 980px;
+        }
+
+        #historyTable th,
+        #historyTable td {
+            font-size: 0.78em;
+            padding: 9px 8px;
+        }
+
+        .status-chip {
+            white-space: normal;
+            line-height: 1.2;
+        }
+
+        .action-stack {
+            max-width: 154px;
+            gap: 6px;
+            padding-right: 0;
+        }
+
+        .action-btn {
+            min-height: 36px;
+            font-size: 0.74em;
+        }
+    }
+
+    @media (max-width: 420px) {
+        .container {
+            padding: 0 12px;
+        }
+
+        .sheet {
+            padding: 14px;
         }
     }
 {% endblock %}
