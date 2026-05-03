@@ -113,3 +113,22 @@
 - Desktop baseline preserved: Yes
 - Mobile optimized: Yes
 - Final status: Pass
+
+## Mobile Table Access And Action Buttons
+
+- Screen name: Data-dense tables and table action controls
+- Account type: Public, Customer, Technician, Sales Representative, Operations Manager
+- Route/page: Shared table wrappers in `base.html`
+- Current issue: Some mobile portrait table wrappers could clip right-side columns/actions if local table styles used hidden overflow or fixed widths.
+- Design Protocol rule violated: Mobile portrait horizontal table movement rule; Service Configuration mobile table access rule; Delete and Cancel button design rule.
+- Desktop impact: None; changes are mobile breakpoint scoped for table scrolling and semantic action styling is aligned globally.
+- Mobile impact: Wide tables now scroll horizontally inside their container with a subtle swipe cue, while page-level horizontal overflow is prevented.
+- Fix applied: Added mobile-only horizontal overflow standards for table wrappers and standardized Delete red / Cancel secondary button styling.
+- Business logic changed: No
+- Routes changed: No
+- APIs changed: No
+- Database behavior changed: No
+- Validation behavior changed: No
+- Desktop baseline preserved: Yes
+- Mobile optimized: Yes
+- Final status: Pass
