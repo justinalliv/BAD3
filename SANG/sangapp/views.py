@@ -1237,7 +1237,7 @@ def book_inspection(request):
         preferred_service_other = request.POST.get('preferred_service_other', '').strip()
         pest_problem = request.POST.get('pest_problem', '').strip()
         pest_problem_other = request.POST.get('pest_problem_other', '').strip()
-        date = request.POST.get('date', '').strip()
+        booking_date = request.POST.get('date', '').strip()
         time_slot = request.POST.get('time_slot', '').strip()
         
         # Validate all required fields (extension 4.2)
@@ -1252,7 +1252,7 @@ def book_inspection(request):
             errors['pest_problem'] = 'Pest problem is required'
         if pest_problem == 'Other' and not pest_problem_other:
             errors['pest_problem_other'] = 'Please specify the pest problem'
-        if not date:
+        if not booking_date:
             errors['date'] = 'Date is required'
         if not time_slot:
             errors['time_slot'] = 'Time slot is required'
@@ -1298,7 +1298,7 @@ def book_inspection(request):
                 preferred_service_other=preferred_service_other if preferred_service == 'Other' else None,
                 pest_problem=final_pest_problem,
                 pest_problem_other=pest_problem_other if pest_problem == 'Other' else None,
-                date=date,
+                date=booking_date,
                 time_slot=time_slot,
                 status='For Confirmation'
             )
