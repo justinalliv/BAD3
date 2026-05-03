@@ -1133,6 +1133,73 @@
             align-items: center;
         }
 
+        .btn-cancel,
+        .cancel-btn,
+        .main-btn.btn-cancel,
+        .modal-btn-cancel,
+        .action-secondary {
+            min-height: 44px !important;
+            border-radius: 10px !important;
+            font-size: var(--font-size-action) !important;
+            font-weight: 700 !important;
+            line-height: 1.2 !important;
+            background: #eef1fb !important;
+            color: #1a2a5e !important;
+            border: 1px solid #d4deec !important;
+        }
+
+        .delete-btn,
+        .btn-delete,
+        .small-btn.btn-delete,
+        .main-btn.btn-delete,
+        .modal-btn-danger,
+        .action-delete,
+        .action-btn.delete,
+        .action-btn.delete-hard {
+            min-height: 40px !important;
+            border-radius: 10px !important;
+            font-size: var(--font-size-action) !important;
+            font-weight: 700 !important;
+            line-height: 1.2 !important;
+            background: #d9534f !important;
+            color: #fff !important;
+            border: 0 !important;
+        }
+
+        .btn-cancel:hover,
+        .cancel-btn:hover,
+        .main-btn.btn-cancel:hover,
+        .modal-btn-cancel:hover,
+        .action-secondary:hover {
+            background: #dde3f6 !important;
+        }
+
+        .delete-btn:hover,
+        .btn-delete:hover,
+        .small-btn.btn-delete:hover,
+        .main-btn.btn-delete:hover,
+        .modal-btn-danger:hover,
+        .action-delete:hover,
+        .action-btn.delete:hover,
+        .action-btn.delete-hard:hover {
+            background: #c74743 !important;
+        }
+
+        .btn-cancel:focus-visible,
+        .cancel-btn:focus-visible,
+        .main-btn.btn-cancel:focus-visible,
+        .modal-btn-cancel:focus-visible,
+        .delete-btn:focus-visible,
+        .btn-delete:focus-visible,
+        .small-btn.btn-delete:focus-visible,
+        .main-btn.btn-delete:focus-visible,
+        .modal-btn-danger:focus-visible,
+        .action-btn.delete:focus-visible,
+        .action-btn.delete-hard:focus-visible {
+            outline: none !important;
+            box-shadow: 0 0 0 3px rgba(26, 42, 94, 0.16) !important;
+        }
+
         @media (max-width: 760px) {
             :root {
                 --font-size-page-title: clamp(1.25rem, 6vw, 1.5rem);
@@ -1153,6 +1220,101 @@
             .service-config-update-modal .edit-controls-row {
                 flex-direction: column;
                 align-items: stretch;
+            }
+
+            main {
+                overflow-x: hidden;
+            }
+
+            .table-wrap,
+            .table-card,
+            .table-container,
+            .bill-table-wrap,
+            .status-table-wrap,
+            .history-table-wrap,
+            .reports-table-wrap {
+                position: relative;
+                display: block;
+                width: 100%;
+                max-width: 100%;
+                overflow-x: auto !important;
+                overflow-y: hidden;
+                -webkit-overflow-scrolling: touch;
+                overscroll-behavior-x: contain;
+                box-sizing: border-box;
+            }
+
+            .table-wrap.scrollable {
+                overflow-x: auto !important;
+                overflow-y: auto !important;
+            }
+
+            .table-wrap table,
+            .table-card table,
+            .table-container table,
+            .bill-table-wrap table,
+            .status-table-wrap table,
+            .history-table-wrap table,
+            .reports-table-wrap table {
+                width: 100%;
+                min-width: max(680px, 100%);
+            }
+
+            .table-wrap::after,
+            .table-card::after,
+            .table-container::after,
+            .bill-table-wrap::after,
+            .status-table-wrap::after,
+            .history-table-wrap::after,
+            .reports-table-wrap::after {
+                content: "";
+                position: sticky;
+                right: 0;
+                top: 0;
+                bottom: 0;
+                float: right;
+                width: 20px;
+                min-height: 44px;
+                pointer-events: none;
+                background: linear-gradient(90deg, rgba(255,255,255,0), rgba(249,250,252,0.95));
+            }
+
+            .table-wrap::before,
+            .table-card::before,
+            .table-container::before,
+            .bill-table-wrap::before,
+            .status-table-wrap::before,
+            .history-table-wrap::before,
+            .reports-table-wrap::before {
+                content: "Swipe to view more";
+                display: block;
+                padding: 8px 10px;
+                color: #5d6378;
+                font-size: 0.78rem;
+                font-weight: 600;
+                background: #f9fafc;
+                border-bottom: 1px solid #edf0f6;
+            }
+
+            .table-wrap::-webkit-scrollbar,
+            .table-card::-webkit-scrollbar,
+            .table-container::-webkit-scrollbar,
+            .bill-table-wrap::-webkit-scrollbar,
+            .status-table-wrap::-webkit-scrollbar,
+            .history-table-wrap::-webkit-scrollbar,
+            .reports-table-wrap::-webkit-scrollbar {
+                height: 8px;
+            }
+
+            .table-wrap::-webkit-scrollbar-thumb,
+            .table-card::-webkit-scrollbar-thumb,
+            .table-container::-webkit-scrollbar-thumb,
+            .bill-table-wrap::-webkit-scrollbar-thumb,
+            .status-table-wrap::-webkit-scrollbar-thumb,
+            .history-table-wrap::-webkit-scrollbar-thumb,
+            .reports-table-wrap::-webkit-scrollbar-thumb {
+                background: #c7cfdf;
+                border-radius: 999px;
             }
         }
 
