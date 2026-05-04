@@ -9,11 +9,13 @@ from django.test.utils import override_settings
 from django.urls import reverse
 
 from sangapp.models import (
+    Chemical,
     Customer,
     EstimatedBill,
     EstimatedBillItem,
     Invoice,
     InvoiceItem,
+    InvoiceItemOption,
     OperationsManager,
     PaymentProof,
     Property,
@@ -453,3 +455,89 @@ class StatusPaymentAndDatabaseTests(LogicProtocolTestCase):
         self.pending_payment_service.refresh_from_db()
         self.assertEqual(self.payment_proof.status, PaymentProof.STATUS_FOR_VALIDATION)
         self.assertEqual(self.pending_payment_service.status, 'Pending Payment')
+
+    def test_sales_invoice_view_matches_invoice_rows_and_total(self):
+        self.login_as_sales()
+
+        response = self.client.get(reverse('sales_representative_view_invoice', args=[self.invoice.id]))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Service Items')
+        self.assertContains(response, 'Termite Control')
+        self.assertContains(response, 'Total Amount: ₱ 3000.00')
+
+
+class ServiceConfigurationUpdateTests(LogicProtocolTestCase):
+    def test_service_form_update_keeps_existing_id_and_does_not_recreate_default(self):
+        self.login_as_om()
+
+        treatment, _ = ServiceFormOption.objects.update_or_create(
+            form_section='Treatment',
+            field_name='Treatment Service',
+            option_value='Bed Bug Treatment',
+            defaults={
+                'scoped_option_id': 6,
+                'option_description': 'Old description',
+                'option_rate': Decimal('2800.00'),
+                'is_active': True,
+            },
+        )
+
+        response = self.client.post(reverse('om_service_forms') + '?section=Treatment', {
+            'action': 'update',
+            'option_id': str(treatment.id),
+            'form_section': 'Treatment',
+            'field_name': 'Treatment Service',
+            'option_value': 'Bed Bug Treatments',
+            'option_description': 'Updated description',
+            'option_rate': '2800.00',
+            'is_active': 'on',
+        })
+
+        self.assertRedirects(response, reverse('om_service_forms') + '?section=Treatment')
+        treatment.refresh_from_db()
+        self.assertEqual(treatment.option_value, 'Bed Bug Treatments')
+        self.assertFalse(ServiceFormOption.objects.filter(
+            form_section='Treatment',
+            field_name='Treatment Service',
+            option_value='Bed Bug Treatment',
+        ).exclude(id=treatment.id).exists())
+
+    def test_chemical_update_keeps_existing_id(self):
+        self.login_as_om()
+        chemical = Chemical.objects.create(name='Old Chemical', standard_unit_measure='mL', is_active=True)
+
+        response = self.client.post(reverse('om_chemicals'), {
+            'action': 'update',
+            'chemical_id': str(chemical.id),
+            'name': 'Updated Chemical',
+            'standard_unit_measure': 'L',
+            'is_active': 'on',
+        })
+
+        self.assertRedirects(response, reverse('om_chemicals'))
+        chemical.refresh_from_db()
+        self.assertEqual(chemical.name, 'Updated Chemical')
+        self.assertEqual(Chemical.objects.filter(id=chemical.id).count(), 1)
+
+    def test_service_item_update_keeps_existing_id(self):
+        self.login_as_om()
+        service_item = InvoiceItemOption.objects.create(
+            name='Old Service Item',
+            default_unit_price=Decimal('1500.00'),
+            is_active=True,
+        )
+
+        response = self.client.post(reverse('om_service_items'), {
+            'action': 'update',
+            'item_id': str(service_item.id),
+            'name': 'Updated Service Item',
+            'default_unit_price': '1750.00',
+            'is_active': 'on',
+        })
+
+        self.assertRedirects(response, reverse('om_service_items'))
+        service_item.refresh_from_db()
+        self.assertEqual(service_item.name, 'Updated Service Item')
+        self.assertEqual(service_item.default_unit_price, Decimal('1750.00'))
+        self.assertEqual(InvoiceItemOption.objects.filter(id=service_item.id).count(), 1)

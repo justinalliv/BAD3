@@ -224,11 +224,13 @@
         background: #267f47;
     }
 
-    .action-btn.estimated {
+    .action-btn.estimated,
+    .action-btn.invoice {
         background: #5f6789;
     }
 
-    .action-btn.estimated:hover {
+    .action-btn.estimated:hover,
+    .action-btn.invoice:hover {
         background: #505775;
     }
 
@@ -250,6 +252,7 @@
 
     .action-btn.booking,
     .action-btn.estimated,
+    .action-btn.invoice,
     .action-btn.report,
     .action-btn.update,
     .action-btn.delete {
@@ -446,6 +449,9 @@
                                         {% if service.estimated_bill %}
                                             <a href="{% url 'om_view_estimated_bill' service.estimated_bill.id %}?back={% url 'om_service_status' %}" class="action-btn estimated">View Estimated Bill</a>
                                         {% endif %}
+                                        {% if service.latest_invoice %}
+                                            <a href="{% url 'om_view_invoice' service.latest_invoice.id %}?back={% url 'om_service_status' %}" class="action-btn invoice">View Invoice</a>
+                                        {% endif %}
                                         {% if service.service_report %}
                                             <a href="{% url 'om_view_service_report' service.service_report.id %}?back={% url 'om_service_status' %}" class="action-btn report">View Service Report</a>
                                         {% endif %}
@@ -455,9 +461,9 @@
                                         {% endif %}
                                     {% elif status_role == 'sales' %}
                                         {% if service.latest_invoice %}
-                                            <a href="{% url 'sales_representative_view_invoice' service.latest_invoice.id %}?back={% url 'sales_representative_service_status' %}" class="action-btn estimated">View Invoice</a>
+                                            <a href="{% url 'sales_representative_view_invoice' service.latest_invoice.id %}?back={% url 'sales_representative_service_status' %}" class="action-btn invoice">View Invoice</a>
                                         {% else %}
-                                            <span class="no-action">No actions</span>
+                                            <span class="no-action">No Invoice</span>
                                         {% endif %}
                                     {% else %}
                                         <a href="{% url 'technician_update_service_status' service.id %}" class="action-btn update">Update Status</a>

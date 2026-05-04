@@ -424,7 +424,8 @@
 
     <div id="confirmModal" class="modal">
         <div class="modal-content">
-            <h2>Are you sure you want to create this estimated bill?</h2>
+            <h2>Create Estimated Bill</h2>
+            <p>Are you sure you want to create this estimated bill?</p>
             <div class="modal-buttons">
                 <button type="button" class="modal-btn modal-btn-cancel" id="continueEditing">Continue Editing</button>
                 <button type="button" class="modal-btn modal-btn-confirm" id="confirmSubmit">Confirm</button>
@@ -630,6 +631,7 @@
         });
 
         confirmSubmit.addEventListener('click', function () {
+            confirmSubmit.disabled = true;
             serializeItems();
             confirmModal.classList.remove('show');
             createEstimatedBillForm.submit();

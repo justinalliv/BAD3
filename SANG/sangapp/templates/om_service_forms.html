@@ -612,7 +612,7 @@
                 {% endif %}
                 <div class="modal-buttons">
                     <button type="button" class="modal-btn modal-btn-cancel" id="closeEditModal">Cancel</button>
-                    <button type="submit" class="modal-btn modal-btn-confirm">Update</button>
+                    <button type="submit" class="modal-btn modal-btn-confirm" id="submitEditOption">Update</button>
                 </div>
             </form>
         </div>
@@ -838,6 +838,13 @@
     if (closeEditModal && editModal) {
         closeEditModal.addEventListener('click', function () {
             editModal.classList.remove('show');
+        });
+    }
+
+    const submitEditOption = document.getElementById('submitEditOption');
+    if (submitEditOption && editAction) {
+        submitEditOption.addEventListener('click', function () {
+            editAction.value = 'update';
         });
     }
 

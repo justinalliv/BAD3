@@ -328,7 +328,7 @@
                 </div>
                 <div class="modal-buttons">
                     <button type="button" class="modal-btn modal-btn-cancel" id="closeEditModal">Cancel</button>
-                    <button type="submit" class="modal-btn modal-btn-confirm">Update</button>
+                    <button type="submit" class="modal-btn modal-btn-confirm" id="submitEditItem">Update</button>
                 </div>
             </form>
         </div>
@@ -380,6 +380,13 @@
     if (closeEditModal && editModal) {
         closeEditModal.addEventListener('click', function () {
             editModal.classList.remove('show');
+        });
+    }
+
+    const submitEditItem = document.getElementById('submitEditItem');
+    if (submitEditItem && editAction) {
+        submitEditItem.addEventListener('click', function () {
+            editAction.value = 'update';
         });
     }
 </script>

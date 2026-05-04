@@ -338,19 +338,105 @@
                 <p class="validated-note">This payment proof is final and can no longer be changed.</p>
                 {% if errors.action %}<div class="error">{{ errors.action }}</div>{% endif %}
             {% else %}
-                <form method="POST">
+                <form method="POST" id="paymentValidationForm">
                     {% csrf_token %}
+                    <input type="hidden" name="action" id="validationAction" value="">
                     <label for="rejection_reason" class="label">Rejection Reason (required only when rejecting)</label>
                     <textarea id="rejection_reason" name="rejection_reason" placeholder="State clear reason if this payment proof is invalid."></textarea>
                     {% if errors.rejection_reason %}<div class="error">{{ errors.rejection_reason }}</div>{% endif %}
 
                     <div class="actions">
-                        <button type="submit" name="action" value="validate" class="btn btn-primary">Validate Payment</button>
-                        <button type="submit" name="action" value="reject" class="btn btn-danger">Reject Payment</button>
+                        <button type="button" class="btn btn-primary" id="openValidateConfirm">Validate Payment</button>
+                        <button type="button" class="btn btn-danger" id="openRejectConfirm">Reject Payment</button>
                     </div>
                 </form>
             {% endif %}
         </div>
+
+        <div id="validateConfirmModal" class="modal">
+            <div class="modal-content">
+                <h2>Confirm Payment Validation</h2>
+                <p>Are you sure you want to validate this proof of payment?</p>
+                <div class="modal-buttons">
+                    <button type="button" class="modal-btn modal-btn-cancel" id="cancelValidateConfirm">Cancel</button>
+                    <button type="button" class="modal-btn modal-btn-confirm" id="confirmValidatePayment">Confirm</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="rejectConfirmModal" class="modal">
+            <div class="modal-content">
+                <h2>Reject Proof of Payment</h2>
+                <p>Are you sure you want to reject this proof of payment?</p>
+                <div class="modal-buttons">
+                    <button type="button" class="modal-btn modal-btn-cancel" id="cancelRejectConfirm">Cancel</button>
+                    <button type="button" class="modal-btn modal-btn-danger" id="confirmRejectPayment">Reject</button>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const paymentValidationForm = document.getElementById('paymentValidationForm');
+    const validationAction = document.getElementById('validationAction');
+    const validateConfirmModal = document.getElementById('validateConfirmModal');
+    const rejectConfirmModal = document.getElementById('rejectConfirmModal');
+    const openValidateConfirm = document.getElementById('openValidateConfirm');
+    const openRejectConfirm = document.getElementById('openRejectConfirm');
+    const cancelValidateConfirm = document.getElementById('cancelValidateConfirm');
+    const cancelRejectConfirm = document.getElementById('cancelRejectConfirm');
+    const confirmValidatePayment = document.getElementById('confirmValidatePayment');
+    const confirmRejectPayment = document.getElementById('confirmRejectPayment');
+
+    function closePaymentValidationModals() {
+        if (validateConfirmModal) validateConfirmModal.classList.remove('show');
+        if (rejectConfirmModal) rejectConfirmModal.classList.remove('show');
+    }
+
+    function submitValidationAction(action, button) {
+        if (!paymentValidationForm || !validationAction || !button) return;
+        validationAction.value = action;
+        button.disabled = true;
+        paymentValidationForm.submit();
+    }
+
+    if (openValidateConfirm && validateConfirmModal) {
+        openValidateConfirm.addEventListener('click', function () {
+            validateConfirmModal.classList.add('show');
+        });
+    }
+
+    if (openRejectConfirm && rejectConfirmModal) {
+        openRejectConfirm.addEventListener('click', function () {
+            rejectConfirmModal.classList.add('show');
+        });
+    }
+
+    if (cancelValidateConfirm) cancelValidateConfirm.addEventListener('click', closePaymentValidationModals);
+    if (cancelRejectConfirm) cancelRejectConfirm.addEventListener('click', closePaymentValidationModals);
+    if (confirmValidatePayment) {
+        confirmValidatePayment.addEventListener('click', function () {
+            submitValidationAction('validate', confirmValidatePayment);
+        });
+    }
+    if (confirmRejectPayment) {
+        confirmRejectPayment.addEventListener('click', function () {
+            submitValidationAction('reject', confirmRejectPayment);
+        });
+    }
+
+    document.addEventListener('keydown', function (event) {
+        if (event.key === 'Escape') closePaymentValidationModals();
+    });
+
+    [validateConfirmModal, rejectConfirmModal].forEach((modal) => {
+        if (!modal) return;
+        modal.addEventListener('click', function (event) {
+            if (event.target === modal) closePaymentValidationModals();
+        });
+    });
+</script>
 {% endblock %}

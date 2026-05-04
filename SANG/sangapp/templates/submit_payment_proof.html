@@ -349,10 +349,21 @@
 
             <div class="actions">
                 {% if not is_locked %}
-                    <button type="submit" class="btn btn-primary">{% if is_edit_mode %}Save Changes{% else %}Submit Proof{% endif %}</button>
+                    <button type="button" class="btn btn-primary" id="openSubmitProofConfirm">{% if is_edit_mode %}Save Changes{% else %}Submit Proof{% endif %}</button>
                 {% endif %}
             </div>
         </form>
+
+        <div id="submitProofConfirmModal" class="modal">
+            <div class="modal-content">
+                <h2>Submit Proof of Payment</h2>
+                <p>Are you sure you want to submit this proof of payment?</p>
+                <div class="modal-buttons">
+                    <button type="button" class="modal-btn modal-btn-cancel" id="continueEditingProof">Continue Editing</button>
+                    <button type="button" class="modal-btn modal-btn-confirm" id="confirmSubmitProof">Confirm</button>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 {% endblock %}
@@ -362,6 +373,11 @@
     const paymentTypeSelect = document.getElementById('payment_type');
     const bankSelect = document.getElementById('bank_used');
     const accountNumberField = document.getElementById('account_number');
+    const paymentProofForm = document.getElementById('paymentProofForm');
+    const openSubmitProofConfirm = document.getElementById('openSubmitProofConfirm');
+    const submitProofConfirmModal = document.getElementById('submitProofConfirmModal');
+    const continueEditingProof = document.getElementById('continueEditingProof');
+    const confirmSubmitProof = document.getElementById('confirmSubmitProof');
 
     function normalize(value) {
         return (value || '').toString().trim().toLowerCase();
@@ -420,5 +436,41 @@
         syncBankOptions();
         syncAccountNumber();
     }
+
+    if (openSubmitProofConfirm && submitProofConfirmModal && paymentProofForm) {
+        openSubmitProofConfirm.addEventListener('click', function () {
+            if (paymentProofForm.reportValidity && !paymentProofForm.reportValidity()) {
+                return;
+            }
+            submitProofConfirmModal.classList.add('show');
+        });
+    }
+
+    if (continueEditingProof && submitProofConfirmModal) {
+        continueEditingProof.addEventListener('click', function () {
+            submitProofConfirmModal.classList.remove('show');
+        });
+    }
+
+    if (confirmSubmitProof && paymentProofForm) {
+        confirmSubmitProof.addEventListener('click', function () {
+            confirmSubmitProof.disabled = true;
+            paymentProofForm.submit();
+        });
+    }
+
+    if (submitProofConfirmModal) {
+        submitProofConfirmModal.addEventListener('click', function (event) {
+            if (event.target === submitProofConfirmModal) {
+                submitProofConfirmModal.classList.remove('show');
+            }
+        });
+    }
+
+    document.addEventListener('keydown', function (event) {
+        if (event.key === 'Escape' && submitProofConfirmModal) {
+            submitProofConfirmModal.classList.remove('show');
+        }
+    });
 </script>
 {% endblock %}

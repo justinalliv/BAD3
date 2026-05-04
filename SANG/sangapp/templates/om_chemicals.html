@@ -315,7 +315,7 @@
                 </div>
                 <div class="modal-buttons">
                     <button type="button" class="modal-btn modal-btn-cancel" id="closeEditModal">Cancel</button>
-                    <button type="submit" class="modal-btn modal-btn-confirm">Update</button>
+                    <button type="submit" class="modal-btn modal-btn-confirm" id="submitEditChemical">Update</button>
                 </div>
             </form>
         </div>
@@ -367,6 +367,13 @@
     if (closeEditModal && editModal) {
         closeEditModal.addEventListener('click', function () {
             editModal.classList.remove('show');
+        });
+    }
+
+    const submitEditChemical = document.getElementById('submitEditChemical');
+    if (submitEditChemical && editAction) {
+        submitEditChemical.addEventListener('click', function () {
+            editAction.value = 'update';
         });
     }
 </script>

@@ -206,6 +206,25 @@ def _build_service_form_default_options():
 def _ensure_service_form_default_options():
     default_options = _build_service_form_default_options()
     for (form_section, field_name), option_values in default_options.items():
+        field_has_options = ServiceFormOption.objects.filter(
+            form_section=form_section,
+            field_name=field_name,
+        ).exists()
+
+        if field_has_options:
+            existing_options = ServiceFormOption.objects.filter(
+                form_section=form_section,
+                field_name=field_name,
+            )
+            missing_scoped_options = existing_options.filter(scoped_option_id__isnull=True).order_by('id')
+            if missing_scoped_options.exists():
+                last_scoped_id = existing_options.aggregate(max_id=Max('scoped_option_id')).get('max_id') or 0
+                for option in missing_scoped_options:
+                    last_scoped_id += 1
+                    option.scoped_option_id = last_scoped_id
+                    option.save(update_fields=['scoped_option_id', 'updated_at'])
+            continue
+
         for option_value in option_values:
             existing = ServiceFormOption.objects.filter(
                 form_section=form_section,
@@ -2879,17 +2898,33 @@ def sales_representative_view_invoice(request, invoice_id):
         return redirect('login')
 
     invoice = Invoice.objects.select_related(
-        'service__customer', 'service__property', 'operations_manager'
-    ).prefetch_related('items').filter(id=invoice_id).first()
+        'service__customer', 'service__property', 'operations_manager', 'service__estimated_bill'
+    ).prefetch_related('items__service_item', 'service__estimated_bill__items').filter(id=invoice_id).first()
 
     if not invoice:
         return redirect('sales_representative_payment_proofs')
 
     treatment_rows = []
+    estimated_bill = getattr(invoice.service, 'estimated_bill', None)
+    if estimated_bill:
+        for item in estimated_bill.items.all():
+            treatment_details = _get_treatment_billing_details(item.service_type)
+            treatment_rows.append({
+                'service_type': treatment_details['service_type'] or item.service_type,
+                'quantity': item.quantity,
+                'unit_price': item.unit_price,
+                'line_total': item.line_total,
+                'target_pest': treatment_details['target_pest'],
+                'application_method': treatment_details['application_method'],
+                'additional_information': treatment_details['additional_information'],
+                'dilution_rate': treatment_details['dilution_rate'],
+            })
+
+    service_item_rows = []
     for item in invoice.items.all():
         treatment_details = _get_treatment_billing_details(item.item_type)
-        treatment_rows.append({
-            'item_type': treatment_details['service_type'] or item.item_type,
+        service_item_rows.append({
+            'item_type': item.service_item.name if item.service_item else item.item_type,
             'quantity': item.quantity,
             'unit_price': item.unit_price,
             'line_total': item.line_total,
@@ -2899,11 +2934,16 @@ def sales_representative_view_invoice(request, invoice_id):
             'dilution_rate': treatment_details['dilution_rate'],
         })
 
+    treatment_total = sum((row['line_total'] for row in treatment_rows), Decimal('0.00'))
+    service_item_total = sum((row['line_total'] for row in service_item_rows), Decimal('0.00'))
+
     return render(request, 'om_invoice_view.html', {
         'invoice': invoice,
         'role': 'sales_representative',
         'back_url': _resolve_back_url(request, 'sales_representative_payment_proofs'),
         'treatment_rows': treatment_rows,
+        'service_item_rows': service_item_rows,
+        'display_total_amount': treatment_total + service_item_total,
         'service_type_display': invoice.service.treatment_summary,
     })
 
@@ -4972,7 +5012,7 @@ def om_service_status(request):
 
     services_qs = Service.objects.exclude(
         status__in=['Completed', 'Cancelled']
-    ).select_related('customer', 'property', 'service_report').annotate(
+    ).select_related('customer', 'property', 'service_report').prefetch_related('invoices').annotate(
         workflow_order=Case(
             *status_order_cases,
             default=len(OM_STATUS_WORKFLOW),
@@ -4987,6 +5027,8 @@ def om_service_status(request):
         Service.objects.filter(id__in=unseen_confirmation_ids).update(om_seen_at=timezone.now())
 
     services = list(services_qs)
+    for service in services:
+        service.latest_invoice = service.invoices.order_by('-created_at').first()
 
     return render(request, 'service_status_shared.html', {
         'om': om,
