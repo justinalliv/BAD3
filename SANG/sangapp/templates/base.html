@@ -473,6 +473,10 @@
             font-size: 1rem;
             line-height: 1.2;
             white-space: nowrap;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
             transition: background-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
         }
 
@@ -573,6 +577,14 @@
             font-size: 0.85em;
             font-weight: 600;
             display: inline-block;
+            min-width: 92px;
+            max-width: 150px;
+            text-align: center;
+            white-space: normal;
+            overflow-wrap: normal;
+            word-break: normal;
+            hyphens: none;
+            line-height: 1.25;
         }
 
         .status-forinspection {
@@ -1541,11 +1553,29 @@
             margin-top: 16px !important;
         }
 
+        .modal-buttons form {
+            display: inline-flex !important;
+            align-items: stretch !important;
+            justify-content: center !important;
+            margin: 0 !important;
+        }
+
         .modal-btn {
             min-width: 150px !important;
             min-height: 44px !important;
             border-radius: 10px !important;
             font-size: 0.9rem !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            text-align: center !important;
+            line-height: 1.2 !important;
+            box-sizing: border-box !important;
+            vertical-align: middle !important;
+        }
+
+        .modal-buttons form .modal-btn {
+            width: 100% !important;
         }
 
         .error-message,
@@ -1595,7 +1625,12 @@
             .status-chip,
             .status-pill {
                 width: fit-content !important;
-                min-width: 0 !important;
+                min-width: 92px !important;
+                max-width: 150px !important;
+                white-space: normal !important;
+                overflow-wrap: normal !important;
+                word-break: normal !important;
+                hyphens: none !important;
             }
 
             .action-stack,

@@ -23,6 +23,14 @@
         margin-bottom: 8px;
     }
 
+    .head-action {
+        position: absolute;
+        right: 0;
+        top: 50%;
+        transform: translateY(-50%);
+        margin: 0;
+    }
+
     .title {
         color: #1a2a5e;
         text-align: center;
@@ -158,6 +166,11 @@
             margin-bottom: 10px;
         }
 
+        .head-action {
+            position: static;
+            transform: none;
+        }
+
         .back-link {
             position: static;
             transform: none;
@@ -174,8 +187,14 @@
 <div class="container">
     <div class="sheet">
         <div class="page-head">
-            <a href="{{ back_url|default:'#' }}" class="back-link">← Back</a>
+            <a href="{{ back_url|default:'#' }}" class="back-link">Back</a>
             <h1 class="title">Estimated Bill</h1>
+            {% if role == 'customer' and estimated_bill.service.status == 'Estimated Bill Created' %}
+            <form method="POST" action="{% url 'customer_confirm_estimated_bill' estimated_bill.id %}" class="head-action">
+                {% csrf_token %}
+                <button type="submit" class="confirm-btn">Confirm Estimated Bill</button>
+            </form>
+            {% endif %}
         </div>
 
         <div class="meta">
@@ -223,15 +242,5 @@
         <p class="total">Total Estimated Amount: ₱ {{ estimated_bill.total_amount }}</p>
     </div>
 
-    <div class="action-row" style="gap:10px;">
-        {% if role == 'customer' %}
-            {% if estimated_bill.service.status == 'Estimated Bill Created' %}
-                <form method="POST" action="{% url 'customer_confirm_estimated_bill' estimated_bill.id %}" style="margin:0;">
-                    {% csrf_token %}
-                    <button type="submit" class="confirm-btn">Confirm Estimated Bill</button>
-                </form>
-            {% endif %}
-        {% endif %}
-    </div>
 </div>
 {% endblock %}

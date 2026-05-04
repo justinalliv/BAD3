@@ -348,8 +348,8 @@
             <h2>Cancel Booking</h2>
             <p>Are you sure you want to cancel? All entered information will be lost.</p>
             <div class="modal-buttons">
-                <button type="button" class="modal-btn modal-btn-cancel" id="keepEditingBtn">Keep Editing</button>
-                <button type="button" class="modal-btn modal-btn-confirm" id="confirmCancelBtn">Yes, Cancel</button>
+                <button type="button" class="modal-btn modal-btn-cancel" id="keepEditingBtn">Continue Editing</button>
+                <button type="button" class="modal-btn modal-btn-confirm" id="confirmCancelBtn">Cancel</button>
             </div>
         </div>
     </div>
@@ -494,7 +494,7 @@
             document.getElementById('cancelModal').classList.add('active');
         });
 
-        // Keep Editing button in cancel modal
+        // Continue Editing button in cancel modal
         document.getElementById('keepEditingBtn').addEventListener('click', function() {
             document.getElementById('cancelModal').classList.remove('active');
         });

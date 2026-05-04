@@ -23,6 +23,13 @@
         margin-bottom: 12px;
     }
 
+    .head-action {
+        position: absolute;
+        right: 0;
+        top: 50%;
+        transform: translateY(-50%);
+    }
+
     .title {
         color: #1a2a5e;
         text-align: center;
@@ -157,6 +164,11 @@
             transform: none;
         }
 
+        .head-action {
+            position: static;
+            transform: none;
+        }
+
         .details-grid {
             grid-template-columns: 1fr;
         }
@@ -171,8 +183,15 @@
 <div class="container">
     <div class="sheet">
         <div class="header-row">
-            <a href="{{ back_url|default:'#' }}" class="back-link">← Back</a>
+            <a href="{{ back_url|default:'#' }}" class="back-link">Back</a>
             <h1 class="title">Remittance Record Details</h1>
+            {% if record.invoice %}
+                {% if request.session.om_id %}
+                    <a href="{% url 'om_view_invoice' record.invoice.id %}?back={% url 'om_remittance_record_details' record.id %}" class="btn estimated head-action">View Invoice</a>
+                {% else %}
+                    <a href="{% url 'sales_representative_view_invoice' record.invoice.id %}?back={% url 'sales_representative_remittance_record_details' record.id %}" class="btn estimated head-action">View Invoice</a>
+                {% endif %}
+            {% endif %}
         </div>
         <p class="subtext">Official payment reference details for this confirmed transaction.</p>
 
@@ -229,17 +248,17 @@
                 <span class="label">Validation Status</span>
                 <span class="value">{{ record.payment_proof.status }}</span>
             </div>
+            <div class="detail-card">
+                <span class="label">Proof File</span>
+                <span class="value">
+                    {% if record.payment_proof.proof_file %}
+                        <a href="{% url 'payment_proof_file' record.payment_proof.id %}" target="_blank" rel="noopener" class="btn estimated">Open uploaded proof</a>
+                    {% else %}
+                        -
+                    {% endif %}
+                </span>
+            </div>
         </div>
-
-        {% if record.invoice %}
-        <div class="actions">
-            {% if request.session.om_id %}
-                <a href="{% url 'om_view_invoice' record.invoice.id %}?back={% url 'om_remittance_record_details' record.id %}" class="btn estimated">View Invoice</a>
-            {% else %}
-                <a href="{% url 'sales_representative_view_invoice' record.invoice.id %}?back={% url 'sales_representative_remittance_record_details' record.id %}" class="btn estimated">View Invoice</a>
-            {% endif %}
-        </div>
-        {% endif %}
     </div>
 </div>
 {% endblock %}

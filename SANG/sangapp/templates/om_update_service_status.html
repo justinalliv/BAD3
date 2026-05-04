@@ -163,7 +163,7 @@
 <div class="container">
     <div class="sheet">
         <div class="page-head">
-            <a href="{% url 'om_service_status' %}" class="back-link">← Back</a>
+            <a href="{% url 'om_service_status' %}" class="back-link">Back</a>
             <h1 class="title">Update service status</h1>
         </div>
 
@@ -235,7 +235,6 @@
         </div>
 
         <div class="action-row">
-            <button type="submit" class="btn btn-secondary" name="action" value="cancel">Cancel</button>
             <button type="button" class="btn btn-primary" id="openConfirmModal" {% if not status_choices %}disabled{% endif %}>Update</button>
         </div>
         </form>

@@ -241,7 +241,7 @@
 <div class="container">
     <div class="sheet">
         <div class="page-head">
-            <a href="{% url 'om_manage_service_forms' %}" class="back-link">← Back</a>
+            <a href="{% url 'om_manage_service_forms' %}" class="back-link">Back</a>
             <h1 class="title">Service Items</h1>
         </div>
         <p class="sub">Create and manage reusable Service Items used in Invoice generation.</p>
@@ -261,9 +261,8 @@
             <table>
                 <thead>
                     <tr>
-                        <th style="width: 8%;">#</th>
-                        <th style="width: 8%;">Item ID</th>
-                        <th style="width: 38%;">Service Item Name</th>
+                        <th style="width: 12%;">Item ID</th>
+                        <th style="width: 42%;">Service Item Name</th>
                         <th style="width: 16%;">Item Rate</th>
                         <th style="width: 14%;">Status</th>
                         <th style="width: 16%;">Actions</th>
@@ -272,7 +271,6 @@
                 <tbody>
                     {% for item in service_items %}
                     <tr>
-                        <td>{{ forloop.counter }}</td>
                         <td>{{ item.id }}</td>
                         <td>{{ item.name }}</td>
                         <td>PHP {{ item.default_unit_price }}</td>
@@ -298,7 +296,7 @@
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="6" style="text-align:center;color:#666;">No service items yet. Operations Manager can add one when needed.</td>
+                        <td colspan="5" style="text-align:center;color:#666;">No service items yet. Operations Manager can add one when needed.</td>
                     </tr>
                     {% endfor %}
                 </tbody>

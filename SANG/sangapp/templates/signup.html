@@ -22,7 +22,7 @@
         align-items: center;
         justify-content: center;
         background: linear-gradient(135deg, #1a2a5e 0%, #2d3e6f 100%);
-        padding: 20px;
+        padding: 32px 20px;
     }
 
     .container {
@@ -32,6 +32,7 @@
         max-width: 1200px;
         width: 100%;
         margin: 0 auto;
+        min-height: calc(100vh - 64px);
     }
 
     .logo-section {
@@ -44,7 +45,7 @@
     }
 
     .logo {
-        width: 550px;
+        width: 500px;
         max-width: 95%;
         display: flex;
         align-items: center;
@@ -82,7 +83,7 @@
     .form-section {
         flex: 1;
         background: white;
-        padding: 50px;
+        padding: 34px 38px;
         border-radius: 20px;
         box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
         max-width: 450px;
@@ -91,20 +92,20 @@
 
     .form-section h2 {
         color: #1a2a5e;
-        margin-bottom: 30px;
-        font-size: 1.8em;
+        margin-bottom: 18px;
+        font-size: 1.6em;
         text-align: center;
     }
 
     .form-group {
-        margin-bottom: 16px;
+        margin-bottom: 11px;
     }
 
     .form-row {
         display: grid;
         grid-template-columns: 1fr 1fr;
-        gap: 14px;
-        margin-bottom: 16px;
+        gap: 12px;
+        margin-bottom: 11px;
     }
 
     .form-row .form-group {
@@ -114,20 +115,20 @@
     .form-group label {
         display: block;
         font-weight: 600;
-        font-size: 1.05em;
+        font-size: 0.95em;
         color: #1a2a5e;
-        margin-bottom: 10px;
+        margin-bottom: 6px;
     }
 
     input[type="text"],
     input[type="email"],
     input[type="password"] {
         width: 100%;
-        min-height: 56px;
-        padding: 14px 16px;
+        min-height: 46px;
+        padding: 10px 14px;
         border: 1.6px solid #d6d6d6;
-        border-radius: 14px;
-        font-size: 1.03em;
+        border-radius: 12px;
+        font-size: 0.98em;
         color: #4a4a4a;
         box-sizing: border-box;
         font-family: inherit;
@@ -184,17 +185,17 @@
 
     .register-btn {
         width: 100%;
-        min-height: 52px;
+        min-height: 46px;
         padding: 0 24px;
         background: #1a2a5e;
         color: white;
         border: none;
-        border-radius: 14px;
-        font-size: 1.05em;
+        border-radius: 12px;
+        font-size: 0.98em;
         font-weight: 600;
         cursor: pointer;
         transition: background 0.2s, box-shadow 0.2s;
-        margin-top: 10px;
+        margin-top: 6px;
     }
 
     .register-btn:hover {
@@ -212,7 +213,7 @@
 
     .login-link {
         text-align: center;
-        margin-top: 20px;
+        margin-top: 14px;
         color: #666;
         font-size: 0.9em;
     }
@@ -274,7 +275,7 @@
             flex-direction: column;
             gap: 18px;
             max-width: 520px;
-            min-height: 0;
+            min-height: calc(100vh - 48px);
         }
 
         .logo-section,

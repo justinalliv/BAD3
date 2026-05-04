@@ -44,10 +44,29 @@
 
     .top-actions {
         display: flex;
-        justify-content: flex-end;
+        justify-content: space-between;
         align-items: center;
         gap: 10px;
         margin-bottom: 12px;
+    }
+
+    .status-context-messages {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        flex: 1;
+        min-width: 0;
+    }
+
+    .status-context-message {
+        color: #1a2a5e;
+        background: #eef3f9;
+        border: 1px solid #d4deec;
+        border-radius: 10px;
+        padding: 9px 12px;
+        font-size: 0.86em;
+        line-height: 1.35;
+        font-weight: 600;
     }
 
     .search-box {
@@ -248,6 +267,15 @@
         .title {
             font-size: 1.7em;
         }
+
+        .top-actions {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .search-box {
+            width: 100%;
+        }
     }
 {% endblock %}
 
@@ -261,6 +289,11 @@
 
             <div class="list-shell">
                 <div class="top-actions">
+                    <div class="status-context-messages">
+                        {% for message in status_messages %}
+                            <div class="status-context-message">{{ message }}</div>
+                        {% endfor %}
+                    </div>
                     <input type="text" class="search-box search-box-unified" id="searchInput" placeholder="Search">
                 </div>
 
@@ -307,12 +340,6 @@
                         </td>
                         <td>
                             <div class="action-wrap">
-                                {% if service.payment_proof_status == 'For Validation' %}
-                                    <span class="action-note warning">Proof submitted. Awaiting validation.</span>
-                                {% elif service.payment_proof_status == 'Validated' %}
-                                    <span class="action-note success">Payment confirmed.</span>
-                                {% endif %}
-
                                 {% if service.has_invoice %}
                                     <a href="{% url 'customer_view_invoice' service.id %}" class="action-btn estimated">View Invoice</a>
                                 {% endif %}

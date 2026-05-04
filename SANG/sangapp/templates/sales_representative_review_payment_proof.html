@@ -256,7 +256,7 @@
 <div class="container">
     <div class="sheet">
         <div class="page-head">
-            <a href="{% url 'sales_representative_payment_proofs' %}" class="back-link">← Back</a>
+            <a href="{% url 'sales_representative_payment_proofs' %}" class="back-link">Back</a>
             <h1 class="title">Review Payment Proof</h1>
         </div>
         <p class="subtext">Check submitted payment details and approve or reject the proof.</p>
@@ -318,7 +318,7 @@
                 <span class="summary-label">Proof File</span>
                 <span class="summary-value">
                     {% if proof.proof_file %}
-                        <a href="{{ proof.proof_file.url }}" target="_blank" rel="noopener" class="proof-link">Open uploaded proof</a>
+                        <a href="{% url 'payment_proof_file' proof.id %}" target="_blank" rel="noopener" class="proof-link">Open uploaded proof</a>
                     {% else %}
                         -
                     {% endif %}

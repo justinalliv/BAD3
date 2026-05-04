@@ -25,6 +25,7 @@ urlpatterns = [
     path('service-status/estimated-bill/<int:estimated_bill_id>/confirm/', views.customer_confirm_estimated_bill, name='customer_confirm_estimated_bill'),
     path('service-status/<int:service_id>/invoice/', views.customer_view_invoice, name='customer_view_invoice'),
     path('service-status/<int:service_id>/service-report/', views.customer_view_service_report, name='customer_view_service_report'),
+    path('payment-proofs/<int:payment_proof_id>/file/', views.payment_proof_file, name='payment_proof_file'),
     path('om/home/', views.om_home, name='om_home'),
     path('om/profile/', views.om_profile, name='om_profile'),
     path('om/profile/change-password/', views.om_change_password, name='om_change_password'),

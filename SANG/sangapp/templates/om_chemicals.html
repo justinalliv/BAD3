@@ -228,7 +228,7 @@
 <div class="container">
     <div class="sheet">
         <div class="page-head">
-            <a href="{% url 'om_manage_service_forms' %}" class="back-link">← Back</a>
+            <a href="{% url 'om_manage_service_forms' %}" class="back-link">Back</a>
             <h1 class="title">Chemicals</h1>
         </div>
         <p class="sub">Manage ID-based chemicals used in Service Report submissions.</p>
@@ -248,18 +248,16 @@
             <table>
                 <thead>
                     <tr>
-                        <th style="width: 8%;">#</th>
-                        <th style="width: 10%;">Chemical ID</th>
-                        <th style="width: 32%;">Chemical Name</th>
+                        <th style="width: 14%;">Chemical ID</th>
+                        <th style="width: 34%;">Chemical Name</th>
                         <th style="width: 22%;">Standard Unit Measure</th>
                         <th style="width: 14%;">Status</th>
-                        <th style="width: 14%;">Actions</th>
+                        <th style="width: 16%;">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for chemical in chemicals %}
                     <tr>
-                        <td>{{ forloop.counter }}</td>
                         <td>{{ chemical.id }}</td>
                         <td>{{ chemical.name }}</td>
                         <td>{{ chemical.standard_unit_measure }}</td>
@@ -285,7 +283,7 @@
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="6" style="text-align:center;color:#666;">No chemicals yet.</td>
+                        <td colspan="5" style="text-align:center;color:#666;">No chemicals yet.</td>
                     </tr>
                     {% endfor %}
                 </tbody>

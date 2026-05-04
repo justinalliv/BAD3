@@ -1,4 +1,5 @@
 from django.shortcuts import render, redirect
+from django.http import FileResponse, Http404
 from django.db import transaction
 from django.db.models import Case, When, IntegerField, Count, Max, Q
 from django.core.mail import send_mail
@@ -9,6 +10,7 @@ from decimal import Decimal, InvalidOperation
 from datetime import datetime
 import json
 import re
+import mimetypes
 from collections import defaultdict
 from urllib.parse import quote_plus
 from .models import (
@@ -79,7 +81,7 @@ OM_STATUS_TRANSITIONS = {
 SERVICE_FORM_FIELD_CATALOG = {
     'Inspection': ['Type of Property', 'Preferred Service', 'Pest Problems'],
     'Treatment': ['Treatment Service'],
-    'Service Report Submission': ['Service Done', 'Chemicals Used', 'Levels of Infestation'],
+    'Service Report Submission': ['Levels of Infestation'],
     'Payment Proof Submission': ['Bank Used for Payment', 'Payment Type'],
 }
 
@@ -1354,11 +1356,56 @@ def service_status(request):
         service.has_invoice = (service.invoice_count or 0) > 0
         service.payment_proof_status = proof.status if proof else ''
         service.can_submit_payment_proof = service.has_invoice and ((not proof) or proof.status == PaymentProof.STATUS_REJECTED)
+
+    status_message_map = {
+        'For Confirmation': 'Please kindly wait while the Operations Manager confirms your inspection booking. Expect a call or message using your registered contact number.',
+        'Ongoing Inspection': 'Please kindly wait while the Operations Manager creates your estimated bill. Once ready, you can view it using the View Estimated Bill button.',
+        'For Treatment Booking': 'Please kindly wait while the Operations Manager confirms your treatment booking. Expect a call or message using your registered contact number.',
+        'Ongoing Treatment': 'After the treatment, please kindly wait while the Operations Manager creates your invoice.',
+    }
+    payment_message_map = {
+        PaymentProof.STATUS_FOR_VALIDATION: 'Please kindly wait while the Sales Representative validates your proof of payment.',
+        PaymentProof.STATUS_REJECTED: 'Your proof of payment was rejected. Please resolve this concern as soon as possible.',
+        PaymentProof.STATUS_VALIDATED: 'Your payment is confirmed.',
+    }
+    status_messages = []
+    seen_messages = set()
+    for service in services:
+        for message in (
+            status_message_map.get(service.status),
+            payment_message_map.get(service.payment_proof_status),
+        ):
+            if message and message not in seen_messages:
+                seen_messages.add(message)
+                status_messages.append(message)
     
     return render(request, 'service_status.html', {
         'customer': customer,
         'services': services,
+        'status_messages': status_messages,
     })
+
+
+def payment_proof_file(request, payment_proof_id):
+    proof = PaymentProof.objects.select_related('customer').filter(id=payment_proof_id).first()
+    if not proof or not proof.proof_file:
+        raise Http404("Payment proof not found.")
+
+    customer_id = request.session.get('customer_id')
+    is_owner = customer_id is not None and str(customer_id) == str(proof.customer_id)
+    is_sales = bool(request.session.get('sales_representative_id'))
+    is_om = bool(request.session.get('om_id'))
+
+    if not (is_owner or is_sales or is_om):
+        return redirect('login')
+
+    try:
+        file_handle = proof.proof_file.open('rb')
+    except FileNotFoundError as exc:
+        raise Http404("Payment proof file not found.") from exc
+
+    content_type = mimetypes.guess_type(proof.proof_file.name)[0] or 'application/octet-stream'
+    return FileResponse(file_handle, content_type=content_type, as_attachment=False, filename=proof.proof_file.name.split('/')[-1])
 
 
 def customer_delete_booking(request, service_id):
@@ -3223,6 +3270,9 @@ def om_service_forms(request):
         form_section='Treatment',
         field_name='Treatment Service',
         option_value__iexact='Other',
+    ).exclude(
+        form_section='Service Report Submission',
+        field_name__in=['Service Done', 'Chemicals Used'],
     )
     if selected_section == 'Treatment':
         options_qs = options_qs.filter(form_section='Treatment')

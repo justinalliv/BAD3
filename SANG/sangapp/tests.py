@@ -234,8 +234,25 @@ class AuthenticationAndAuthorizationTests(LogicProtocolTestCase):
             with self.subTest(email=email):
                 self.client.session.flush()
                 response = self.client.post(reverse('login'), {'email': email, 'password': password})
-                self.assertRedirects(response, expected_url)
-                self.assertIn(session_key, self.client.session)
+            self.assertRedirects(response, expected_url)
+            self.assertIn(session_key, self.client.session)
+
+    def test_payment_proof_file_access_for_authorized_roles_only(self):
+        proof_url = reverse('payment_proof_file', args=[self.payment_proof.id])
+
+        for login_helper in (self.login_as_sales, self.login_as_om, self.login_as_customer):
+            with self.subTest(role=login_helper.__name__):
+                self.client.cookies.clear()
+                login_helper()
+                response = self.client.get(proof_url)
+                self.assertEqual(response.status_code, 200)
+                self.assertEqual(b''.join(response.streaming_content), b'proof')
+
+        self.client.cookies.clear()
+        self.login_as_customer(self.other_customer)
+        response = self.client.get(proof_url)
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, reverse('login'))
 
     def test_invalid_login_rejects_without_session(self):
         response = self.client.post(reverse('login'), {'email': 'customer@example.com', 'password': 'wrong'})
