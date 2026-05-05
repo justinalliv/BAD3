@@ -118,7 +118,7 @@ DATABASES = {
        'ENGINE': 'django.db.backends.mysql',
        'NAME': 'sangapp_db',
        'USER': 'sanguser',              # ✅ change this
-       'PASSWORD': 'StrongPassword123!', # ✅ change this
+       'PASSWORD': 'S4ng_CSMS', # ✅ change this
        'HOST': '127.0.0.1',
        'PORT': '3306',
    }
