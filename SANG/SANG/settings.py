@@ -116,11 +116,11 @@ WSGI_APPLICATION = 'SANG.wsgi.application'
 DATABASES = {
    'default': {
        'ENGINE': 'django.db.backends.mysql',
-       'NAME': os.getenv('MYSQL_DATABASE', 'sangapp_db'),
-       'USER': os.getenv('MYSQL_USER', 'root'),
-       'PASSWORD': os.getenv('MYSQL_PASSWORD', ''),
-       'HOST': os.getenv('MYSQL_HOST', '127.0.0.1'),
-       'PORT': os.getenv('MYSQL_PORT', '3306'),
+       'NAME': 'sangapp_db',
+       'USER': 'sanguser',              # ✅ change this
+       'PASSWORD': 'StrongPassword123!', # ✅ change this
+       'HOST': '127.0.0.1',
+       'PORT': '3306',
    }
 }
 
