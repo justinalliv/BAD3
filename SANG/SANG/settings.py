@@ -38,11 +38,19 @@ SECRET_KEY = 'django-insecure-ipt5vjb%@+id30l9f86k&xw==o48!+s^x*e*!x1^y(*#e)*i8^
 DEBUG = True
 
 
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost', '192.168.115.5']
-
+ALLOWED_HOSTS = [
+    '157.230.250.250',
+    '127.0.0.1',
+    'localhost'
+]
 
 # CSRF Settings for local development
-CSRF_TRUSTED_ORIGINS = ['http://127.0.0.1:8000', 'http://localhost:8000', 'http://127.0.0.1', 'http://localhost', 'http://192.168.115.5:8000', 'http://192.168.115.5']
+CSRF_TRUSTED_ORIGINS = [
+    'http://157.230.250.250',
+    'http://157.230.250.250:8000',
+    'http://127.0.0.1:8000',
+    'http://localhost:8000',
+]
 CSRF_COOKIE_SECURE = False
 CSRF_COOKIE_HTTPONLY = False
 CSRF_COOKIE_SAMESITE = 'Lax'
@@ -108,11 +116,11 @@ WSGI_APPLICATION = 'SANG.wsgi.application'
 DATABASES = {
    'default': {
        'ENGINE': 'django.db.backends.mysql',
-       'NAME': os.getenv('MYSQL_DATABASE', 'sangapp_db'),
-       'USER': os.getenv('MYSQL_USER', 'root'),
-       'PASSWORD': os.getenv('MYSQL_PASSWORD', ''),
-       'HOST': os.getenv('MYSQL_HOST', '127.0.0.1'),
-       'PORT': os.getenv('MYSQL_PORT', '3306'),
+       'NAME': 'sangapp_db',
+       'USER': 'sanguser',              # ✅ change this
+       'PASSWORD': 'S4ng_CSMS', # ✅ change this
+       'HOST': '127.0.0.1',
+       'PORT': '3306',
    }
 }
 
