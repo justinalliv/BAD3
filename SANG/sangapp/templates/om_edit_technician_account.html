@@ -211,11 +211,6 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="current_password">Current Password</label>
-                    <input id="current_password" type="text" value="{{ technician.password }}" readonly>
-                </div>
-
-                <div class="form-group">
                     <label for="first_name">First Name</label>
                     <input id="first_name" type="text" name="first_name" value="{{ form_data.first_name|default:'' }}">
                     {% if errors.first_name %}<div class="error-message">{{ errors.first_name }}</div>{% endif %}

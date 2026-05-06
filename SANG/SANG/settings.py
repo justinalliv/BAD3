@@ -15,6 +15,7 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 
 import os
 from pathlib import Path
+from django.core.exceptions import ImproperlyConfigured
 
 # Use PyMySQL as the MySQL database driver for compatibility with Django's MySQL backend
 import pymysql
@@ -30,26 +31,48 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-ipt5vjb%@+id30l9f86k&xw==o48!+s^x*e*!x1^y(*#e)*i8^'
+def _env_bool(name, default=False):
+   return os.getenv(name, str(default)).strip().lower() in {'1', 'true', 'yes', 'on'}
 
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = _env_bool('DJANGO_DEBUG', True)
 
 
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost', '192.168.115.5']
+SECRET_KEY = os.getenv('DJANGO_SECRET_KEY')
+if not SECRET_KEY:
+   if DEBUG:
+      SECRET_KEY = 'django-insecure-local-dev-only-change-before-hosting'
+   else:
+      raise ImproperlyConfigured('DJANGO_SECRET_KEY must be set when DJANGO_DEBUG=False.')
+
+
+ALLOWED_HOSTS = [
+   host.strip()
+   for host in os.getenv('DJANGO_ALLOWED_HOSTS', '127.0.0.1,localhost,192.168.115.5').split(',')
+   if host.strip()
+]
 
 
 # CSRF Settings for local development
-CSRF_TRUSTED_ORIGINS = ['http://127.0.0.1:8000', 'http://localhost:8000', 'http://127.0.0.1', 'http://localhost', 'http://192.168.115.5:8000', 'http://192.168.115.5']
-CSRF_COOKIE_SECURE = False
-CSRF_COOKIE_HTTPONLY = False
+CSRF_TRUSTED_ORIGINS = [
+   origin.strip()
+   for origin in os.getenv(
+      'DJANGO_CSRF_TRUSTED_ORIGINS',
+      'http://127.0.0.1:8000,http://localhost:8000,http://127.0.0.1,http://localhost,http://192.168.115.5:8000,http://192.168.115.5',
+   ).split(',')
+   if origin.strip()
+]
+CSRF_COOKIE_SECURE = _env_bool('DJANGO_CSRF_COOKIE_SECURE', not DEBUG)
+CSRF_COOKIE_HTTPONLY = True
 CSRF_COOKIE_SAMESITE = 'Lax'
 CSRF_USE_SESSIONS = False
 CSRF_COOKIE_DOMAIN = None
-SESSION_COOKIE_SECURE = False
+SESSION_COOKIE_SECURE = _env_bool('DJANGO_SESSION_COOKIE_SECURE', not DEBUG)
 SESSION_COOKIE_SAMESITE = 'Lax'
+SECURE_SSL_REDIRECT = _env_bool('DJANGO_SECURE_SSL_REDIRECT', not DEBUG)
+SECURE_HSTS_SECONDS = int(os.getenv('DJANGO_SECURE_HSTS_SECONDS', '0' if DEBUG else '31536000'))
+SECURE_HSTS_INCLUDE_SUBDOMAINS = _env_bool('DJANGO_SECURE_HSTS_INCLUDE_SUBDOMAINS', not DEBUG)
+SECURE_HSTS_PRELOAD = _env_bool('DJANGO_SECURE_HSTS_PRELOAD', not DEBUG)
 
 # Application definition
 
@@ -175,5 +198,4 @@ STATIC_ROOT=os.path.join(BASE_DIR, 'static')
 
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
 

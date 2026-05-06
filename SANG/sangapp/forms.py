@@ -74,6 +74,9 @@ class CustomerRegistrationForm(forms.ModelForm):
         
         if not password:
             raise ValidationError("Required fields must be filled in")
+
+        if len(password) < 8:
+            raise ValidationError("Password must be at least 8 characters")
         
         return password
 

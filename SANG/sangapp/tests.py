@@ -4,7 +4,7 @@ import shutil
 import tempfile
 
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.test import TestCase
+from django.test import Client, TestCase
 from django.test.utils import override_settings
 from django.urls import reverse
 
@@ -341,6 +341,41 @@ class AuthenticationAndAuthorizationTests(LogicProtocolTestCase):
         self.assertContains(response, 'Invalid email or password.', status_code=401)
         self.assertNotIn('customer_id', self.client.session)
 
+    def test_empty_and_repeated_failed_login_attempts_do_not_create_session(self):
+        payloads = [
+            {'email': '', 'password': ''},
+            {'email': 'customer@example.com', 'password': 'wrong'},
+            {'email': 'customer@example.com', 'password': 'wrong-again'},
+        ]
+
+        for payload in payloads:
+            with self.subTest(payload=payload):
+                response = self.client.post(reverse('login'), payload)
+                self.assertEqual(response.status_code, 401)
+                self.assertNotIn('customer_id', self.client.session)
+
+    def test_sql_injection_like_login_input_does_not_bypass_authentication(self):
+        response = self.client.post(reverse('login'), {
+            'email': "' OR '1'='1",
+            'password': "' OR '1'='1",
+        })
+
+        self.assertEqual(response.status_code, 401)
+        self.assertNotIn('customer_id', self.client.session)
+
+    def test_password_hash_is_upgraded_after_legacy_login(self):
+        self.assertEqual(self.customer.password, 'secret')
+
+        response = self.client.post(reverse('login'), {
+            'email': 'customer@example.com',
+            'password': 'secret',
+        })
+
+        self.assertRedirects(response, reverse('home'))
+        self.customer.refresh_from_db()
+        self.assertNotEqual(self.customer.password, 'secret')
+        self.assertTrue(self.customer.password.startswith(('pbkdf2_', 'argon2', 'bcrypt')))
+
     def test_logout_flushes_session(self):
         self.login_as_customer()
 
@@ -349,20 +384,43 @@ class AuthenticationAndAuthorizationTests(LogicProtocolTestCase):
         self.assertRedirects(response, reverse('home'))
         self.assertNotIn('customer_id', self.client.session)
 
+    def test_csrf_protects_state_changing_customer_post(self):
+        csrf_client = Client(enforce_csrf_checks=True)
+        session = csrf_client.session
+        session['customer_id'] = self.customer.id
+        session['customer_name'] = f'{self.customer.first_name} {self.customer.last_name}'
+        session['customer_display_id'] = str(self.customer.id)
+        session.save()
+
+        response = csrf_client.post(reverse('register_property'), {
+            'property_name': 'No CSRF',
+            'street_number': '1',
+            'street': 'Token Street',
+            'city': 'Quezon City',
+            'province': 'Metro Manila',
+            'zip_code': '1100',
+            'property_type': 'Residential',
+            'floor_area': '10',
+        })
+
+        self.assertEqual(response.status_code, 403)
+        self.assertFalse(Property.objects.filter(property_name='No CSRF').exists())
+
     def test_customer_signup_creates_account_and_blocks_duplicates(self):
         signup_payload = {
             'first_name': 'New',
             'last_name': 'Customer',
             'email': 'new@example.com',
             'phone_number': '09111111111',
-            'password': 'secret',
-            'confirm_password': 'secret',
+            'password': 'secret123',
+            'confirm_password': 'secret123',
         }
 
         response = self.client.post(reverse('signup'), signup_payload)
 
         self.assertRedirects(response, reverse('login'))
         self.assertTrue(Customer.objects.filter(email='new@example.com').exists())
+        self.assertNotEqual(Customer.objects.get(email='new@example.com').password, 'secret123')
 
         duplicate_response = self.client.post(reverse('signup'), signup_payload)
         self.assertEqual(duplicate_response.status_code, 200)
@@ -469,6 +527,67 @@ class CustomerFlowAndValidationTests(LogicProtocolTestCase):
         self.assertContains(response, 'Payment type is required')
         self.assertFalse(PaymentProof.objects.filter(service=self.other_service, customer=self.customer).exists())
 
+    def test_file_upload_accepts_only_valid_payment_proof_file_types(self):
+        self.login_as_customer()
+        service = self._create_service(self.customer, self.property, 'Pending Payment')
+        invoice = Invoice.objects.create(service=service, operations_manager=self.om)
+
+        invalid_response = self.client.post(reverse('submit_payment_proof'), {
+            'service_id': str(service.id),
+            'payment_type': 'Bank Transfer',
+            'bank_used': 'BPI',
+            'reference_number': 'REF-BAD',
+            'amount_paid': '3000.00',
+            'proof_file': SimpleUploadedFile('proof.pdf', b'<script>alert("xss")</script>', content_type='application/pdf'),
+        })
+
+        self.assertEqual(invalid_response.status_code, 200)
+        self.assertContains(invalid_response, 'File format not allowed')
+        self.assertFalse(PaymentProof.objects.filter(service=service).exists())
+
+        valid_response = self.client.post(reverse('submit_payment_proof'), {
+            'service_id': str(service.id),
+            'payment_type': 'Bank Transfer',
+            'bank_used': 'BPI',
+            'reference_number': 'REF-GOOD',
+            'amount_paid': '3000.00',
+            'proof_file': SimpleUploadedFile('proof.pdf', b'%PDF-1.4\n%test', content_type='application/pdf'),
+        })
+
+        self.assertRedirects(valid_response, reverse('service_status'))
+        self.assertTrue(PaymentProof.objects.filter(service=service, invoice=invoice).exists())
+
+    def test_xss_payload_is_escaped_when_rendered(self):
+        self.login_as_customer()
+        payload = '<script>alert("xss")</script>'
+        Property.objects.create(
+            customer=self.customer,
+            property_name=payload,
+            street_number='1',
+            street='Safe Street',
+            city='Quezon City',
+            province='Metro Manila',
+            zip_code='1100',
+            property_type='Residential',
+            floor_area=Decimal('10.00'),
+        )
+
+        response = self.client.get(reverse('property_list'))
+        body = response.content.decode()
+
+        self.assertEqual(response.status_code, 200)
+        self.assertNotIn(payload, body)
+        self.assertIn('&lt;script&gt;alert(&quot;xss&quot;)&lt;/script&gt;', body)
+
+    def test_sql_like_search_and_malformed_id_do_not_expose_or_crash(self):
+        self.login_as_customer()
+
+        search_response = self.client.get(reverse('property_list'), {'q': "' OR '1'='1"})
+        malformed_id_response = self.client.get("/properties/' OR '1'='1/edit/")
+
+        self.assertEqual(search_response.status_code, 200)
+        self.assertEqual(malformed_id_response.status_code, 404)
+
 
 class StatusPaymentAndDatabaseTests(LogicProtocolTestCase):
     def test_om_status_transition_requires_date_and_time_then_persists(self):
@@ -564,6 +683,40 @@ class StatusPaymentAndDatabaseTests(LogicProtocolTestCase):
         self.assertContains(response, 'Service Items')
         self.assertContains(response, 'Termite Control')
         self.assertContains(response, 'Total Amount: ₱ 3000.00')
+
+    def test_om_account_edit_pages_do_not_display_password_values(self):
+        self.login_as_om()
+
+        technician_response = self.client.get(reverse('om_edit_technician_account', args=[self.technician.id]))
+        sales_response = self.client.get(reverse('om_edit_sales_representative_account', args=[self.sales.id]))
+
+        self.assertEqual(technician_response.status_code, 200)
+        self.assertEqual(sales_response.status_code, 200)
+        self.assertNotContains(technician_response, 'Current Password')
+        self.assertNotContains(technician_response, self.technician.password)
+        self.assertNotContains(sales_response, 'Current Password')
+        self.assertNotContains(sales_response, self.sales.password)
+
+    def test_om_created_staff_passwords_are_hashed(self):
+        self.login_as_om()
+
+        tech_response = self.client.post(reverse('om_manage_technician_accounts'), {
+            'action': 'create_technician',
+            'first_name': 'New',
+            'last_name': 'Tech',
+            'password': 'staffpass123',
+        })
+        sales_response = self.client.post(reverse('om_manage_sales_accounts'), {
+            'action': 'create_sales_representative',
+            'first_name': 'New',
+            'last_name': 'Sales',
+            'password': 'staffpass123',
+        })
+
+        self.assertRedirects(tech_response, reverse('om_manage_technician_accounts'))
+        self.assertRedirects(sales_response, reverse('om_manage_sales_accounts'))
+        self.assertNotEqual(Technician.objects.get(email='tech2@companyemail.com').password, 'staffpass123')
+        self.assertNotEqual(SalesRepresentative.objects.get(first_name='New', last_name='Sales').password, 'staffpass123')
 
 
 class ServiceConfigurationUpdateTests(LogicProtocolTestCase):

@@ -6,6 +6,7 @@ from django.core.mail import send_mail
 from django.conf import settings
 from django.urls import reverse
 from django.utils import timezone
+from django.contrib.auth.hashers import check_password, identify_hasher, make_password
 from decimal import Decimal, InvalidOperation
 from datetime import datetime
 import json
@@ -167,6 +168,49 @@ PAYMENT_BANK_DEFAULTS = [
     ('E-Wallet Transfer', 'GCash', '0917-000-0000'),
     ('E-Wallet Transfer', 'Maya', '0998-000-0000'),
 ]
+
+
+def _is_password_hash(password_value):
+    try:
+        identify_hasher(password_value)
+        return True
+    except Exception:
+        return False
+
+
+def _check_account_password(account, raw_password):
+    stored_password = account.password or ''
+    if _is_password_hash(stored_password):
+        return check_password(raw_password, stored_password)
+
+    password_matches = stored_password == raw_password
+    if password_matches:
+        account.password = make_password(raw_password)
+        account.save(update_fields=['password'])
+    return password_matches
+
+
+def _set_account_password(account, raw_password):
+    account.password = make_password(raw_password)
+
+
+def _valid_payment_proof_file(uploaded_file):
+    allowed_signatures = {
+        'pdf': (b'%PDF',),
+        'png': (b'\x89PNG\r\n\x1a\n',),
+        'jpg': (b'\xff\xd8\xff',),
+        'jpeg': (b'\xff\xd8\xff',),
+    }
+    file_ext = uploaded_file.name.rsplit('.', 1)[-1].lower() if '.' in uploaded_file.name else ''
+    signatures = allowed_signatures.get(file_ext)
+    if not signatures:
+        return False
+
+    current_position = uploaded_file.tell()
+    uploaded_file.seek(0)
+    header = uploaded_file.read(16)
+    uploaded_file.seek(current_position)
+    return any(header.startswith(signature) for signature in signatures)
 
 
 def _unique_preserve_order(values):
@@ -472,7 +516,7 @@ def login(request):
         password = request.POST.get('password', '')
 
         om = OperationsManager.objects.filter(email__iexact=email).only('id', 'password', 'first_name', 'last_name').first()
-        if om and om.password == password:
+        if om and _check_account_password(om, password):
             request.session.flush()
             request.session['om_id'] = om.id
             request.session['om_name'] = f"{om.first_name} {om.last_name}"
@@ -480,7 +524,7 @@ def login(request):
             return redirect('om_home')
 
         technician = Technician.objects.filter(email__iexact=email, is_active=True).only('id', 'technician_id', 'password', 'first_name', 'last_name').first()
-        if technician and technician.password == password:
+        if technician and _check_account_password(technician, password):
             request.session.flush()
             request.session['technician_id'] = technician.id
             request.session['technician_name'] = f"{technician.first_name} {technician.last_name}"
@@ -488,7 +532,7 @@ def login(request):
             return redirect('technician_home')
 
         sales_representative = SalesRepresentative.objects.filter(email__iexact=email, is_active=True).only('id', 'password', 'first_name', 'last_name').first()
-        if sales_representative and sales_representative.password == password:
+        if sales_representative and _check_account_password(sales_representative, password):
             request.session.flush()
             request.session['sales_representative_id'] = sales_representative.id
             request.session['sales_representative_name'] = f"{sales_representative.first_name} {sales_representative.last_name}"
@@ -496,7 +540,7 @@ def login(request):
             return redirect('sales_representative_home')
 
         customer = Customer.objects.filter(email=email, is_active=True).only('id', 'password', 'first_name', 'last_name').first()
-        if customer and customer.password == password:
+        if customer and _check_account_password(customer, password):
             request.session.flush()
             request.session['customer_id'] = customer.id
             request.session['customer_name'] = f"{customer.first_name} {customer.last_name}"
@@ -541,7 +585,7 @@ def signup(request):
         if form.is_valid():
             # Create new customer account
             customer = form.save(commit=False)
-            customer.password = form.cleaned_data['password']
+            _set_account_password(customer, form.cleaned_data['password'])
             customer.save()
             
             # Auto-login after registration
@@ -683,7 +727,7 @@ def change_password(request):
         if not confirm_new_password:
             errors['confirm_new_password'] = 'Please confirm your new password.'
 
-        if current_password and current_password != customer.password:
+        if current_password and not _check_account_password(customer, current_password):
             errors['current_password'] = 'Current password is incorrect.'
 
         if new_password and confirm_new_password and new_password != confirm_new_password:
@@ -693,7 +737,7 @@ def change_password(request):
             errors['new_password'] = 'New password must be at least 8 characters.'
 
         if not errors:
-            customer.password = new_password
+            _set_account_password(customer, new_password)
             customer.save(update_fields=['password'])
             return redirect('profile')
 
@@ -841,12 +885,10 @@ def submit_payment_proof(request):
         
         # Validate file format and size
         if proof_file:
-            allowed_extensions = ['jpg', 'jpeg', 'png', 'pdf']
             max_size = 10 * 1024 * 1024  # 10 MB
-            
-            file_ext = proof_file.name.split('.')[-1].lower()
-            if file_ext not in allowed_extensions:
-                errors['file'] = 'File format not allowed. Only JPG, PNG, or PDF are accepted.'
+
+            if not _valid_payment_proof_file(proof_file):
+                errors['file'] = 'File format not allowed. Only valid JPG, PNG, or PDF files are accepted.'
             
             if proof_file.size > max_size:
                 errors['file'] = 'File size exceeds 10 MB limit.'
@@ -1635,7 +1677,7 @@ def om_change_password(request):
         if not confirm_new_password:
             errors['confirm_new_password'] = 'Please confirm your new password.'
 
-        if current_password and current_password != om.password:
+        if current_password and not _check_account_password(om, current_password):
             errors['current_password'] = 'Current password is incorrect.'
 
         if new_password and confirm_new_password and new_password != confirm_new_password:
@@ -1645,7 +1687,7 @@ def om_change_password(request):
             errors['new_password'] = 'New password must be at least 8 characters.'
 
         if not errors:
-            om.password = new_password
+            _set_account_password(om, new_password)
             om.save(update_fields=['password'])
             return redirect('om_profile')
 
@@ -3691,7 +3733,7 @@ def om_manage_technician_accounts(request):
                 first_name=first_name,
                 last_name=last_name,
                 email=email,
-                password=password,
+                password=make_password(password),
             )
             return redirect('om_manage_technician_accounts')
 
@@ -3791,7 +3833,7 @@ def om_manage_sales_accounts(request):
             sales_representative = SalesRepresentative.objects.create(
                 first_name=first_name,
                 last_name=last_name,
-                password=password,
+                password=make_password(password),
                 email=pending_email,
             )
             generated_email = f'sales{sales_representative.id}@companyemail.com'
@@ -3933,7 +3975,7 @@ def om_edit_sales_representative_account(request, sales_representative_pk):
         update_fields = ['first_name', 'last_name']
 
         if new_password:
-            sales_representative.password = new_password
+            _set_account_password(sales_representative, new_password)
             update_fields.append('password')
 
         sales_representative.save(update_fields=update_fields)
@@ -3990,7 +4032,7 @@ def om_edit_technician_account(request, technician_pk):
         update_fields = ['first_name', 'last_name']
 
         if new_password:
-            technician.password = new_password
+            _set_account_password(technician, new_password)
             update_fields.append('password')
 
         technician.save(update_fields=update_fields)
