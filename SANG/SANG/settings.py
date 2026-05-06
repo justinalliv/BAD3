@@ -35,7 +35,7 @@ SECRET_KEY = 'django-insecure-ipt5vjb%@+id30l9f86k&xw==o48!+s^x*e*!x1^y(*#e)*i8^
 
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 
 ALLOWED_HOSTS = [
