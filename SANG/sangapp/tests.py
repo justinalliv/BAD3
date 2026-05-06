@@ -1,9 +1,11 @@
 from datetime import date, timedelta
 from decimal import Decimal
+from pathlib import Path
 import shutil
 import tempfile
 
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.conf import settings
 from django.test import Client, TestCase
 from django.test.utils import override_settings
 from django.urls import reverse
@@ -793,3 +795,249 @@ class ServiceConfigurationUpdateTests(LogicProtocolTestCase):
         self.assertEqual(service_item.name, 'Updated Service Item')
         self.assertEqual(service_item.default_unit_price, Decimal('1750.00'))
         self.assertEqual(InvoiceItemOption.objects.filter(id=service_item.id).count(), 1)
+
+    def test_service_form_updates_all_required_sections_without_duplicates(self):
+        self.login_as_om()
+        cases = [
+            ('Inspection', 'Type of Property', 'Residential', 'Residential Updated'),
+            ('Service Report Submission', 'Levels of Infestation', 'Low', 'Low Updated'),
+            ('Payment Proof Submission', 'Payment Type', 'Bank Transfer', 'Bank Transfer Updated'),
+        ]
+
+        for form_section, field_name, original_value, updated_value in cases:
+            with self.subTest(form_section=form_section, field_name=field_name):
+                option, _ = ServiceFormOption.objects.update_or_create(
+                    form_section=form_section,
+                    field_name=field_name,
+                    option_value=original_value,
+                    defaults={'is_active': True},
+                )
+
+                response = self.client.post(reverse('om_service_forms') + f'?section={form_section}', {
+                    'action': 'update',
+                    'option_id': str(option.id),
+                    'form_section': form_section,
+                    'field_name': field_name,
+                    'option_value': updated_value,
+                    'option_description': 'Updated',
+                    'option_rate': '',
+                    'is_active': 'on',
+                })
+
+                self.assertEqual(response.status_code, 302)
+                self.assertIn('section=', response.url)
+                self.assertIn('field_filter=', response.url)
+                option.refresh_from_db()
+                self.assertEqual(option.option_value, updated_value)
+                self.assertFalse(ServiceFormOption.objects.filter(
+                    form_section=form_section,
+                    field_name=field_name,
+                    option_value=original_value,
+                ).exclude(id=option.id).exists())
+
+
+class FinalEndToEndRundownTests(LogicProtocolTestCase):
+    def assert_page_ok(self, url):
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200, msg=f'{url} returned {response.status_code}')
+        return response
+
+    def test_public_and_role_major_routes_render(self):
+        for url in [reverse('home'), reverse('login'), reverse('signup')]:
+            with self.subTest(role='public', url=url):
+                self.assert_page_ok(url)
+
+        self.client.cookies.clear()
+        self.login_as_customer()
+        for url in [
+            reverse('home'),
+            reverse('profile'),
+            reverse('edit_profile'),
+            reverse('change_password'),
+            reverse('property_list'),
+            reverse('register_property'),
+            reverse('book_inspection'),
+            reverse('service_status'),
+            reverse('customer_view_booking', args=[self.service.id]),
+            reverse('customer_view_estimated_bill', args=[self.service.id]),
+            reverse('customer_view_invoice', args=[self.pending_payment_service.id]),
+        ]:
+            with self.subTest(role='customer', url=url):
+                self.assert_page_ok(url)
+
+        service_status_response = self.client.get(reverse('service_status'))
+        self.assertNotContains(service_status_response, 'Book an Inspection')
+
+        self.client.cookies.clear()
+        self.login_as_om()
+        for url in [
+            reverse('om_home'),
+            reverse('om_profile'),
+            reverse('om_change_password'),
+            reverse('om_service_history'),
+            reverse('om_service_status'),
+            reverse('om_billing'),
+            reverse('om_estimated_bills'),
+            reverse('om_view_estimated_bill', args=[self.estimated_bill.id]),
+            reverse('om_invoices'),
+            reverse('om_view_invoice', args=[self.invoice.id]),
+            reverse('om_service_reports'),
+            reverse('om_view_service_report', args=[self.report.id]),
+            reverse('om_remittance_records'),
+            reverse('om_manage_service_forms'),
+            reverse('om_service_forms'),
+            reverse('om_chemicals'),
+            reverse('om_service_items'),
+            reverse('om_manage_accounts'),
+            reverse('om_manage_technician_accounts'),
+            reverse('om_manage_sales_accounts'),
+            reverse('om_manage_customer_accounts'),
+        ]:
+            with self.subTest(role='om', url=url):
+                self.assert_page_ok(url)
+
+        invoice_items_response = self.client.get(reverse('om_invoice_items'))
+        self.assertRedirects(invoice_items_response, reverse('om_service_items'))
+
+        self.client.cookies.clear()
+        self.login_as_technician()
+        for url in [
+            reverse('technician_home'),
+            reverse('technician_profile'),
+            reverse('technician_service_status'),
+            reverse('technician_service_history'),
+            reverse('technician_service_reports'),
+            reverse('technician_view_service_report', args=[self.report.id]),
+            reverse('technician_view_booking', args=[self.for_treatment_service.id]),
+        ]:
+            with self.subTest(role='technician', url=url):
+                self.assert_page_ok(url)
+
+        self.client.cookies.clear()
+        self.login_as_sales()
+        for url in [
+            reverse('sales_representative_home'),
+            reverse('sales_representative_profile'),
+            reverse('sales_representative_service_history'),
+            reverse('sales_representative_service_status'),
+            reverse('sales_representative_payment_proofs'),
+            reverse('sales_representative_review_payment_proof', args=[self.payment_proof.id]),
+            reverse('sales_representative_remittance_records'),
+            reverse('sales_representative_view_invoice', args=[self.invoice.id]),
+        ]:
+            with self.subTest(role='sales', url=url):
+                self.assert_page_ok(url)
+
+    def test_navigation_is_role_correct_on_desktop_and_mobile_markup(self):
+        expectations = [
+            (self.login_as_customer, reverse('home'), ['Manage Properties', 'Service Status', 'Profile'], ['Manage Accounts', 'Proof of Payment']),
+            (self.login_as_om, reverse('om_home'), ['Service Configurations', 'Manage Accounts', 'Profile'], ['Book Inspection', 'Proof of Payment']),
+            (self.login_as_technician, reverse('technician_home'), ['Service Reports', 'Profile'], ['Manage Accounts', 'Proof of Payment']),
+            (self.login_as_sales, reverse('sales_representative_home'), ['Proof of Payment', 'Profile'], ['Manage Accounts', 'Book Inspection']),
+        ]
+
+        for login_helper, url, included, excluded in expectations:
+            with self.subTest(role=login_helper.__name__):
+                self.client.cookies.clear()
+                login_helper()
+                response = self.assert_page_ok(url)
+                body = response.content.decode()
+
+                for label in included:
+                    self.assertIn(label, body)
+                for label in excluded:
+                    self.assertNotIn(label, body)
+
+                drawer_content_index = body.index('<div class="mobile-drawer-content">')
+                profile_index = body.index('mobile-drawer-account-title">Profile', drawer_content_index)
+                links_index = body.index('mobile-drawer-links', drawer_content_index)
+                self.assertLess(profile_index, links_index)
+
+        self.client.cookies.clear()
+        public_response = self.assert_page_ok(reverse('home'))
+        public_body = public_response.content.decode()
+        self.assertIn('Login', public_body)
+        self.assertIn('Sign Up', public_body)
+        self.assertNotIn('mobile-drawer-account-title">Profile', public_body)
+
+    def test_final_ui_contracts_for_modals_tables_statuses_and_back_buttons(self):
+        template_dir = Path(settings.BASE_DIR) / 'sangapp' / 'templates'
+        template_text = '\n'.join(path.read_text() for path in template_dir.glob('*.html'))
+        base_text = (template_dir / 'base.html').read_text()
+        service_forms_text = (template_dir / 'om_service_forms.html').read_text()
+        chemicals_text = (template_dir / 'om_chemicals.html').read_text()
+        service_items_text = (template_dir / 'om_invoice_items.html').read_text()
+
+        self.assertNotIn('<- Back', template_text)
+        self.assertNotIn('← Back', template_text)
+        self.assertIn('justify-content: center', base_text)
+        self.assertIn('.modal-btn-danger', base_text)
+        self.assertIn('#d9534f', base_text)
+        self.assertIn('.modal-btn-cancel', base_text)
+        self.assertIn('overflow-x: auto', base_text)
+        self.assertIn('.mobile-nav-drawer', base_text)
+        self.assertIn('status-for-confirmation', base_text)
+        self.assertIn('white-space: normal', base_text)
+        self.assertNotIn('Service Done', service_forms_text)
+        self.assertIn('Manage chemicals in Chemicals page', service_forms_text)
+        self.assertNotIn('<th>#</th>', chemicals_text)
+        self.assertNotIn('<th>#</th>', service_items_text)
+
+    def test_final_database_relationships_and_crud_behavior(self):
+        customer = Customer.objects.create(
+            first_name='Final',
+            last_name='Customer',
+            email='final@example.com',
+            phone_number='09111112222',
+            password='secret123',
+        )
+        property_obj = Property.objects.create(
+            customer=customer,
+            property_name='Final Property',
+            street_number='10',
+            street='Final Street',
+            city='Quezon City',
+            province='Metro Manila',
+            zip_code='1100',
+            property_type='Residential',
+            floor_area=Decimal('50.00'),
+        )
+        service = self._create_service(customer, property_obj, 'Pending Payment')
+        invoice = Invoice.objects.create(service=service, operations_manager=self.om)
+        InvoiceItem.objects.create(
+            invoice=invoice,
+            item_type='Termite Control',
+            quantity=1,
+            unit_price=Decimal('3000.00'),
+        )
+        proof = PaymentProof.objects.create(
+            service=service,
+            invoice=invoice,
+            customer=customer,
+            payment_type='Bank Transfer',
+            bank_used='BPI',
+            account_number='1234567890',
+            reference_number='FINAL-REF',
+            amount_paid=Decimal('3000.00'),
+            proof_file=SimpleUploadedFile('final.pdf', b'%PDF-1.4\nfinal', content_type='application/pdf'),
+        )
+        remittance, created = RemittanceRecord.objects.get_or_create(
+            payment_proof=proof,
+            defaults={'service': service, 'invoice': invoice, 'confirmed_by': self.sales},
+        )
+
+        self.assertTrue(created)
+        self.assertEqual(service.customer, customer)
+        self.assertEqual(service.property, property_obj)
+        self.assertEqual(invoice.service, service)
+        self.assertEqual(proof.customer, customer)
+        self.assertEqual(remittance.invoice, invoice)
+
+        property_obj.property_name = 'Final Property Updated'
+        property_obj.save(update_fields=['property_name'])
+        self.assertEqual(Property.objects.filter(customer=customer).count(), 1)
+
+        invoice.delete()
+        service.refresh_from_db()
+        self.assertFalse(Invoice.objects.filter(id=invoice.id).exists())
+        self.assertTrue(Service.objects.filter(id=service.id).exists())
