@@ -23,6 +23,7 @@ from sangapp.models import (
     SalesRepresentative,
     Service,
     ServiceFormOption,
+    ServiceReport,
     Technician,
 )
 
@@ -146,6 +147,14 @@ class LogicProtocolTestCase(TestCase):
             amount_paid=Decimal('3000.00'),
             proof_file=SimpleUploadedFile('proof.pdf', b'proof', content_type='application/pdf'),
         )
+        cls.report = ServiceReport.objects.create(
+            service=cls.for_treatment_service,
+            technician=cls.technician,
+        )
+        cls.other_report = ServiceReport.objects.create(
+            service=cls.other_service,
+            technician=None,
+        )
 
     @classmethod
     def _create_service(cls, customer, property_obj, status):
@@ -209,20 +218,89 @@ class AuthenticationAndAuthorizationTests(LogicProtocolTestCase):
 
     def test_each_role_is_blocked_from_other_role_home_routes(self):
         role_sessions = [
-            (self.login_as_customer, [reverse('om_home'), reverse('technician_home'), reverse('sales_representative_home')]),
-            (self.login_as_technician, [reverse('profile'), reverse('om_home'), reverse('sales_representative_home')]),
-            (self.login_as_sales, [reverse('profile'), reverse('om_home'), reverse('technician_home')]),
-            (self.login_as_om, [reverse('profile'), reverse('technician_home'), reverse('sales_representative_home')]),
+            (self.login_as_customer, reverse('home'), [reverse('om_home'), reverse('technician_home'), reverse('sales_representative_home')]),
+            (self.login_as_technician, reverse('technician_home'), [reverse('profile'), reverse('om_home'), reverse('sales_representative_home')]),
+            (self.login_as_sales, reverse('sales_representative_home'), [reverse('profile'), reverse('om_home'), reverse('technician_home')]),
+            (self.login_as_om, reverse('om_home'), [reverse('profile'), reverse('technician_home'), reverse('sales_representative_home')]),
         ]
 
-        for login_helper, blocked_urls in role_sessions:
-            self.client.session.flush()
+        for login_helper, expected_redirect, blocked_urls in role_sessions:
+            self.client.cookies.clear()
             login_helper()
             for url in blocked_urls:
                 with self.subTest(login_helper=login_helper.__name__, url=url):
                     response = self.client.get(url)
                     self.assertEqual(response.status_code, 302)
-                    self.assertEqual(response.url, reverse('login'))
+                    self.assertEqual(response.url, expected_redirect)
+
+    def test_direct_restricted_urls_are_blocked_for_every_role(self):
+        attempts = [
+            (self.login_as_customer, reverse('home'), [
+                reverse('om_service_status'),
+                reverse('technician_service_status'),
+                reverse('sales_representative_payment_proofs'),
+            ]),
+            (self.login_as_technician, reverse('technician_home'), [
+                reverse('property_list'),
+                reverse('om_service_status'),
+                reverse('sales_representative_payment_proofs'),
+            ]),
+            (self.login_as_sales, reverse('sales_representative_home'), [
+                reverse('property_list'),
+                reverse('technician_service_status'),
+                reverse('om_service_status'),
+            ]),
+            (self.login_as_om, reverse('om_home'), [
+                reverse('property_list'),
+                reverse('technician_service_status'),
+                reverse('sales_representative_payment_proofs'),
+            ]),
+        ]
+
+        for login_helper, expected_redirect, urls in attempts:
+            self.client.cookies.clear()
+            login_helper()
+            for url in urls:
+                with self.subTest(role=login_helper.__name__, url=url):
+                    response = self.client.get(url)
+                    self.assertEqual(response.status_code, 302)
+                    self.assertEqual(response.url, expected_redirect)
+
+    def test_json_restricted_requests_return_401_or_403(self):
+        unauthenticated_response = self.client.get(
+            reverse('om_home'),
+            HTTP_ACCEPT='application/json',
+        )
+        self.assertEqual(unauthenticated_response.status_code, 401)
+
+        self.login_as_customer()
+        forbidden_response = self.client.get(
+            reverse('technician_home'),
+            HTTP_ACCEPT='application/json',
+        )
+        self.assertEqual(forbidden_response.status_code, 403)
+
+    def test_protected_pages_are_not_cached_after_logout(self):
+        self.login_as_customer()
+
+        response = self.client.get(reverse('profile'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('no-store', response.headers['Cache-Control'])
+
+        self.client.get(reverse('logout'))
+        after_logout_response = self.client.get(reverse('profile'))
+        self.assertRedirects(after_logout_response, reverse('login'))
+
+    def test_invalid_session_redirects_to_login(self):
+        session = self.client.session
+        session['customer_id'] = 999999
+        session.save()
+
+        response = self.client.get(reverse('profile'))
+
+        self.assertRedirects(response, reverse('login'))
+        self.assertNotIn('customer_id', self.client.session)
 
     def test_valid_login_redirects_to_correct_role_home(self):
         credentials = [
@@ -234,7 +312,7 @@ class AuthenticationAndAuthorizationTests(LogicProtocolTestCase):
 
         for email, password, expected_url, session_key in credentials:
             with self.subTest(email=email):
-                self.client.session.flush()
+                self.client.cookies.clear()
                 response = self.client.post(reverse('login'), {'email': email, 'password': password})
             self.assertRedirects(response, expected_url)
             self.assertIn(session_key, self.client.session)
@@ -332,9 +410,19 @@ class CustomerFlowAndValidationTests(LogicProtocolTestCase):
 
         edit_response = self.client.get(reverse('edit_property', args=[self.other_property.id]))
         booking_response = self.client.get(reverse('customer_view_booking', args=[self.other_service.id]))
+        invoice_response = self.client.get(reverse('customer_view_invoice', args=[self.pending_payment_service.id + 9999]))
+        proof_response = self.client.get(reverse('payment_proof_file', args=[self.payment_proof.id]))
 
         self.assertRedirects(edit_response, reverse('property_list'))
         self.assertRedirects(booking_response, reverse('service_status'))
+        self.assertEqual(invoice_response.status_code, 302)
+        self.assertEqual(invoice_response.url, reverse('pending_payment'))
+        self.assertEqual(proof_response.status_code, 200)
+
+        self.client.session.flush()
+        self.login_as_customer(self.other_customer)
+        other_customer_proof_response = self.client.get(reverse('payment_proof_file', args=[self.payment_proof.id]))
+        self.assertRedirects(other_customer_proof_response, reverse('login'))
 
     def test_book_inspection_rejects_invalid_post_without_creating_service(self):
         self.login_as_customer()
@@ -419,6 +507,17 @@ class StatusPaymentAndDatabaseTests(LogicProtocolTestCase):
         self.assertRedirects(valid_response, reverse('technician_service_status'))
         self.for_inspection_service.refresh_from_db()
         self.assertEqual(self.for_inspection_service.status, 'Ongoing Inspection')
+
+    def test_technician_cannot_access_completed_services_or_other_reports_by_id(self):
+        self.login_as_technician()
+        self.other_service.status = 'Completed'
+        self.other_service.save(update_fields=['status'])
+
+        booking_response = self.client.get(reverse('technician_view_booking', args=[self.other_service.id]))
+        report_response = self.client.get(reverse('technician_view_service_report', args=[self.other_report.id]))
+
+        self.assertRedirects(booking_response, reverse('technician_service_status'))
+        self.assertRedirects(report_response, reverse('technician_service_reports'))
 
     def test_sales_validation_updates_payment_proof_service_and_remittance_once(self):
         self.login_as_sales()

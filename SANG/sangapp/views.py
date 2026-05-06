@@ -447,6 +447,14 @@ def _get_treatment_service_names():
     )
     return set(name.strip().lower() for name in names if name)
 
+
+def _technician_service_queryset():
+    return Service.objects.exclude(status__in=['Completed', 'Cancelled'])
+
+
+def _technician_report_queryset(technician):
+    return ServiceReport.objects.filter(technician=technician)
+
 def home(request):
     """Public home page."""
     if request.session.get('om_id'):
@@ -4044,9 +4052,7 @@ def technician_service_status(request):
         for position, status_value in enumerate(OM_STATUS_WORKFLOW)
     ]
 
-    services = Service.objects.exclude(
-        status__in=['Completed', 'Cancelled']
-    ).select_related('customer', 'property', 'service_report').annotate(
+    services = _technician_service_queryset().select_related('customer', 'property', 'service_report').annotate(
         workflow_order=Case(
             *status_order_cases,
             default=len(OM_STATUS_WORKFLOW),
@@ -4073,7 +4079,7 @@ def technician_view_booking(request, service_id):
         request.session.flush()
         return redirect('login')
 
-    service = Service.objects.select_related('customer', 'property').filter(id=service_id).first()
+    service = _technician_service_queryset().select_related('customer', 'property').filter(id=service_id).first()
     if not service:
         messages.error(request, 'Service record not found.')
         return redirect('technician_service_status')
@@ -4099,9 +4105,9 @@ def technician_view_estimated_bill(request, estimated_bill_id):
     estimated_bill = EstimatedBill.objects.select_related(
         'service__customer', 'service__property', 'operations_manager'
     ).prefetch_related('items').filter(
-        id=estimated_bill_id
+        id=estimated_bill_id,
     ).exclude(
-        service__status='Completed'
+        service__status__in=['Completed', 'Cancelled']
     ).first()
 
     if not estimated_bill:
@@ -4140,7 +4146,7 @@ def technician_update_service_status(request, service_id):
         return redirect('login')
 
     try:
-        service = Service.objects.select_related('customer').get(id=service_id)
+        service = _technician_service_queryset().select_related('customer').get(id=service_id)
     except Service.DoesNotExist:
         messages.error(request, 'Service record not found.')
         return redirect('technician_service_status')
@@ -4200,7 +4206,7 @@ def technician_edit_booking(request, service_id):
         return redirect('login')
 
     try:
-        service = Service.objects.select_related('customer', 'property').get(id=service_id)
+        service = _technician_service_queryset().select_related('customer', 'property').get(id=service_id)
     except Service.DoesNotExist:
         messages.error(request, 'Service record not found.')
         return redirect('technician_service_status')
@@ -4357,7 +4363,7 @@ def technician_delete_booking(request, service_id):
         return redirect('technician_service_status')
 
     try:
-        service = Service.objects.get(id=service_id)
+        service = _technician_service_queryset().get(id=service_id)
     except Service.DoesNotExist:
         messages.error(request, 'Service record not found.')
         return redirect('technician_service_status')
@@ -4407,7 +4413,7 @@ def technician_service_reports(request):
 
     search = request.GET.get('q', '').strip()
 
-    reports = ServiceReport.objects.select_related(
+    reports = _technician_report_queryset(technician).select_related(
         'service__customer', 'service__property'
     ).exclude(
         service__status__in=['Payment Confirmed', 'Completed', 'Cancelled']
@@ -4795,7 +4801,9 @@ def technician_view_service_report(request, report_id):
     if 'technician_id' not in request.session:
         return redirect('login')
 
-    report = ServiceReport.objects.select_related(
+    report = _technician_report_queryset(
+        Technician.objects.get(id=request.session['technician_id'])
+    ).select_related(
         'service__customer', 'service__property', 'technician'
     ).prefetch_related('chemicals', 'treated_areas').filter(id=report_id).first()
 
@@ -4820,9 +4828,19 @@ def edit_service_report(request, report_id):
     if 'technician_id' not in request.session and 'om_id' not in request.session:
         return redirect('login')
 
-    report = ServiceReport.objects.select_related(
+    technician = None
+    if request.session.get('technician_id'):
+        technician = Technician.objects.filter(id=request.session['technician_id']).first()
+        if not technician:
+            request.session.flush()
+            return redirect('login')
+
+    report_queryset = ServiceReport.objects.select_related(
         'service__customer', 'service__property'
-    ).prefetch_related('chemicals', 'treated_areas').filter(id=report_id).first()
+    ).prefetch_related('chemicals', 'treated_areas')
+    if technician:
+        report_queryset = report_queryset.filter(technician=technician)
+    report = report_queryset.filter(id=report_id).first()
 
     _ensure_service_form_default_options()
     infestation_choices = _get_active_service_form_option_values(
@@ -4956,7 +4974,17 @@ def delete_service_report(request, report_id):
     if request.method != 'POST':
         return redirect(_service_report_redirect_name(request))
 
-    report = ServiceReport.objects.select_related('service').filter(id=report_id).first()
+    technician = None
+    if request.session.get('technician_id'):
+        technician = Technician.objects.filter(id=request.session['technician_id']).first()
+        if not technician:
+            request.session.flush()
+            return redirect('login')
+
+    report_queryset = ServiceReport.objects.select_related('service')
+    if technician:
+        report_queryset = report_queryset.filter(technician=technician)
+    report = report_queryset.filter(id=report_id).first()
     if not report:
         messages.error(request, 'Service report not found.')
         return redirect(_service_report_redirect_name(request))
